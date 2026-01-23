@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+:root {
+  /* Primary Colors */
+  --teal: #339999;
+  --aquamarine: #4eb99f;
+  --dark-teal: #256069;
+  --peacock-blue: #102f41;
+
+  /* Accents */
+  --blood-orange: #ec563b;
+  --gold: #fadb68;
+
+  /* Neutrals */
+  --cream: #fce8cd;
+
+  /* Semantic Tokens */
+  --background: var(--cream);
+  --foreground: var(--peacock-blue);
+  --panel-bg: var(--peacock-blue);
+  --panel-border: var(--teal);
+  --accent: var(--blood-orange);
+  --accent-secondary: var(--gold);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-teal: var(--teal);
+  --color-aquamarine: var(--aquamarine);
+  --color-dark-teal: var(--dark-teal);
+  --color-peacock-blue: var(--peacock-blue);
+  --color-blood-orange: var(--blood-orange);
+  --color-gold: var(--gold);
+  --color-cream: var(--cream);
+  --color-panel-bg: var(--panel-bg);
+  --color-panel-border: var(--panel-border);
+  --color-accent: var(--accent);
+  --color-accent-secondary: var(--accent-secondary);
+  --font-sans: var(--font-fk-grotesk);
+  --font-display: var(--font-fk-grotesk-black);
+  --font-retro: var(--font-8bit-darling);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-fk-grotesk), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  antialiased: true;
+}
