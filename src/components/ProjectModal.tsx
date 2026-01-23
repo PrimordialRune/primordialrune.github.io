@@ -154,14 +154,14 @@ export default function ProjectModal({ project, onClose, isDiscoverMode = false 
           )}
         </AnimatePresence>
 
-        {/* Modal Content with 3D tilt effect */}
+        {/* Modal Content with enhanced 3D tilt effect */}
         <motion.div
           ref={modalRef}
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          initial={{ opacity: 0, scale: 0.9, y: 20, rotateX: 5 }}
           animate={{
             opacity: 1,
             scale: 1,
-            y: 0,
+            y: isHovered ? -4 : 0,  // Slight lift on hover
             rotateX: tiltX,
             rotateY: tiltY,
           }}
@@ -172,6 +172,7 @@ export default function ProjectModal({ project, onClose, isDiscoverMode = false 
             stiffness: 300,
             rotateX: { type: "spring", stiffness: 400, damping: 30 },
             rotateY: { type: "spring", stiffness: 400, damping: 30 },
+            y: { type: "spring", stiffness: 300, damping: 25 },
           }}
           onMouseMove={handleMouseMove}
           onMouseEnter={handleMouseEnter}
@@ -182,23 +183,56 @@ export default function ProjectModal({ project, onClose, isDiscoverMode = false 
           style={{
             border: `4px solid ${isDiscoverMode ? "var(--gold)" : "var(--teal)"}`,
             transformStyle: "preserve-3d",
-            perspective: "1000px",
-            boxShadow: isDiscoverMode
-              ? `
-                inset 4px 4px 8px rgba(0, 0, 0, 0.2),
-                inset -4px -4px 8px rgba(255, 255, 255, 0.1),
-                0 0 0 2px var(--gold),
-                0 0 30px rgba(250, 219, 104, 0.3),
-                0 12px 40px rgba(0, 0, 0, 0.5)
-              `
-              : `
-                inset 4px 4px 8px rgba(0, 0, 0, 0.3),
-                inset -4px -4px 8px rgba(255, 255, 255, 0.05),
-                0 0 0 2px var(--teal),
-                0 12px 40px rgba(0, 0, 0, 0.5)
-            `,
+            perspective: "1200px",
+            boxShadow: isHovered
+              ? isDiscoverMode
+                ? `
+                  inset 6px 6px 12px rgba(0, 0, 0, 0.25),
+                  inset -6px -6px 12px rgba(255, 255, 255, 0.12),
+                  0 0 0 3px var(--gold),
+                  0 0 50px rgba(250, 219, 104, 0.4),
+                  0 25px 60px rgba(0, 0, 0, 0.6),
+                  0 8px 20px rgba(250, 219, 104, 0.2)
+                `
+                : `
+                  inset 6px 6px 12px rgba(0, 0, 0, 0.35),
+                  inset -6px -6px 12px rgba(255, 255, 255, 0.08),
+                  0 0 0 3px var(--teal),
+                  0 0 40px rgba(51, 153, 153, 0.3),
+                  0 25px 60px rgba(0, 0, 0, 0.6),
+                  0 8px 20px rgba(51, 153, 153, 0.15)
+                `
+              : isDiscoverMode
+                ? `
+                  inset 4px 4px 8px rgba(0, 0, 0, 0.2),
+                  inset -4px -4px 8px rgba(255, 255, 255, 0.1),
+                  0 0 0 2px var(--gold),
+                  0 0 30px rgba(250, 219, 104, 0.3),
+                  0 12px 40px rgba(0, 0, 0, 0.5)
+                `
+                : `
+                  inset 4px 4px 8px rgba(0, 0, 0, 0.3),
+                  inset -4px -4px 8px rgba(255, 255, 255, 0.05),
+                  0 0 0 2px var(--teal),
+                  0 12px 40px rgba(0, 0, 0, 0.5)
+              `,
           }}
         >
+          {/* 3D highlight edge effect */}
+          <div 
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: isHovered 
+                ? `linear-gradient(${135 + (mousePosition.x - 0.5) * 30}deg, 
+                    rgba(255, 255, 255, 0.15) 0%, 
+                    transparent 40%, 
+                    transparent 60%, 
+                    rgba(0, 0, 0, 0.1) 100%)`
+                : 'none',
+              borderRadius: 'inherit',
+            }}
+          />
+          
           {/* Close Button */}
           <button
             onClick={onClose}
@@ -233,18 +267,7 @@ export default function ProjectModal({ project, onClose, isDiscoverMode = false 
             {/* Header */}
             <div className="mb-4 sm:mb-6">
               <div className="flex items-start gap-2 sm:gap-4 mb-2 sm:mb-3 pr-10 sm:pr-12 md:pr-14">
-                {/* Year badge - now on the left */}
-                <span
-                  className={`px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 rounded-lg sm:rounded-xl font-black text-sm sm:text-base md:text-lg flex-shrink-0 mt-1 ${
-                    isDiscoverMode
-                      ? "bg-gold text-peacock-blue"
-                      : "bg-blood-orange text-cream"
-                  }`}
-                  style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
-                >
-                  {project.year}
-                </span>
-                <div>
+                <div className="flex-1">
                   <h2
                     className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-cream mb-1 sm:mb-2"
                     style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
@@ -263,6 +286,17 @@ export default function ProjectModal({ project, onClose, isDiscoverMode = false 
                     </p>
                   )}
                 </div>
+                {/* Year badge - now on the right after title */}
+                <span
+                  className={`px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 rounded-lg sm:rounded-xl font-black text-sm sm:text-base md:text-lg flex-shrink-0 mt-1 ${
+                    isDiscoverMode
+                      ? "bg-gold text-peacock-blue"
+                      : "bg-blood-orange text-cream"
+                  }`}
+                  style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
+                >
+                  {project.year}
+                </span>
               </div>
 
               {/* Meta Info */}

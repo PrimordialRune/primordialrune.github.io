@@ -534,6 +534,7 @@ export default function Home() {
                     <ProjectGrid
                       projects={projects}
                       onProjectClick={handleProjectClick}
+                      navOpen={navOpen}
                     />
                   )}
 
