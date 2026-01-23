@@ -15,11 +15,15 @@ function seededRandom(seed: number) {
   return x - Math.floor(x);
 }
 
-// Calculate size variation based on importance (1-5 scale, ±10-20 pixels)
+// Calculate size variation based on importance (1-5 scale) with 3 proportioned tiers
+// Small (1-2): 0.7x base, Medium (3): 1.0x base, Large (4-5): 1.3x base
 function getSizeVariation(importance: number = 3, baseSize: number): number {
-  // importance 1 = smallest (-20px), importance 5 = largest (+20px)
-  const variation = ((importance - 3) / 2) * 20; // -20 to +20 range
-  return baseSize + variation;
+  if (importance <= 2) {
+    return baseSize * 0.7; // Small tier
+  } else if (importance >= 4) {
+    return baseSize * 1.3; // Large tier
+  }
+  return baseSize; // Medium tier (importance 3)
 }
 
 // Calculate optimal grid layout based on container size and number of projects
@@ -141,29 +145,49 @@ export default function FloatingProjects({
   );
 
   // Calculate initial position for each project with randomization
+  // Spawns projects across the full content panel area
   const getInitialPosition = useCallback((index: number, _slug: string) => {
     if (layout.cols === 0) return { x: 50, y: 50 };
     
     const row = Math.floor(index / layout.cols);
     const col = index % layout.cols;
     
-    // Calculate spacing
+    // Use 95% of available space for spawning
+    const usableWidth = dimensions.width * 0.95;
+    const usableHeight = dimensions.height * 0.95;
+    
+    // Calculate spacing based on usable area
     const totalGridWidth = layout.cols * layout.cardWidth;
     const totalGridHeight = layout.rows * layout.cardHeight;
     
-    const horizontalPadding = (dimensions.width - totalGridWidth) / 2;
-    const verticalPadding = (dimensions.height - totalGridHeight) / 2;
+    // Scale to fill the usable area better
+    const scaleX = Math.min(1.2, usableWidth / totalGridWidth);
+    const scaleY = Math.min(1.2, usableHeight / totalGridHeight);
     
-    // Add random offset using seeded random for consistent but random positions (±15% of card size)
+    const scaledGridWidth = totalGridWidth * scaleX;
+    const scaledGridHeight = totalGridHeight * scaleY;
+    
+    const horizontalPadding = (dimensions.width - scaledGridWidth) / 2;
+    const verticalPadding = (dimensions.height - scaledGridHeight) / 2;
+    
+    // Add random offset using seeded random for consistent but random positions (±20% of card size)
     const seed1 = randomSeed + index * 137.508;
     const seed2 = randomSeed + index * 247.123;
-    const randomOffsetX = (seededRandom(seed1) - 0.5) * 0.3 * layout.cardWidth;
-    const randomOffsetY = (seededRandom(seed2) - 0.5) * 0.3 * layout.cardHeight;
+    const randomOffsetX = (seededRandom(seed1) - 0.5) * 0.4 * layout.cardWidth * scaleX;
+    const randomOffsetY = (seededRandom(seed2) - 0.5) * 0.4 * layout.cardHeight * scaleY;
     
-    const x = horizontalPadding + col * layout.cardWidth + layout.cardWidth / 2 + randomOffsetX;
-    const y = verticalPadding + row * layout.cardHeight + layout.cardHeight / 2 + randomOffsetY;
+    const cellWidth = scaledGridWidth / layout.cols;
+    const cellHeight = scaledGridHeight / layout.rows;
     
-    return { x, y };
+    const x = horizontalPadding + col * cellWidth + cellWidth / 2 + randomOffsetX;
+    const y = verticalPadding + row * cellHeight + cellHeight / 2 + randomOffsetY;
+    
+    // Ensure within bounds
+    const padding = 60;
+    const clampedX = Math.max(padding, Math.min(dimensions.width - padding, x));
+    const clampedY = Math.max(padding, Math.min(dimensions.height - padding, y));
+    
+    return { x: clampedX, y: clampedY };
   }, [layout, dimensions, randomSeed]);
 
   // Get current position (either from saved positions or calculate initial)
@@ -175,26 +199,79 @@ export default function FloatingProjects({
     return getInitialPosition(index, slug);
   }, [projectPositions, getInitialPosition]);
 
-  // Handle drag end - save new position
-  const handleDragEnd = useCallback((slug: string, info: PanInfo, index: number) => {
-    const initialPos = getInitialPosition(index, slug);
-    const newX = initialPos.x + info.offset.x;
-    const newY = initialPos.y + info.offset.y;
+  // Check if two projects overlap
+  const checkCollision = useCallback((pos1: { x: number; y: number }, pos2: { x: number; y: number }, minDistance: number) => {
+    const dx = pos1.x - pos2.x;
+    const dy = pos1.y - pos2.y;
+    return Math.sqrt(dx * dx + dy * dy) < minDistance;
+  }, []);
+
+  // Push overlapping projects away from the dropped project
+  const resolveCollisions = useCallback((
+    droppedSlug: string,
+    droppedPos: { x: number; y: number },
+    currentPositions: Map<string, { x: number; y: number }>
+  ) => {
+    const minDistance = layout.cardWidth * 1.2; // Minimum distance between projects
+    const padding = 60;
+    const newPositions = new Map(currentPositions);
     
-    // Clamp position to container bounds
-    const padding = 40;
+    projects.forEach((project, index) => {
+      if (project.slug === droppedSlug) return;
+      
+      const pos = newPositions.get(project.slug) || getInitialPosition(index, project.slug);
+      
+      if (checkCollision(droppedPos, pos, minDistance)) {
+        // Calculate push direction
+        let dx = pos.x - droppedPos.x;
+        let dy = pos.y - droppedPos.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        // Normalize and scale
+        if (dist > 0) {
+          dx = (dx / dist) * (minDistance - dist + 20);
+          dy = (dy / dist) * (minDistance - dist + 20);
+        } else {
+          // If exactly on top, push in random direction
+          dx = (Math.random() - 0.5) * minDistance;
+          dy = (Math.random() - 0.5) * minDistance;
+        }
+        
+        // Calculate new position with bounds clamping
+        const newX = Math.max(padding, Math.min(dimensions.width - padding, pos.x + dx));
+        const newY = Math.max(padding, Math.min(dimensions.height - padding, pos.y + dy));
+        
+        newPositions.set(project.slug, { x: newX, y: newY });
+      }
+    });
+    
+    return newPositions;
+  }, [projects, layout.cardWidth, dimensions, getInitialPosition, checkCollision]);
+
+  // Handle drag end - save new position and resolve collisions
+  const handleDragEnd = useCallback((slug: string, info: PanInfo, index: number) => {
+    // Get the current position (either saved or initial)
+    const currentPos = getPosition(index, slug);
+    const newX = currentPos.x + info.offset.x;
+    const newY = currentPos.y + info.offset.y;
+    
+    // Clamp position to container bounds with proper padding
+    const padding = 60; // Increased padding to prevent projects from going out of bounds
     const clampedX = Math.max(padding, Math.min(dimensions.width - padding, newX));
     const clampedY = Math.max(padding, Math.min(dimensions.height - padding, newY));
     
+    const droppedPos = { x: clampedX, y: clampedY };
+    
     setProjectPositions(prev => {
       const newMap = new Map(prev);
-      newMap.set(slug, { x: clampedX, y: clampedY });
-      return newMap;
+      newMap.set(slug, droppedPos);
+      // Resolve collisions with other projects
+      return resolveCollisions(slug, droppedPos, newMap);
     });
     
     setIsDragging(false);
     setDraggedIndex(null);
-  }, [getInitialPosition, dimensions]);
+  }, [getPosition, dimensions, resolveCollisions]);
 
   // Long press handlers
   const handlePointerDown = useCallback((index: number) => {

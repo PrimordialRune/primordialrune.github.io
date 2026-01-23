@@ -107,7 +107,7 @@ export default function Navigation({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => toggleNav(false)}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-20"
             style={{
               // Only cover the CRT panel area
               top: "var(--header-height, 4rem)",
