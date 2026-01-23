@@ -29,7 +29,7 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-8">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 md:p-8">
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -49,7 +49,7 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
             damping: 25,
             stiffness: 300,
           }}
-          className="relative w-full max-w-5xl max-h-[90vh] bg-peacock-blue rounded-3xl overflow-hidden border-4 border-teal"
+          className="relative w-full max-w-5xl max-h-[95vh] sm:max-h-[90vh] bg-peacock-blue rounded-xl sm:rounded-2xl md:rounded-3xl overflow-hidden border-2 sm:border-3 md:border-4 border-teal"
           style={{
             boxShadow: `
               inset 4px 4px 8px rgba(0, 0, 0, 0.3),
@@ -62,14 +62,13 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center bg-blood-orange/90 hover:bg-blood-orange rounded-xl text-cream font-black transition-all"
+            className="absolute top-2 sm:top-3 md:top-4 right-2 sm:right-3 md:right-4 z-10 w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 flex items-center justify-center bg-blood-orange/90 hover:bg-blood-orange rounded-lg sm:rounded-xl text-cream font-black transition-all"
             style={{
               boxShadow: "0 4px 12px rgba(236, 86, 59, 0.4)",
             }}
           >
             <svg
-              width="20"
-              height="20"
+              className="w-4 h-4 sm:w-5 sm:h-5"
               viewBox="0 0 20 20"
               fill="none"
               stroke="currentColor"
@@ -81,20 +80,20 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
           </button>
 
           {/* Scrollable Content */}
-          <div className="overflow-y-auto max-h-[90vh] p-8">
+          <div className="overflow-y-auto max-h-[95vh] sm:max-h-[90vh] p-4 sm:p-6 md:p-8">
             {/* Header */}
-            <div className="mb-6">
-              <div className="flex items-start justify-between gap-4 mb-3">
+            <div className="mb-4 sm:mb-6">
+              <div className="flex items-start justify-between gap-2 sm:gap-4 mb-2 sm:mb-3 pr-8 sm:pr-10">
                 <div>
                   <h2
-                    className="text-4xl font-black text-cream mb-2"
+                    className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-cream mb-1 sm:mb-2"
                     style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
                   >
                     {project.title}
                   </h2>
                   {project.titleJp && (
                     <p
-                      className="text-lg text-aquamarine/70 tracking-wider"
+                      className="text-sm sm:text-base md:text-lg text-aquamarine/70 tracking-wider"
                       style={{ fontFamily: "var(--font-8bit-darling)" }}
                     >
                       {project.titleJp}
@@ -102,7 +101,7 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
                   )}
                 </div>
                 <span
-                  className="px-4 py-2 bg-blood-orange rounded-xl text-cream font-black text-lg flex-shrink-0"
+                  className="px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 bg-blood-orange rounded-lg sm:rounded-xl text-cream font-black text-sm sm:text-base md:text-lg flex-shrink-0"
                   style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
                 >
                   {project.year}
@@ -110,28 +109,28 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
               </div>
 
               {/* Meta Info */}
-              <div className="flex flex-wrap gap-4 mb-6">
+              <div className="flex flex-wrap gap-2 sm:gap-4 mb-4 sm:mb-6">
                 <div>
                   <span
-                    className="text-xs text-aquamarine font-black block mb-1"
+                    className="text-[10px] sm:text-xs text-aquamarine font-black block mb-0.5 sm:mb-1"
                     style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
                   >
                     ROLE
                   </span>
-                  <span className="text-sm text-cream/80">{project.role}</span>
+                  <span className="text-xs sm:text-sm text-cream/80">{project.role}</span>
                 </div>
                 <div className="flex-1">
                   <span
-                    className="text-xs text-aquamarine font-black block mb-1"
+                    className="text-[10px] sm:text-xs text-aquamarine font-black block mb-0.5 sm:mb-1"
                     style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
                   >
                     TOOLS
                   </span>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1 sm:gap-2">
                     {project.tools.map((tool) => (
                       <span
                         key={tool}
-                        className="px-3 py-1 bg-dark-teal/60 rounded-lg text-xs text-cream/80 font-black"
+                        className="px-1.5 sm:px-2 md:px-3 py-0.5 sm:py-1 bg-dark-teal/60 rounded-md sm:rounded-lg text-[10px] sm:text-xs text-cream/80 font-black"
                         style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
                       >
                         {tool}
@@ -141,15 +140,15 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
                 </div>
               </div>
 
-              <p className="text-cream/70 leading-relaxed">
+              <p className="text-xs sm:text-sm md:text-base text-cream/70 leading-relaxed">
                 {project.shortDescription}
               </p>
             </div>
 
             {/* Image Gallery */}
             {project.images.length > 0 && (
-              <div className="mb-6">
-                <div className="relative aspect-video bg-dark-teal/40 rounded-2xl overflow-hidden border-2 border-teal/40">
+              <div className="mb-4 sm:mb-6">
+                <div className="relative aspect-video bg-dark-teal/40 rounded-lg sm:rounded-xl md:rounded-2xl overflow-hidden border-2 border-teal/40">
                   <img
                     src={project.images[currentImageIndex]}
                     alt={`${project.title} screenshot ${currentImageIndex + 1}`}
@@ -170,34 +169,30 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
                     <>
                       <button
                         onClick={prevImage}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center bg-blood-orange/80 hover:bg-blood-orange rounded-xl transition-all"
+                        className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center bg-blood-orange/80 hover:bg-blood-orange rounded-lg sm:rounded-xl transition-all"
                       >
                         <svg
-                          width="24"
-                          height="24"
+                          className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-cream"
                           viewBox="0 0 24 24"
                           fill="none"
                           stroke="currentColor"
                           strokeWidth="3"
                           strokeLinecap="round"
-                          className="text-cream"
                         >
                           <path d="M15 18l-6-6 6-6" />
                         </svg>
                       </button>
                       <button
                         onClick={nextImage}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center bg-blood-orange/80 hover:bg-blood-orange rounded-xl transition-all"
+                        className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center bg-blood-orange/80 hover:bg-blood-orange rounded-lg sm:rounded-xl transition-all"
                       >
                         <svg
-                          width="24"
-                          height="24"
+                          className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-cream"
                           viewBox="0 0 24 24"
                           fill="none"
                           stroke="currentColor"
                           strokeWidth="3"
                           strokeLinecap="round"
-                          className="text-cream"
                         >
                           <path d="M9 18l6-6-6-6" />
                         </svg>
@@ -207,7 +202,7 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
 
                   {/* Image counter */}
                   <div
-                    className="absolute bottom-4 right-4 px-3 py-1 bg-peacock-blue/80 backdrop-blur-sm rounded-lg text-cream text-sm font-black"
+                    className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 px-2 sm:px-3 py-0.5 sm:py-1 bg-peacock-blue/80 backdrop-blur-sm rounded-md sm:rounded-lg text-cream text-xs sm:text-sm font-black"
                     style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
                   >
                     {currentImageIndex + 1} / {project.images.length}
@@ -216,12 +211,12 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
 
                 {/* Thumbnail strip */}
                 {project.images.length > 1 && (
-                  <div className="flex gap-2 mt-3 overflow-x-auto pb-2">
+                  <div className="flex gap-1 sm:gap-2 mt-2 sm:mt-3 overflow-x-auto pb-2">
                     {project.images.map((img, index) => (
                       <button
                         key={index}
                         onClick={() => setCurrentImageIndex(index)}
-                        className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
+                        className={`flex-shrink-0 w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-md sm:rounded-lg overflow-hidden border-2 transition-all ${
                           index === currentImageIndex
                             ? "border-blood-orange scale-105"
                             : "border-teal/30 opacity-60 hover:opacity-100"
@@ -240,20 +235,20 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
             )}
 
             {/* Abstract/Detailed Description */}
-            <div className="mb-8">
+            <div className="mb-4 sm:mb-6 md:mb-8">
               <h3
-                className="text-lg font-black text-aquamarine mb-3"
+                className="text-sm sm:text-base md:text-lg font-black text-aquamarine mb-2 sm:mb-3"
                 style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
               >
                 ABOUT THIS PROJECT
               </h3>
-              <p className="text-cream/80 leading-relaxed">{project.abstract}</p>
+              <p className="text-xs sm:text-sm md:text-base text-cream/80 leading-relaxed">{project.abstract}</p>
             </div>
 
             {/* CTA Button */}
             <Link
               href={`/projects/${project.slug}`}
-              className="inline-flex items-center gap-3 px-6 py-4 bg-blood-orange hover:bg-blood-orange/80 rounded-xl text-cream font-black text-lg transition-all group"
+              className="inline-flex items-center gap-2 sm:gap-3 px-4 sm:px-5 md:px-6 py-2 sm:py-3 md:py-4 bg-blood-orange hover:bg-blood-orange/80 rounded-lg sm:rounded-xl text-cream font-black text-sm sm:text-base md:text-lg transition-all group"
               style={{
                 fontFamily: "var(--font-fk-grotesk-black)",
                 boxShadow: "0 8px 24px rgba(236, 86, 59, 0.4)",
@@ -261,14 +256,12 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
             >
               VIEW CASE STUDY
               <svg
-                width="20"
-                height="20"
+                className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform"
                 viewBox="0 0 20 20"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2.5"
                 strokeLinecap="round"
-                className="group-hover:translate-x-1 transition-transform"
               >
                 <path d="M7 4l6 6-6 6" />
               </svg>

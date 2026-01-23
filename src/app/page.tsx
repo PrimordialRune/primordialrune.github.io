@@ -9,11 +9,33 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Project } from "@/types/project";
 import { getProjectsByCategory, getFeaturedProjects } from "@/lib/projects";
 
+// Custom hook for responsive detection
+function useResponsive() {
+  const [isMobile, setIsMobile] = useState(false);
+  const [isLandscape, setIsLandscape] = useState(false);
+
+  useEffect(() => {
+    const checkResponsive = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      setIsMobile(width < 1024);
+      setIsLandscape(width > height);
+    };
+
+    checkResponsive();
+    window.addEventListener("resize", checkResponsive);
+    return () => window.removeEventListener("resize", checkResponsive);
+  }, []);
+
+  return { isMobile, isLandscape };
+}
+
 export default function Home() {
   const [navOpen, setNavOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>("hero");
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const { isMobile, isLandscape } = useResponsive();
 
   // Load projects when category changes
   useEffect(() => {
@@ -45,17 +67,15 @@ export default function Home() {
   return (
     <div className="relative min-h-screen bg-background overflow-hidden">
       {/* Top NES Stripe */}
-      <div className="fixed top-0 left-0 right-0 h-3 bg-blood-orange z-50" />
+      <div className="fixed top-0 left-0 right-0 h-[var(--stripe-height)] bg-blood-orange z-50" />
 
       {/* Header */}
-      <header className="fixed top-3 left-0 right-0 z-40 flex items-center justify-between px-6 py-3 bg-background/95 backdrop-blur-sm">
+      <header className="fixed top-[var(--stripe-height)] left-0 right-0 z-40 flex items-center justify-between px-3 sm:px-4 md:px-6 py-2 md:py-3 bg-background/95 backdrop-blur-sm">
         {/* Logo */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 md:gap-3">
           <svg
-            width="40"
-            height="40"
             viewBox="0 0 554.72 555"
-            className="flex-shrink-0"
+            className="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10"
           >
             <g>
               <path
@@ -70,15 +90,15 @@ export default function Home() {
               />
             </g>
           </svg>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 md:gap-2">
             <span
-              className="text-4xl font-black text-blood-orange italic leading-none"
+              className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-blood-orange italic leading-none"
               style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
             >
               PRIMORDIAL
             </span>
             <span
-              className="text-4xl font-black text-peacock-blue italic leading-none"
+              className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-peacock-blue italic leading-none"
               style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
             >
               RUNE
@@ -87,15 +107,15 @@ export default function Home() {
         </div>
 
         {/* Secondary Nav */}
-        <div className="flex gap-3">
+        <div className="hidden sm:flex gap-2 md:gap-3">
           <button
-            className="px-5 py-2 border-2 border-blood-orange text-blood-orange rounded-lg font-black text-sm hover:bg-blood-orange hover:text-cream transition-all"
+            className="px-3 md:px-5 py-1.5 md:py-2 border-2 border-blood-orange text-blood-orange rounded-lg font-black text-xs md:text-sm hover:bg-blood-orange hover:text-cream transition-all"
             style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
           >
             DISCOVER
           </button>
           <button
-            className="px-5 py-2 border-2 border-blood-orange text-blood-orange rounded-lg font-black text-sm hover:bg-blood-orange hover:text-cream transition-all"
+            className="px-3 md:px-5 py-1.5 md:py-2 border-2 border-blood-orange text-blood-orange rounded-lg font-black text-xs md:text-sm hover:bg-blood-orange hover:text-cream transition-all"
             style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
           >
             ABOUT ME
@@ -103,21 +123,26 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Navigation */}
-      <Navigation onOpenChange={setNavOpen} onCategoryChange={setActiveCategory} />
+      {/* Navigation - Pass responsive state */}
+      <Navigation 
+        onOpenChange={setNavOpen} 
+        onCategoryChange={setActiveCategory}
+        isMobile={isMobile}
+        isLandscape={isLandscape}
+      />
 
       {/* Main Content Area (CRT Panel) */}
-      <main className="fixed inset-0 pt-[5.5rem] pb-8 px-6 flex justify-center items-center">
+      <main className="fixed inset-0 pt-14 sm:pt-16 md:pt-[5rem] pb-4 sm:pb-6 md:pb-8 px-2 sm:px-4 md:px-6 flex justify-center items-center">
         <div className="relative w-full h-full">
           {/* CRT Display Panel with Embossing */}
           <div
-            className="relative w-full h-full bg-panel-bg rounded-3xl overflow-hidden"
+            className="relative w-full h-full bg-panel-bg rounded-xl sm:rounded-2xl md:rounded-3xl overflow-hidden"
             style={{
               boxShadow: `
-                inset 6px 6px 12px rgba(0, 0, 0, 0.2),
-                inset -6px -6px 12px rgba(255, 255, 255, 0.03),
-                0 0 0 6px transparent,
-                0 0 0 8px rgba(0, 0, 0, 0.2),
+                inset 4px 4px 8px rgba(0, 0, 0, 0.2),
+                inset -4px -4px 8px rgba(255, 255, 255, 0.03),
+                0 0 0 4px transparent,
+                0 0 0 6px rgba(0, 0, 0, 0.2),
                 0 0 0 10px rgba(0, 0, 0, 0.1),
                 0 8px 24px rgba(0, 0, 0, 0.3)
               `,
@@ -135,11 +160,11 @@ export default function Home() {
               />
             </div>
 
-            {/* Content - Shifts when nav is open */}
+            {/* Content - Shifts when nav is open on desktop, no shift on mobile (overlay) */}
             <motion.div
-              className="relative z-10 w-full h-full pl-[3rem]"
+              className="relative z-10 w-full h-full"
               animate={{
-                paddingLeft: navOpen ? "420px" : "3rem",
+                paddingLeft: !isMobile && navOpen ? "min(420px, 30vw)" : "clamp(1rem, 3vw, 3rem)",
               }}
               transition={{
                 type: "spring",
@@ -159,9 +184,9 @@ export default function Home() {
                 >
                   {/* Hero Section - TBD */}
                   {activeCategory === "hero" && (
-                    <div className="flex flex-col items-center justify-center h-full">
+                    <div className="flex flex-col items-center justify-center h-full px-4">
                       <h1
-                        className="text-9xl font-black text-cream mb-6 leading-none"
+                        className="text-4xl sm:text-6xl md:text-7xl lg:text-9xl font-black text-cream mb-4 md:mb-6 leading-none text-center"
                         style={{ fontFamily: "var(--font-8bit-darling)" }}
                       >
                         デザイン
@@ -176,7 +201,7 @@ export default function Home() {
                           }}
                         />
                         <p
-                          className="relative text-5xl font-black text-aquamarine tracking-[0.3em]"
+                          className="relative text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-aquamarine tracking-[0.2em] md:tracking-[0.3em]"
                           style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
                         >
                           DESIGN
@@ -208,7 +233,7 @@ export default function Home() {
 
             {/* Footer Signature */}
             <div
-              className="absolute bottom-8 right-10 text-aquamarine/40 text-lg tracking-wider z-20"
+              className="absolute bottom-4 sm:bottom-6 md:bottom-8 right-4 sm:right-6 md:right-10 text-aquamarine/40 text-sm md:text-lg tracking-wider z-20"
               style={{ fontFamily: "var(--font-8bit-darling)" }}
             >
               原初のルーン
@@ -218,7 +243,7 @@ export default function Home() {
       </main>
 
       {/* Bottom NES Stripe */}
-      <div className="fixed bottom-0 left-0 right-0 h-3 bg-blood-orange z-50" />
+      <div className="fixed bottom-0 left-0 right-0 h-[var(--stripe-height)] bg-blood-orange z-50" />
 
       {/* Project Modal */}
       {selectedProject && (
