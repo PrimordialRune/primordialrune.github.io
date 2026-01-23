@@ -1,0 +1,163 @@
+---
+slug: "rpg-inventory-system"
+title: "RPG Inventory System"
+titleJp: "RPGインベントリ"
+shortDescription: "A comprehensive UI/UX redesign for a classic RPG inventory management system"
+year: "2024"
+role: "UI/UX Designer"
+tools: "Figma, Adobe Illustrator, Unity UI Toolkit"
+category: "interfaces"
+images: "/resources/lbe__U.jpg"
+abstract: "A complete redesign of inventory management for a fantasy RPG, focusing on clarity, efficiency, and player satisfaction. The system handles equipment, consumables, key items, and crafting materials while maintaining visual consistency with the game's aesthetic. Includes responsive design considerations and accessibility features."
+featured: "false"
+thumbnail: "/resources/lbe__U.jpg"
+---
+
+# RPG Inventory System - UI/UX Case Study
+
+## Project Brief
+
+Redesign the inventory system for a fantasy RPG to improve usability, reduce player friction, and create a more engaging equipment management experience.
+
+## Research & Problem Definition
+
+### User Pain Points (from player feedback)
+- Too many clicks to equip/unequip items
+- Difficult to compare equipment stats
+- Unclear item categorization
+- No way to mark items as favorites
+- Cluttered visual design
+
+### Goals
+1. Reduce time-to-equip by 50%
+2. Improve stat comparison clarity
+3. Implement smart filtering and sorting
+4. Create visual hierarchy for item rarity
+5. Maintain consistency with game's aesthetic
+
+## Design Process
+
+### Information Architecture
+Reorganized inventory into clear categories:
+- **Equipment** (Weapons, Armor, Accessories)
+- **Consumables** (Potions, Food, Scrolls)
+- **Materials** (Crafting components, Ores, Herbs)
+- **Key Items** (Quest items, Special tools)
+
+### Interaction Design
+
+#### Quick Actions
+- **Right-click context menu** for common actions
+- **Drag-and-drop** for equipment swapping
+- **Double-click to use/equip** for quick access
+- **Keyboard shortcuts** for power users (Q/E to cycle equipment)
+
+#### Filtering & Sorting
+- Multi-select filters (combine categories)
+- Sort by: Name, Rarity, Level, Value, Recently Acquired
+- Search bar with fuzzy matching
+- Favorite marking system
+
+### Visual Design
+
+#### Color Coding by Rarity
+- Common: Gray (#9CA3AF)
+- Uncommon: Green (#10B981)
+- Rare: Blue (#3B82F6)
+- Epic: Purple (#8B5CF6)
+- Legendary: Gold (#F59E0B)
+
+#### Typography
+- **Item names:** Bold, 14px
+- **Stats:** Regular, 12px
+- **Descriptions:** Light, 11px
+- Clear hierarchy through weight and size
+
+#### Layout
+- 3-column grid for items
+- Right panel for detailed stats
+- Left sidebar for categories
+- Bottom bar for quick access slots
+
+## Technical Implementation
+
+### Performance Optimizations
+- Virtual scrolling for large inventories (1000+ items)
+- Texture atlasing for item icons
+- Cached stat calculations
+- Lazy loading for item descriptions
+
+### Accessibility Features
+- High contrast mode
+- Colorblind-friendly indicators (icons + colors)
+- Screen reader support
+- Customizable UI scale (80%-120%)
+- Keyboard-only navigation
+
+## User Testing Results
+
+### Quantitative Metrics
+- **Time-to-equip:** Reduced from 12s to 4.5s (62% improvement)
+- **Error rate:** Decreased from 15% to 3%
+- **Player satisfaction:** Increased from 6.2/10 to 8.7/10
+
+### Qualitative Feedback
+> "Finally, I can actually find what I need without scrolling forever!"
+
+> "The stat comparison is brilliant - I can see at a glance if an item is an upgrade."
+
+> "Love the drag-and-drop. So much smoother than the old system."
+
+## Design Challenges & Solutions
+
+### Challenge 1: Too Much Information
+**Problem:** Players felt overwhelmed by stat details
+**Solution:** Progressive disclosure - show basic stats by default, detailed stats on hover/click
+
+### Challenge 2: Mobile/Controller Support
+**Problem:** Mouse-centric design didn't work on console
+**Solution:** Redesigned with D-pad navigation, bumper shortcuts, and contextual button prompts
+
+### Challenge 3: Inventory Limit Communication
+**Problem:** Players didn't know they were near capacity until full
+**Solution:** Visual indicator (color-coded bar) and warning at 80% capacity
+
+## Iterations & Refinements
+
+### Version 1.0
+- Basic grid layout
+- Simple categorization
+- No filtering
+
+### Version 2.0
+- Added search and filters
+- Implemented drag-and-drop
+- Improved visual hierarchy
+
+### Version 3.0 (Final)
+- Quick action slots
+- Stat comparison overlays
+- Favorites system
+- Accessibility enhancements
+
+## Impact & Metrics
+
+Post-launch data (after 6 months):
+- **90% reduction** in inventory-related support tickets
+- **40% increase** in player engagement with crafting system
+- **Top 3 most-praised feature** in player surveys
+
+## Lessons Learned
+
+1. **Test early, test often** - Caught major issues in paper prototypes
+2. **Respect muscle memory** - Kept some old shortcuts for veteran players
+3. **Accessibility isn't optional** - High contrast mode became most-used setting
+4. **Performance matters** - Virtual scrolling eliminated lag with large inventories
+
+## Future Enhancements
+
+- Auto-sort by custom rules
+- Loadout presets (save equipment sets)
+- Item comparison history
+- Transmog/appearance system
+- Cloud inventory sync

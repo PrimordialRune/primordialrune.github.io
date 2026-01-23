@@ -1,11 +1,46 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navigation from "@/components/Navigation";
-import { motion } from "framer-motion";
+import ProjectGrid from "@/components/ProjectGrid";
+import FloatingProjects from "@/components/FloatingProjects";
+import ProjectModal from "@/components/ProjectModal";
+import { motion, AnimatePresence } from "framer-motion";
+import { Project } from "@/types/project";
+import { getProjectsByCategory, getFeaturedProjects } from "@/lib/projects";
 
 export default function Home() {
   const [navOpen, setNavOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string>("hero");
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+
+  // Load projects when category changes
+  useEffect(() => {
+    async function loadProjects() {
+      let projectsToShow: Project[] = [];
+
+      if (activeCategory === "hero") {
+        // For hero section, show featured projects
+        projectsToShow = await getFeaturedProjects();
+      } else {
+        // For other categories, show projects by category
+        projectsToShow = await getProjectsByCategory(activeCategory);
+      }
+
+      setProjects(projectsToShow);
+    }
+
+    loadProjects();
+  }, [activeCategory]);
+
+  const handleProjectClick = (project: Project) => {
+    setSelectedProject(project);
+  };
+
+  const closeModal = () => {
+    setSelectedProject(null);
+  };
 
   return (
     <div className="relative min-h-screen bg-background overflow-hidden">
@@ -37,13 +72,13 @@ export default function Home() {
           </svg>
           <div className="flex items-center gap-2">
             <span
-              className="text-3xl font-black text-blood-orange italic leading-none"
+              className="text-4xl font-black text-blood-orange italic leading-none"
               style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
             >
               PRIMORDIAL
             </span>
             <span
-              className="text-3xl font-black text-peacock-blue italic leading-none"
+              className="text-4xl font-black text-peacock-blue italic leading-none"
               style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
             >
               RUNE
@@ -69,7 +104,7 @@ export default function Home() {
       </header>
 
       {/* Navigation */}
-      <Navigation onOpenChange={setNavOpen} />
+      <Navigation onOpenChange={setNavOpen} onCategoryChange={setActiveCategory} />
 
       {/* Main Content Area (CRT Panel) */}
       <main className="fixed inset-0 pt-[5.5rem] pb-8 px-6 flex justify-center items-center">
@@ -79,30 +114,32 @@ export default function Home() {
             className="relative w-full h-full bg-panel-bg rounded-3xl overflow-hidden"
             style={{
               boxShadow: `
-                inset 6px 6px 12px rgba(0, 0, 0, 0.4),
-                inset -6px -6px 12px rgba(255, 255, 255, 0.05),
-                0 0 0 4px var(--teal),
+                inset 6px 6px 12px rgba(0, 0, 0, 0.2),
+                inset -6px -6px 12px rgba(255, 255, 255, 0.03),
+                0 0 0 6px transparent,
+                0 0 0 8px rgba(0, 0, 0, 0.2),
+                0 0 0 10px rgba(0, 0, 0, 0.1),
                 0 8px 24px rgba(0, 0, 0, 0.3)
               `,
             }}
           >
             {/* Scanline Effect Overlay - Animated */}
-            <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute inset-0 pointer-events-none z-20">
               <div
                 className="absolute inset-0 opacity-[0.08]"
                 style={{
                   backgroundImage:
                     "repeating-linear-gradient(0deg, transparent, transparent 2px, var(--teal) 2px, var(--teal) 4px)",
-                  animation: "scanlines 8s linear infinite",
+                  animation: "scanlines 16s linear infinite, crtFlicker 4s ease-in-out infinite",
                 }}
               />
             </div>
 
             {/* Content - Shifts when nav is open */}
             <motion.div
-              className="relative z-10 w-full h-full flex flex-col items-center justify-center"
+              className="relative z-10 w-full h-full pl-[3rem]"
               animate={{
-                paddingLeft: navOpen ? "420px" : "0px",
+                paddingLeft: navOpen ? "420px" : "3rem",
               }}
               transition={{
                 type: "spring",
@@ -111,33 +148,67 @@ export default function Home() {
                 mass: 0.8,
               }}
             >
-              <h1
-                className="text-9xl font-black text-cream mb-6 leading-none"
-                style={{ fontFamily: "var(--font-8bit-darling)" }}
-              >
-                デザイン
-              </h1>
-              <div className="relative">
-                {/* Scanline overlay specifically for DESIGN text */}
-                <div
-                  className="absolute inset-0 pointer-events-none opacity-[0.15]"
-                  style={{
-                    backgroundImage:
-                      "repeating-linear-gradient(0deg, transparent, transparent 2px, var(--teal) 2px, var(--teal) 4px)",
-                  }}
-                />
-                <p
-                  className="relative text-5xl font-black text-aquamarine tracking-[0.3em]"
-                  style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeCategory}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="w-full h-full"
                 >
-                  DESIGN
-                </p>
-              </div>
+                  {/* Hero Section - TBD */}
+                  {activeCategory === "hero" && (
+                    <div className="flex flex-col items-center justify-center h-full">
+                      <h1
+                        className="text-9xl font-black text-cream mb-6 leading-none"
+                        style={{ fontFamily: "var(--font-8bit-darling)" }}
+                      >
+                        デザイン
+                      </h1>
+                      <div className="relative">
+                        {/* Scanline overlay specifically for DESIGN text */}
+                        <div
+                          className="absolute inset-0 pointer-events-none opacity-[0.15]"
+                          style={{
+                            backgroundImage:
+                              "repeating-linear-gradient(0deg, transparent, transparent 2px, var(--teal) 2px, var(--teal) 4px)",
+                          }}
+                        />
+                        <p
+                          className="relative text-5xl font-black text-aquamarine tracking-[0.3em]"
+                          style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
+                        >
+                          DESIGN
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Archives Section - Grid View */}
+                  {activeCategory === "archives" && (
+                    <ProjectGrid
+                      projects={projects}
+                      onProjectClick={handleProjectClick}
+                    />
+                  )}
+
+                  {/* Systems, Worlds, Interfaces - Floating View */}
+                  {(activeCategory === "systems" ||
+                    activeCategory === "worlds" ||
+                    activeCategory === "interfaces") && (
+                    <FloatingProjects
+                      projects={projects}
+                      onProjectClick={handleProjectClick}
+                    />
+                  )}
+                </motion.div>
+              </AnimatePresence>
             </motion.div>
 
-            {/* Footer Signature - Larger */}
+            {/* Footer Signature */}
             <div
-              className="absolute bottom-8 right-10 text-aquamarine/40 text-lg tracking-wider"
+              className="absolute bottom-8 right-10 text-aquamarine/40 text-lg tracking-wider z-20"
               style={{ fontFamily: "var(--font-8bit-darling)" }}
             >
               原初のルーン
@@ -149,6 +220,11 @@ export default function Home() {
       {/* Bottom NES Stripe */}
       <div className="fixed bottom-0 left-0 right-0 h-3 bg-blood-orange z-50" />
 
+      {/* Project Modal */}
+      {selectedProject && (
+        <ProjectModal project={selectedProject} onClose={closeModal} />
+      )}
+
       {/* CSS Animation for Scanlines */}
       <style jsx>{`
         @keyframes scanlines {
@@ -157,6 +233,16 @@ export default function Home() {
           }
           100% {
             transform: translateY(4px);
+          }
+        }
+
+        @keyframes crtFlicker {
+          0%,
+          100% {
+            opacity: 0.08;
+          }
+          50% {
+            opacity: 0.06;
           }
         }
       `}</style>

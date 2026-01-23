@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface NavItem {
@@ -20,9 +20,10 @@ const navItems: NavItem[] = [
 
 interface NavigationProps {
   onOpenChange?: (isOpen: boolean) => void;
+  onCategoryChange?: (category: string) => void;
 }
 
-export default function Navigation({ onOpenChange }: NavigationProps) {
+export default function Navigation({ onOpenChange, onCategoryChange }: NavigationProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeId, setActiveId] = useState("hero");
 
@@ -30,6 +31,11 @@ export default function Navigation({ onOpenChange }: NavigationProps) {
     setIsOpen(newState);
     onOpenChange?.(newState);
   };
+
+  const changeCategory = useCallback((categoryId: string) => {
+    setActiveId(categoryId);
+    onCategoryChange?.(categoryId);
+  }, [onCategoryChange]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -47,26 +53,26 @@ export default function Navigation({ onOpenChange }: NavigationProps) {
         case "ArrowUp":
           e.preventDefault();
           if (currentIndex > 0) {
-            setActiveId(navItems[currentIndex - 1].id);
+            changeCategory(navItems[currentIndex - 1].id);
           }
           break;
         case "ArrowDown":
           e.preventDefault();
           if (currentIndex < navItems.length - 1) {
-            setActiveId(navItems[currentIndex + 1].id);
+            changeCategory(navItems[currentIndex + 1].id);
           }
           break;
         case "Enter":
         case " ":
           e.preventDefault();
-          console.log(`Navigating to: ${activeId}`);
+          // Category is already active, do nothing
           break;
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, activeId]);
+  }, [isOpen, activeId, changeCategory]);
 
   return (
     <div className="fixed top-[6.5rem] bottom-[2rem] left-[2.5rem] z-50 flex flex-col justify-between">
@@ -83,7 +89,7 @@ export default function Navigation({ onOpenChange }: NavigationProps) {
                 if (!isOpen) {
                   toggleNav(true);
                 }
-                setActiveId(item.id);
+                changeCategory(item.id);
               }}
               className={`relative overflow-hidden ${
                 isActive && isOpen
