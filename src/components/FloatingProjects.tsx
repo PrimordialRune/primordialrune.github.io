@@ -211,6 +211,15 @@ export default function FloatingProjects({
     }
   }, []);
 
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+      }
+    };
+  }, []);
+
   // Generate unique floating animation for each project
   const getFloatingAnimation = useCallback((index: number) => {
     const seed = index * 137.508; // Golden angle for distribution
