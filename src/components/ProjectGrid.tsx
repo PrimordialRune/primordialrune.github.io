@@ -7,13 +7,18 @@ import { useState, useMemo } from "react";
 interface ProjectGridProps {
   projects: Project[];
   onProjectClick: (project: Project) => void;
+  navOpen?: boolean;
 }
 
 const ITEMS_PER_PAGE = 6;
 
+// Height that matches the hamburger menu height (for collision prevention)
+const TITLE_SECTION_HEIGHT = "clamp(40px, 6vh, 60px)";
+
 export default function ProjectGrid({
   projects,
   onProjectClick,
+  navOpen = false,
 }: ProjectGridProps) {
   const [currentPage, setCurrentPage] = useState(0);
 
@@ -49,9 +54,41 @@ export default function ProjectGrid({
   }
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <motion.div 
+      className="w-full h-full flex flex-col"
+      animate={{
+        paddingLeft: navOpen ? "clamp(2rem, 5vw, 4rem)" : "0px",
+      }}
+      transition={{
+        type: "spring",
+        damping: 25,
+        stiffness: 250,
+        mass: 0.8,
+      }}
+    >
+      {/* Archive Title Section - matches hamburger menu height to prevent overlap */}
+      <div 
+        className="flex-shrink-0 flex items-center px-2 sm:px-4"
+        style={{ height: TITLE_SECTION_HEIGHT }}
+      >
+        <div className="flex items-center gap-2 sm:gap-3">
+          <span 
+            className="text-lg sm:text-xl md:text-2xl font-black text-aquamarine"
+            style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
+          >
+            ARCHIVES
+          </span>
+          <span 
+            className="text-xs sm:text-sm text-aquamarine/60 tracking-wider"
+            style={{ fontFamily: "var(--font-8bit-darling)" }}
+          >
+            アーカイブ
+          </span>
+        </div>
+      </div>
+      
       {/* Scrollable grid area */}
-      <div className="flex-1 overflow-y-auto pr-4 sm:pr-8 md:pr-12 py-4 sm:py-6 md:py-8">
+      <div className="flex-1 overflow-y-auto pr-4 sm:pr-8 md:pr-12 py-2 sm:py-4 md:py-6">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentPage}
@@ -258,6 +295,6 @@ export default function ProjectGrid({
           </span>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }

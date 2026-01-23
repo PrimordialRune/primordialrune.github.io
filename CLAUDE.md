@@ -641,6 +641,93 @@ const withMDX = createMDX({
 - Individual nav buttons get `pointer-events-auto` to remain clickable
 - Overlay backdrop only covers CRT panel area
 
+### ProjectGrid Archive-Specific Behavior
+
+The Archive section has unique layout behavior compared to other sections:
+
+```tsx
+// Archive gets additional padding when nav is open
+<motion.div 
+  animate={{
+    paddingLeft: navOpen ? "clamp(2rem, 5vw, 4rem)" : "0px",
+  }}
+>
+  {/* Title section prevents hamburger menu overlap */}
+  <div style={{ height: "clamp(40px, 6vh, 60px)" }}>
+    <span>ARCHIVES</span>
+    <span>アーカイブ</span>
+  </div>
+  {/* Grid content */}
+</motion.div>
+```
+
+**Key differences from FloatingProjects sections:**
+- Archive uses a fixed grid layout, not physics-based floating
+- Requires extra left padding when nav opens (FloatingProjects fill available space)
+- Has a title section that matches hamburger menu height for collision prevention
+
+### FloatingProjects Drag Animation
+
+Enhanced drag/drop animation with lift-and-land effect:
+
+```tsx
+// Track landing state for projects
+const [landingProjects, setLandingProjects] = useState<Set<string>>(new Set());
+
+// Different animations for initial spawn vs landing
+initial={isLanding 
+  ? { opacity: 1, scale: 1, y: -8 }  // Landing: start elevated
+  : { opacity: 0, scale: 0 }          // Initial: pop in
+}
+animate={{
+  scale: isLanding ? [1, 1.05, 0.98, 1] : 1,  // Landing: bump sequence
+  y: isLanding ? [-8, 0, 2, 0] : 0,           // Landing: drop and bounce
+}}
+
+// Enhanced shadow when dragging for 3D lift effect
+boxShadow: isBeingDragged 
+  ? `0 20px 40px rgba(0, 0, 0, 0.5), 0 12px 24px rgba(250, 219, 104, 0.3)`
+  : `inset 2px 2px 4px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.3)`
+
+// Card lifts up when dragging
+<motion.div animate={{ y: isBeingDragged ? -12 : 0 }} />
+```
+
+### ProjectModal Enhanced 3D Effects
+
+The modal uses layered 3D effects for depth:
+
+```tsx
+// Dynamic shadow based on hover state
+boxShadow: isHovered
+  ? `
+    inset 6px 6px 12px rgba(0, 0, 0, 0.25),
+    inset -6px -6px 12px rgba(255, 255, 255, 0.12),
+    0 0 0 3px var(--teal),
+    0 0 40px rgba(51, 153, 153, 0.3),
+    0 25px 60px rgba(0, 0, 0, 0.6)
+  `
+  : `inset 4px 4px 8px rgba(0, 0, 0, 0.3), 0 12px 40px rgba(0, 0, 0, 0.5)`
+
+// 3D highlight edge effect based on mouse position
+<div style={{
+  background: isHovered 
+    ? `linear-gradient(${135 + (mousePosition.x - 0.5) * 30}deg, 
+        rgba(255, 255, 255, 0.15) 0%, 
+        transparent 40%, 
+        transparent 60%, 
+        rgba(0, 0, 0, 0.1) 100%)`
+    : 'none',
+}} />
+
+// Slight lift on hover
+animate={{ y: isHovered ? -4 : 0 }}
+```
+
+**Header Layout (Title/Year Order):**
+- Title displayed first (left), year badge second (right)
+- Title gets `flex-1` to expand, year badge is `flex-shrink-0`
+
 ## Notes
 
 - Since this is a user site (username.github.io), no `basePath` or `assetPrefix` is needed

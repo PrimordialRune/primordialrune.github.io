@@ -118,6 +118,8 @@ export default function FloatingProjects({
   const [projectPositions, setProjectPositions] = useState<Map<string, { x: number; y: number }>>(new Map());
   // Track position version to force clean re-render after drag (prevents transform accumulation)
   const [positionVersion, setPositionVersion] = useState<Map<string, number>>(new Map());
+  // Track projects that just landed (for landing animation)
+  const [landingProjects, setLandingProjects] = useState<Set<string>>(new Set());
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   
@@ -270,6 +272,9 @@ export default function FloatingProjects({
 
     const droppedPos = { x: clampedX, y: clampedY };
 
+    // Mark this project as landing (for bump animation)
+    setLandingProjects(prev => new Set(prev).add(slug));
+
     // Update position and increment version to force clean re-render
     // This ensures Framer Motion's drag transform is reset with fresh component state
     setProjectPositions(prev => {
@@ -291,6 +296,15 @@ export default function FloatingProjects({
         return resolveCollisions(slug, droppedPos, prev);
       });
     }, 50);
+
+    // Clear landing state after animation completes
+    setTimeout(() => {
+      setLandingProjects(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(slug);
+        return newSet;
+      });
+    }, 400);
 
     setIsDragging(false);
     setDraggedIndex(null);
@@ -368,6 +382,7 @@ export default function FloatingProjects({
           const floating = getFloatingAnimation(index);
           const duration = 8 + (index % 4) * 2; // 8-14s varied durations
           const isBeingDragged = draggedIndex === index;
+          const isLanding = landingProjects.has(project.slug);
           
           // Calculate thumbnail size with importance-based variation
           const baseThumbnailSize = Math.max(60, Math.min(160, layout.cardWidth * 0.9));
@@ -387,20 +402,32 @@ export default function FloatingProjects({
                 transform: "translate(-50%, -50%)",
                 zIndex: isBeingDragged ? 100 : 1,
               }}
-              initial={{ opacity: 0, scale: 0 }}
+              initial={isLanding 
+                ? { opacity: 1, scale: 1, y: -8 }  // Landing: start slightly elevated
+                : { opacity: 0, scale: 0 }          // Initial spawn: pop in
+              }
               animate={{
                 opacity: 1,
-                scale: 1,
+                scale: isLanding ? [1, 1.05, 0.98, 1] : 1,  // Landing: bump sequence
+                y: isLanding ? [-8, 0, 2, 0] : 0,           // Landing: drop and bounce
               }}
-              transition={{
-                type: "spring",
-                damping: 20,
-                stiffness: 100,
-                delay: index * 0.08,
-                // Disable position animation after drag to prevent jumping
-                left: { type: "tween", duration: 0 },
-                top: { type: "tween", duration: 0 },
-              }}
+              transition={isLanding 
+                ? {
+                    duration: 0.35,
+                    ease: [0.25, 0.46, 0.45, 0.94],
+                    scale: { duration: 0.35, times: [0, 0.4, 0.7, 1] },
+                    y: { duration: 0.35, times: [0, 0.4, 0.7, 1] },
+                  }
+                : {
+                    type: "spring",
+                    damping: 20,
+                    stiffness: 100,
+                    delay: index * 0.08,
+                    // Disable position animation after drag to prevent jumping
+                    left: { type: "tween", duration: 0 },
+                    top: { type: "tween", duration: 0 },
+                  }
+              }
               drag={isBeingDragged}
               dragConstraints={containerRef}
               dragElastic={0.1}
@@ -430,23 +457,42 @@ export default function FloatingProjects({
                   className="group"
                 >
                   {/* Icon/Card - 90s desktop/console style */}
-                  <div 
+                  <motion.div 
                     className="flex flex-col items-center gap-1 sm:gap-2"
                     style={{ width: thumbnailSize + 16 }}
+                    animate={{
+                      y: isBeingDragged ? -12 : 0,  // Lift up when dragging
+                    }}
+                    transition={{
+                      type: "spring",
+                      damping: 20,
+                      stiffness: 300,
+                    }}
                   >
                     {/* Thumbnail container - like desktop icon */}
-                    <div
-                      className={`relative bg-dark-teal/60 backdrop-blur-sm rounded-lg sm:rounded-xl md:rounded-2xl overflow-hidden border-2 sm:border-3 md:border-4 transition-all ${
+                    <motion.div
+                      className={`relative bg-dark-teal/60 backdrop-blur-sm rounded-lg sm:rounded-xl md:rounded-2xl overflow-hidden border-2 sm:border-3 md:border-4 transition-colors ${
                         isBeingDragged 
-                          ? "border-gold shadow-lg" 
+                          ? "border-gold" 
                           : "border-teal/40 group-hover:border-aquamarine"
                       }`}
                       style={{
                         width: thumbnailSize,
                         height: thumbnailSize,
+                      }}
+                      animate={{
                         boxShadow: isBeingDragged 
-                          ? `0 8px 32px rgba(250, 219, 104, 0.4), inset 2px 2px 4px rgba(0, 0, 0, 0.3)`
-                          : `inset 2px 2px 4px rgba(0, 0, 0, 0.3), inset -2px -2px 4px rgba(255, 255, 255, 0.05), 0 4px 12px rgba(0, 0, 0, 0.3)`,
+                          ? `0 20px 40px rgba(0, 0, 0, 0.5), 0 12px 24px rgba(250, 219, 104, 0.3), inset 2px 2px 4px rgba(0, 0, 0, 0.3)`
+                          : isLanding
+                            ? `0 4px 8px rgba(0, 0, 0, 0.3), inset 2px 2px 4px rgba(0, 0, 0, 0.3), inset -2px -2px 4px rgba(255, 255, 255, 0.05)`
+                            : `inset 2px 2px 4px rgba(0, 0, 0, 0.3), inset -2px -2px 4px rgba(255, 255, 255, 0.05), 0 4px 12px rgba(0, 0, 0, 0.3)`,
+                      }}
+                      transition={{
+                        boxShadow: { 
+                          type: "spring", 
+                          damping: 25, 
+                          stiffness: 200 
+                        },
                       }}
                     >
                       {/* Thumbnail */}
@@ -501,7 +547,7 @@ export default function FloatingProjects({
                           boxShadow: "inset 0 0 20px rgba(78, 185, 159, 0.3)",
                         }}
                       />
-                    </div>
+                    </motion.div>
 
                     {/* Label - below icon like desktop */}
                     <div 
@@ -545,7 +591,7 @@ export default function FloatingProjects({
                         ease: "easeInOut",
                       }}
                     />
-                  </div>
+                  </motion.div>
                 </button>
               </motion.div>
             </motion.div>
