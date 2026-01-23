@@ -28,6 +28,25 @@ const ResultsScreenDesign = dynamic(
 const PauseMenuDesign = dynamic(
   () => import("@/../content/projects/pause-menu-design.mdx")
 );
+// Archived projects
+const LudumDare52 = dynamic(
+  () => import("@/../content/projects/ludum-dare-52.mdx")
+);
+const ProceduralDungeon = dynamic(
+  () => import("@/../content/projects/procedural-dungeon.mdx")
+);
+const PixelShaderExperiments = dynamic(
+  () => import("@/../content/projects/pixel-shader-experiments.mdx")
+);
+const Gmtk2023 = dynamic(
+  () => import("@/../content/projects/gmtk-2023.mdx")
+);
+const AiPathfindingDemo = dynamic(
+  () => import("@/../content/projects/ai-pathfinding-demo.mdx")
+);
+const VrPrototype = dynamic(
+  () => import("@/../content/projects/vr-prototype.mdx")
+);
 
 const mdxComponents: Record<string, React.ComponentType> = {
   "puzzle-platformer": PuzzlePlatformer,
@@ -38,6 +57,13 @@ const mdxComponents: Record<string, React.ComponentType> = {
   "dialogue-system-ui": DialogueSystemUI,
   "results-screen-design": ResultsScreenDesign,
   "pause-menu-design": PauseMenuDesign,
+  // Archived projects
+  "ludum-dare-52": LudumDare52,
+  "procedural-dungeon": ProceduralDungeon,
+  "pixel-shader-experiments": PixelShaderExperiments,
+  "gmtk-2023": Gmtk2023,
+  "ai-pathfinding-demo": AiPathfindingDemo,
+  "vr-prototype": VrPrototype,
 };
 
 export async function generateStaticParams() {
@@ -136,6 +162,7 @@ export default async function ProjectPage({
         )}
 
         {/* MDX Content - GDD Style */}
+        {/* Note: CSS hides frontmatter (first hr + h2) since remark-frontmatter doesn't work with Turbopack */}
         <article
           className="prose prose-lg max-w-none
             prose-headings:font-black prose-headings:text-peacock-blue
@@ -153,6 +180,7 @@ export default async function ProjectPage({
             prose-code:text-blood-orange prose-code:bg-peacock-blue/5
             prose-code:px-2 prose-code:py-1 prose-code:rounded
             prose-img:rounded-xl prose-img:border-2 prose-img:border-peacock-blue/20
+            [&>hr:first-child]:hidden [&>hr:first-child+h2]:hidden
           "
         >
           <MDXContent />

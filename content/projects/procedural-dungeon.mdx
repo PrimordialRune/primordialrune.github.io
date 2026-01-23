@@ -1,0 +1,51 @@
+---
+slug: "procedural-dungeon"
+title: "Procedural Dungeon"
+titleJp: "手続き型ダンジョン"
+shortDescription: "An experimental dungeon generator using wave function collapse"
+year: "2022"
+role: "Technical Artist, Developer"
+tools: "Unity, C#, Python"
+category: "archives"
+---
+
+## Overview
+
+A technical exploration of procedural generation using the Wave Function Collapse (WFC) algorithm to create interconnected dungeon layouts with guaranteed playability.
+
+## Algorithm Design
+
+### Wave Function Collapse
+- Each tile has connection rules
+- Algorithm propagates constraints
+- Backtracking handles contradictions
+- Results in coherent dungeons
+
+### Room Types
+- Start and end rooms
+- Combat arenas
+- Treasure chambers
+- Connecting corridors
+
+## Implementation Details
+
+### Tile System
+- Modular tile pieces with socket connections
+- Weighted probability for variety
+- Theme variations per dungeon section
+
+### Guarantees
+- Path always exists from start to end
+- Key rooms are always reachable
+- No isolated sections
+
+## Technical Challenges
+
+- Handling algorithm failures gracefully
+- Balancing variety vs. coherence
+- Performance optimization for large dungeons
+- Memory management for constraint propagation
+
+## Results
+
+The generator creates unique, playable dungeons with consistent theming and guaranteed connectivity, suitable for roguelike games.

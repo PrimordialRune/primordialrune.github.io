@@ -157,6 +157,109 @@ export async function getAllProjects(): Promise<Project[]> {
       featured: "false",
       thumbnail: "/resources/PAUSE6.png",
     },
+    // ARCHIVES - Game jams, experiments, prototypes
+    {
+      slug: "ludum-dare-52",
+      title: "Harvest Rush",
+      titleJp: "ハーベストラッシュ",
+      shortDescription:
+        "A 48-hour game jam entry for Ludum Dare 52 with the theme 'Harvest'",
+      year: "2023",
+      role: "Game Designer, Developer",
+      tools: "Unity, C#, Aseprite",
+      category: "archives",
+      images: "/resources/title.png",
+      abstract:
+        "A fast-paced farming game created in 48 hours for Ludum Dare 52. Players must harvest crops before time runs out while managing limited inventory space. Features procedural level generation and a scoring system.",
+      featured: "false",
+      thumbnail: "/resources/title.png",
+      importance: "2",
+    },
+    {
+      slug: "procedural-dungeon",
+      title: "Procedural Dungeon",
+      titleJp: "手続き型ダンジョン",
+      shortDescription:
+        "An experimental dungeon generator using wave function collapse",
+      year: "2022",
+      role: "Technical Artist, Developer",
+      tools: "Unity, C#, Python",
+      category: "archives",
+      images: "/resources/cover.gif",
+      abstract:
+        "A technical experiment exploring procedural generation using the wave function collapse algorithm. Creates interconnected dungeon rooms with guaranteed connectivity and themed room placement.",
+      featured: "false",
+      thumbnail: "/resources/cover.gif",
+      importance: "2",
+    },
+    {
+      slug: "pixel-shader-experiments",
+      title: "Pixel Shader Lab",
+      titleJp: "シェーダー実験",
+      shortDescription:
+        "A collection of retro-style pixel shaders and post-processing effects",
+      year: "2023",
+      role: "Technical Artist",
+      tools: "Unity, HLSL, ShaderGraph",
+      category: "archives",
+      images: "/resources/lbe__U.jpg",
+      abstract:
+        "A technical sandbox exploring CRT effects, dithering patterns, color quantization, and retro visual styles. Includes implementations of scanlines, chromatic aberration, and color palette limitations.",
+      featured: "false",
+      thumbnail: "/resources/lbe__U.jpg",
+      importance: "2",
+    },
+    {
+      slug: "gmtk-2023",
+      title: "Roles Reversed",
+      titleJp: "逆転ロール",
+      shortDescription:
+        "GMTK Game Jam 2023 entry - play as the final boss defending against heroes",
+      year: "2023",
+      role: "Game Designer, Developer",
+      tools: "Godot, GDScript, Aseprite",
+      category: "archives",
+      images: "/resources/start_menu.png",
+      abstract:
+        "A role-reversal tower defense game where you play as the final boss setting up traps and minions to stop incoming heroes. Created in 48 hours for GMTK Game Jam 2023 with the theme 'Roles Reversed'.",
+      featured: "false",
+      thumbnail: "/resources/start_menu.png",
+      importance: "2",
+    },
+    {
+      slug: "ai-pathfinding-demo",
+      title: "Pathfinding Visualizer",
+      titleJp: "経路探索可視化",
+      shortDescription:
+        "Interactive visualizer for A*, Dijkstra, and other pathfinding algorithms",
+      year: "2022",
+      role: "Developer",
+      tools: "JavaScript, Canvas API, React",
+      category: "archives",
+      images: "/resources/level selectorv2.png",
+      abstract:
+        "An educational tool for visualizing pathfinding algorithms in real-time. Supports A*, Dijkstra, BFS, and DFS with customizable heuristics and obstacle placement.",
+      featured: "false",
+      thumbnail: "/resources/level selectorv2.png",
+      importance: "2",
+    },
+    {
+      slug: "vr-prototype",
+      title: "VR Escape Room",
+      titleJp: "VR脱出ゲーム",
+      shortDescription:
+        "A prototype VR escape room with physics-based puzzles",
+      year: "2022",
+      role: "Game Designer, Developer",
+      tools: "Unity, XR Toolkit, C#",
+      category: "archives",
+      images: "/resources/PAUSE6.png",
+      abstract:
+        "A VR escape room prototype featuring hand tracking, physics interactions, and multi-step puzzles. Focused on natural gesture-based interactions and environmental storytelling.",
+      featured: "false",
+      thumbnail: "/resources/PAUSE6.png",
+      importance: "2",
+    },
   ];
 
   return projects.map(parseMetadata);
