@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import Navigation from "@/components/Navigation";
 import ProjectGrid from "@/components/ProjectGrid";
 import FloatingProjects from "@/components/FloatingProjects";
 import ProjectModal from "@/components/ProjectModal";
+import { AstroidSparkle } from "@/components/AstroidSparkle";
 import { motion, AnimatePresence } from "framer-motion";
 import { Project } from "@/types/project";
 import { getProjectsByCategory, getFeaturedProjects, getAllProjects } from "@/lib/projects";
+import { seededRandom } from "@/lib/utils";
 
 // Custom hook for responsive detection
 function useResponsive() {
@@ -30,29 +32,79 @@ function useResponsive() {
   return { isMobile, isLandscape };
 }
 
-// Enhanced Discover Button Component with cool animation
-function DiscoverButton({ onDiscover }: { onDiscover: () => void }) {
+// Enhanced Discover Button Component with 3D tilt and magical effects
+function DiscoverButton({ onDiscover, onAnimationStart }: { onDiscover: () => void; onAnimationStart?: () => void }) {
   const [isHovered, setIsHovered] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0.5, y: 0.5 });
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (!buttonRef.current) return;
+    const rect = buttonRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+    setMousePosition({ x, y });
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    setMousePosition({ x: 0.5, y: 0.5 });
+  };
 
   const handleClick = () => {
     setIsAnimating(true);
+    onAnimationStart?.();
     // Trigger the animation sequence then call onDiscover
     setTimeout(() => {
       onDiscover();
       setIsAnimating(false);
-    }, 600);
+    }, 800);
   };
+
+  // Calculate 3D tilt based on mouse position
+  const tiltX = isHovered ? (mousePosition.y - 0.5) * -20 : 0;
+  const tiltY = isHovered ? (mousePosition.x - 0.5) * 20 : 0;
+
+  // Generate sparkle positions with varying opacities using seeded random
+  const sparkles = useMemo(() => {
+    return [...Array(12)].map((_, i) => ({
+      id: i,
+      left: 10 + (i % 4) * 25 + seededRandom(i * 137.5) * 15,
+      top: 20 + Math.floor(i / 4) * 25,
+      delay: i * 0.1,
+      opacity: 0.4 + seededRandom(i * 247.1) * 0.6,
+      size: 6 + seededRandom(i * 317.3) * 6,
+    }));
+  }, []);
 
   return (
     <motion.button
-      className="relative px-4 md:px-6 py-2 md:py-2.5 rounded-lg font-black text-xs md:text-sm overflow-hidden"
-      style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
+      ref={buttonRef}
+      className="relative px-4 md:px-6 py-2 md:py-2.5 rounded-lg font-black text-xs md:text-sm"
+      style={{ 
+        fontFamily: "var(--font-fk-grotesk-black)",
+        transformStyle: "preserve-3d",
+        perspective: "1000px",
+      }}
       onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
       onClick={handleClick}
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
+      animate={{
+        rotateX: tiltX,
+        rotateY: tiltY,
+        y: isHovered ? -4 : 0,
+        boxShadow: isHovered 
+          ? "0 12px 24px rgba(236, 86, 59, 0.5), 0 6px 12px rgba(236, 86, 59, 0.3)"
+          : "0 4px 8px rgba(0, 0, 0, 0.2)",
+      }}
+      transition={{
+        type: "spring",
+        stiffness: 400,
+        damping: 25,
+      }}
+      whileTap={{ scale: 0.95, y: 0 }}
     >
       {/* Background layers */}
       <motion.div
@@ -82,24 +134,24 @@ function DiscoverButton({ onDiscover }: { onDiscover: () => void }) {
         {isAnimating && (
           <motion.div
             key="scanline-sweep"
-            className="absolute inset-0 pointer-events-none"
+            className="absolute inset-0 pointer-events-none overflow-hidden rounded-lg"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            {[...Array(5)].map((_, i) => (
+            {[...Array(8)].map((_, i) => (
               <motion.div
                 key={`scanline-${i}`}
-                className="absolute left-0 right-0 h-[2px] bg-cream/60"
-                style={{ top: `${20 + i * 15}%` }}
+                className="absolute left-0 right-0 h-[2px] bg-cream/80"
+                style={{ top: `${10 + i * 12}%` }}
                 initial={{ scaleX: 0, originX: 0 }}
                 animate={{ 
                   scaleX: [0, 1, 1, 0],
                   originX: [0, 0, 1, 1]
                 }}
                 transition={{ 
-                  duration: 0.5, 
-                  delay: i * 0.05,
+                  duration: 0.6, 
+                  delay: i * 0.04,
                   ease: "easeInOut"
                 }}
               />
@@ -108,31 +160,34 @@ function DiscoverButton({ onDiscover }: { onDiscover: () => void }) {
         )}
       </AnimatePresence>
 
-      {/* Sparkle particles on hover */}
+      {/* Dense Astroid sparkles on hover */}
       <AnimatePresence>
         {isHovered && !isAnimating && (
           <>
-            {[...Array(3)].map((_, i) => (
+            {sparkles.map((sparkle) => (
               <motion.div
-                key={`sparkle-${i}`}
-                className="absolute w-1 h-1 bg-gold rounded-full"
+                key={`sparkle-${sparkle.id}`}
+                className="absolute pointer-events-none"
                 style={{
-                  left: `${20 + i * 30}%`,
-                  top: "50%",
+                  left: `${sparkle.left}%`,
+                  top: `${sparkle.top}%`,
                 }}
                 initial={{ opacity: 0, scale: 0, y: 0 }}
                 animate={{ 
-                  opacity: [0, 1, 0],
-                  scale: [0, 1.5, 0],
-                  y: [-10, -20, -30],
+                  opacity: [0, sparkle.opacity, sparkle.opacity * 0.5, 0],
+                  scale: [0, 1.2, 0.8, 0],
+                  y: [-5, -15, -25, -35],
+                  rotate: [0, 45, 90, 135],
                 }}
                 transition={{ 
-                  duration: 0.8,
-                  delay: i * 0.15,
+                  duration: 1,
+                  delay: sparkle.delay,
                   repeat: Infinity,
-                  repeatDelay: 0.5
+                  repeatDelay: 0.3
                 }}
-              />
+              >
+                <AstroidSparkle size={sparkle.size} color="var(--gold)" opacity={1} />
+              </motion.div>
             ))}
           </>
         )}
@@ -188,12 +243,99 @@ function DiscoverButton({ onDiscover }: { onDiscover: () => void }) {
   );
 }
 
+// CRT Noise/Zapping Effect Overlay
+function CRTNoiseOverlay({ isActive }: { isActive: boolean }) {
+  return (
+    <AnimatePresence>
+      {isActive && (
+        <motion.div
+          className="fixed inset-0 z-[200] pointer-events-none"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.1 }}
+        >
+          {/* Static noise pattern */}
+          <motion.div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+              opacity: 0.15,
+              mixBlendMode: "overlay",
+            }}
+            animate={{
+              opacity: [0.15, 0.25, 0.1, 0.2, 0.15],
+              scale: [1, 1.02, 0.98, 1.01, 1],
+            }}
+            transition={{
+              duration: 0.5,
+              times: [0, 0.2, 0.4, 0.7, 1],
+            }}
+          />
+          
+          {/* Horizontal scan lines distortion */}
+          <motion.div
+            className="absolute inset-0"
+            style={{
+              background: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(236, 86, 59, 0.1) 2px, rgba(236, 86, 59, 0.1) 4px)",
+            }}
+            animate={{
+              y: [0, 10, -5, 8, 0],
+              opacity: [0.3, 0.6, 0.2, 0.5, 0],
+            }}
+            transition={{
+              duration: 0.6,
+              times: [0, 0.2, 0.5, 0.8, 1],
+            }}
+          />
+
+          {/* Color aberration flashes */}
+          <motion.div
+            className="absolute inset-0 bg-blood-orange/20"
+            animate={{
+              opacity: [0, 0.3, 0, 0.2, 0],
+            }}
+            transition={{
+              duration: 0.5,
+              times: [0, 0.15, 0.3, 0.6, 1],
+            }}
+          />
+
+          {/* Vertical glitch bands */}
+          {[...Array(5)].map((_, i) => (
+            <motion.div
+              key={`glitch-${i}`}
+              className="absolute top-0 bottom-0 bg-cream/10"
+              style={{
+                left: `${15 + i * 18}%`,
+                width: `${2 + seededRandom(i * 137.5) * 3}%`,
+              }}
+              initial={{ opacity: 0, scaleY: 0 }}
+              animate={{
+                opacity: [0, 0.5, 0],
+                scaleY: [0, 1, 0],
+                x: [0, (seededRandom(i * 247.1) - 0.5) * 20, 0],
+              }}
+              transition={{
+                duration: 0.4,
+                delay: i * 0.05,
+              }}
+            />
+          ))}
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
 export default function Home() {
   const [navOpen, setNavOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>("hero");
   const [projects, setProjects] = useState<Project[]>([]);
   const [allProjects, setAllProjects] = useState<Project[]>([]);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [isDiscoverMode, setIsDiscoverMode] = useState(false);
+  const [showCRTNoise, setShowCRTNoise] = useState(false);
   const { isMobile, isLandscape } = useResponsive();
 
   // Load all projects on mount for discover feature
@@ -225,18 +367,26 @@ export default function Home() {
   }, [activeCategory]);
 
   const handleProjectClick = (project: Project) => {
+    setIsDiscoverMode(false);
     setSelectedProject(project);
   };
 
   const closeModal = () => {
     setSelectedProject(null);
+    setIsDiscoverMode(false);
   };
 
-  // Discover feature: show a random project
+  // Discover feature: show a random project with CRT effect
+  const handleDiscoverAnimationStart = useCallback(() => {
+    setShowCRTNoise(true);
+    setTimeout(() => setShowCRTNoise(false), 600);
+  }, []);
+
   const handleDiscover = useCallback(() => {
     if (allProjects.length > 0) {
       const randomIndex = Math.floor(Math.random() * allProjects.length);
       const randomProject = allProjects[randomIndex];
+      setIsDiscoverMode(true);
       setSelectedProject(randomProject);
     }
   }, [allProjects]);
@@ -283,11 +433,14 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Secondary Nav - Only Discover button now */}
-        <div className="hidden sm:flex gap-2 md:gap-3">
-          <DiscoverButton onDiscover={handleDiscover} />
+        {/* Secondary Nav - Discover button visible on all screen sizes */}
+        <div className="flex gap-2 md:gap-3">
+          <DiscoverButton onDiscover={handleDiscover} onAnimationStart={handleDiscoverAnimationStart} />
         </div>
       </header>
+
+      {/* CRT Noise Effect Overlay */}
+      <CRTNoiseOverlay isActive={showCRTNoise} />
 
       {/* Main Content Area (CRT Panel) */}
       <main className="fixed inset-0 pt-14 sm:pt-16 md:pt-[5rem] pb-4 sm:pb-6 md:pb-8 px-2 sm:px-4 md:px-6 flex justify-center items-center">
@@ -413,7 +566,7 @@ export default function Home() {
 
       {/* Project Modal */}
       {selectedProject && (
-        <ProjectModal project={selectedProject} onClose={closeModal} />
+        <ProjectModal project={selectedProject} onClose={closeModal} isDiscoverMode={isDiscoverMode} />
       )}
 
       {/* CSS Animation for Scanlines */}
