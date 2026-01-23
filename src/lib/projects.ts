@@ -18,6 +18,7 @@ function parseMetadata(metadata: ProjectMetadata): Project {
     abstract: metadata.abstract,
     featured: metadata.featured === "true",
     thumbnail: metadata.thumbnail,
+    importance: metadata.importance ? parseInt(metadata.importance, 10) : 3, // Default to 3 (medium)
   };
 }
 
@@ -41,6 +42,7 @@ export async function getAllProjects(): Promise<Project[]> {
         "A puzzle-platformer that combines precision movement with brain-teasing puzzles. The game features a comprehensive progression system, dialogue system, and a cohesive retro-inspired visual design. This project showcases full UI/UX design for game menus, HUD elements, and interactive systems.",
       featured: "true",
       thumbnail: "/resources/title.png",
+      importance: "5",
     },
     {
       slug: "tactical-card-game",
@@ -57,6 +59,7 @@ export async function getAllProjects(): Promise<Project[]> {
         "A tactical card game that merges deck-building mechanics with spatial positioning on a hex grid. Players must carefully manage resources, build synergistic card combinations, and outmaneuver opponents. This project explores balance design, economy systems, and emergent gameplay through simple rule sets.",
       featured: "false",
       thumbnail: "/resources/cover.gif",
+      importance: "4",
     },
     {
       slug: "rpg-inventory-system",

@@ -60,19 +60,21 @@ export default function Navigation({
         case "ArrowUp":
           e.preventDefault();
           if (currentIndex > 0) {
-            changeCategory(navItems[currentIndex - 1].id);
+            // Only change active visual state, don't navigate yet
+            setActiveId(navItems[currentIndex - 1].id);
           }
           break;
         case "ArrowDown":
           e.preventDefault();
           if (currentIndex < navItems.length - 1) {
-            changeCategory(navItems[currentIndex + 1].id);
+            setActiveId(navItems[currentIndex + 1].id);
           }
           break;
         case "Enter":
         case " ":
           e.preventDefault();
-          // Category is already active, do nothing
+          // Now navigate to the selected category
+          changeCategory(activeId);
           break;
       }
     };
@@ -81,12 +83,12 @@ export default function Navigation({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, activeId, changeCategory, toggleNav]);
 
-  // Calculate responsive nav width
+  // Calculate responsive nav width - contained within CRT panel
   const getNavWidth = () => {
     if (isMobile) {
-      return isLandscape ? "min(300px, 40vw)" : "min(280px, 75vw)";
+      return isLandscape ? "min(260px, 35vw)" : "min(240px, 65vw)";
     }
-    return "min(400px, 25vw)";
+    return "min(340px, 22vw)";
   };
 
   const navWidth = getNavWidth();
@@ -106,19 +108,29 @@ export default function Navigation({
             exit={{ opacity: 0 }}
             onClick={() => toggleNav(false)}
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+            style={{
+              // Only cover the CRT panel area
+              top: "var(--header-height, 4rem)",
+              bottom: "var(--stripe-height, 3px)",
+            }}
           />
         )}
       </AnimatePresence>
 
+      {/* Navigation container - now contained within CRT panel bounds */}
       <div 
-        className={`fixed z-50 flex flex-col justify-between ${
+        className={`absolute z-30 flex flex-col justify-between ${
           useOverlayMode 
-            ? "top-14 sm:top-16 bottom-4 left-2 sm:left-4" 
-            : "top-[5rem] md:top-[5.5rem] lg:top-[6rem] bottom-4 md:bottom-6 lg:bottom-8 left-2 sm:left-4 md:left-6 lg:left-10"
+            ? "top-2 bottom-2 left-2" 
+            : "top-2 md:top-3 lg:top-4 bottom-2 md:bottom-3 lg:bottom-4 left-2 sm:left-3 md:left-4 lg:left-6"
         }`}
+        style={{
+          // Ensure nav stays within the CRT panel
+          maxHeight: "calc(100% - 1rem)",
+        }}
       >
         {/* Navigation Container - Morphs from scanlines to full nav */}
-        <div className="flex flex-col gap-2 md:gap-3 flex-1">
+        <div className="flex flex-col gap-1.5 md:gap-2 flex-1 overflow-hidden">
           {navItems.map((item, index) => {
             const isActive = item.id === activeId;
 
@@ -128,12 +140,15 @@ export default function Navigation({
                 layoutId={`nav-item-${item.id}`}
                 onClick={() => {
                   if (!isOpen) {
+                    // Clicking on hamburger stripe: only open the nav, don't navigate
                     toggleNav(true);
-                  }
-                  changeCategory(item.id);
-                  // On mobile, close nav after selecting
-                  if (isMobile && isOpen) {
-                    toggleNav(false);
+                  } else {
+                    // Nav is open: clicking navigates to section
+                    changeCategory(item.id);
+                    // On mobile, close nav after selecting
+                    if (isMobile) {
+                      toggleNav(false);
+                    }
                   }
                 }}
                 className={`relative overflow-hidden ${
@@ -144,13 +159,13 @@ export default function Navigation({
                   isOpen ? "rounded-xl md:rounded-2xl" : "rounded-full"
                 } transition-colors`}
                 style={{
-                  width: isOpen ? navWidth : "min(300px, 60vw)",
-                  flex: isOpen ? (isActive ? "2" : "1") : "0 0 clamp(10px, 2vh, 15px)",
+                  width: isOpen ? navWidth : "min(280px, 55vw)",
+                  flex: isOpen ? (isActive ? "2" : "1") : "0 0 clamp(8px, 1.5vh, 12px)",
                   boxShadow: isOpen
                     ? isActive
-                      ? "0 8px 24px rgba(236, 86, 59, 0.4)"
-                      : "0 4px 12px rgba(0, 0, 0, 0.2)"
-                    : "0 2px 8px rgba(236, 86, 59, 0.3)",
+                      ? "0 6px 20px rgba(236, 86, 59, 0.4)"
+                      : "0 3px 10px rgba(0, 0, 0, 0.2)"
+                    : "0 2px 6px rgba(236, 86, 59, 0.3)",
                 }}
                 initial={false}
                 transition={{
@@ -200,7 +215,7 @@ export default function Navigation({
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.2 }}
-                      className="absolute inset-0 flex flex-col items-center justify-center p-2 md:p-4"
+                      className="absolute inset-0 flex flex-col items-center justify-center p-1.5 md:p-3"
                     >
                       {/* Number Badge */}
                       <motion.div
@@ -212,11 +227,11 @@ export default function Navigation({
                           stiffness: 300,
                           delay: 0.1,
                         }}
-                        className={`mb-1 md:mb-2 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 flex items-center justify-center rounded-lg md:rounded-xl ${
+                        className={`mb-0.5 md:mb-1.5 w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 flex items-center justify-center rounded-lg md:rounded-xl ${
                           isActive
                             ? "bg-peacock-blue text-cream"
                             : "bg-peacock-blue/40 text-cream/80"
-                        } text-base sm:text-lg md:text-xl lg:text-2xl font-black border-2 ${
+                        } text-sm sm:text-base md:text-lg lg:text-xl font-black border-2 ${
                           isActive ? "border-peacock-blue" : "border-teal/0"
                         }`}
                         style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
@@ -225,12 +240,12 @@ export default function Navigation({
                       </motion.div>
 
                       {/* Label */}
-                      <div className="flex flex-col items-center gap-0.5">
+                      <div className="flex flex-col items-center gap-0">
                         <motion.span
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.15 }}
-                          className="text-sm sm:text-base md:text-lg lg:text-xl font-black tracking-wide text-cream"
+                          className="text-xs sm:text-sm md:text-base lg:text-lg font-black tracking-wide text-cream"
                           style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
                         >
                           {item.label}
@@ -239,7 +254,7 @@ export default function Navigation({
                           initial={{ opacity: 0 }}
                           animate={{ opacity: isActive ? 1 : 0.7 }}
                           transition={{ delay: 0.2 }}
-                          className={`text-[10px] sm:text-xs tracking-wider ${
+                          className={`text-[8px] sm:text-[10px] tracking-wider ${
                             isActive ? "text-cream/90" : "text-cream/80"
                           }`}
                           style={{ fontFamily: "var(--font-8bit-darling)" }}
@@ -260,9 +275,9 @@ export default function Navigation({
                             stiffness: 300,
                             delay: 0.15,
                           }}
-                          className="absolute top-2 md:top-3 right-2 md:right-3 w-2 h-2 md:w-3 md:h-3 bg-gold rounded-full"
+                          className="absolute top-1.5 md:top-2 right-1.5 md:right-2 w-1.5 h-1.5 md:w-2 md:h-2 bg-gold rounded-full"
                           style={{
-                            boxShadow: "0 0 12px rgba(250, 219, 104, 0.6)",
+                            boxShadow: "0 0 10px rgba(250, 219, 104, 0.6)",
                           }}
                         />
                       )}
@@ -282,11 +297,11 @@ export default function Navigation({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
               transition={{ delay: 0.3 }}
-              className="flex flex-col gap-2 py-3 md:py-5"
+              className="flex flex-col gap-1.5 py-2 md:py-3"
             >
               <button
                 onClick={() => toggleNav(false)}
-                className="py-2 md:py-3 lg:py-4 bg-peacock-blue/60 backdrop-blur-sm hover:bg-peacock-blue/80 rounded-lg md:rounded-xl border border-teal/40 hover:border-aquamarine transition-all text-aquamarine font-black text-xs md:text-sm"
+                className="py-1.5 md:py-2 lg:py-3 bg-peacock-blue/60 backdrop-blur-sm hover:bg-peacock-blue/80 rounded-lg md:rounded-xl border border-teal/40 hover:border-aquamarine transition-all text-aquamarine font-black text-xs md:text-sm"
                 style={{ 
                   fontFamily: "var(--font-fk-grotesk-black)",
                   width: navWidth

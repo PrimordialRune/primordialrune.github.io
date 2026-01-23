@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Project } from "@/types/project";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 
 interface ProjectModalProps {
@@ -12,6 +12,39 @@ interface ProjectModalProps {
 
 export default function ProjectModal({ project, onClose }: ProjectModalProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [showScrollIndicator, setShowScrollIndicator] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [thumbHeight, setThumbHeight] = useState(20);
+
+  // Check if content is scrollable and track scroll progress
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const updateScrollState = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      const isScrollable = scrollHeight > clientHeight;
+      setShowScrollIndicator(isScrollable);
+      
+      if (isScrollable) {
+        const progress = scrollTop / (scrollHeight - clientHeight);
+        setScrollProgress(Math.min(1, Math.max(0, progress)));
+        // Calculate thumb height based on visible ratio
+        const visibleRatio = clientHeight / scrollHeight;
+        setThumbHeight(Math.max(20, visibleRatio * 100));
+      }
+    };
+
+    updateScrollState();
+    container.addEventListener("scroll", updateScrollState);
+    window.addEventListener("resize", updateScrollState);
+
+    return () => {
+      container.removeEventListener("scroll", updateScrollState);
+      window.removeEventListener("resize", updateScrollState);
+    };
+  }, [project]);
 
   if (!project) return null;
 
@@ -79,8 +112,11 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
             </svg>
           </button>
 
-          {/* Scrollable Content */}
-          <div className="overflow-y-auto max-h-[95vh] sm:max-h-[90vh] p-4 sm:p-6 md:p-8">
+          {/* Scrollable Content with custom scrollbar */}
+          <div 
+            ref={scrollContainerRef}
+            className="overflow-y-auto max-h-[95vh] sm:max-h-[90vh] p-4 sm:p-6 md:p-8 modal-scrollbar"
+          >
             {/* Header */}
             <div className="mb-4 sm:mb-6">
               <div className="flex items-start justify-between gap-2 sm:gap-4 mb-2 sm:mb-3 pr-8 sm:pr-10">
@@ -267,8 +303,97 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
               </svg>
             </Link>
           </div>
+
+          {/* Scroll Progress Indicator */}
+          <AnimatePresence>
+            {showScrollIndicator && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute right-1 top-16 bottom-4 w-1.5 sm:w-2 z-20 pointer-events-none"
+              >
+                {/* Track */}
+                <div className="absolute inset-0 bg-teal/20 rounded-full" />
+                {/* Progress */}
+                <motion.div
+                  className="absolute top-0 left-0 right-0 bg-aquamarine/60 rounded-full"
+                  style={{
+                    height: `${thumbHeight}%`,
+                  }}
+                  animate={{
+                    top: `${scrollProgress * (100 - thumbHeight)}%`,
+                  }}
+                  transition={{ type: "spring", damping: 30, stiffness: 300 }}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Scroll hint at bottom when not scrolled */}
+          <AnimatePresence>
+            {showScrollIndicator && scrollProgress < 0.1 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 pointer-events-none z-20"
+              >
+                <span className="text-[10px] sm:text-xs text-cream/50 font-black" style={{ fontFamily: "var(--font-fk-grotesk-black)" }}>
+                  SCROLL
+                </span>
+                <motion.svg
+                  className="w-4 h-4 text-cream/50"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  animate={{ y: [0, 4, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                >
+                  <path d="M12 5v14M5 12l7 7 7-7" />
+                </motion.svg>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
       </div>
+
+      {/* Custom scrollbar styles */}
+      <style jsx global>{`
+        .modal-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: var(--aquamarine) transparent;
+        }
+        
+        .modal-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        
+        .modal-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        
+        .modal-scrollbar::-webkit-scrollbar-thumb {
+          background: var(--teal);
+          border-radius: 3px;
+        }
+        
+        .modal-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: var(--aquamarine);
+        }
+        
+        /* Hide scrollbar on mobile */
+        @media (max-width: 768px) {
+          .modal-scrollbar::-webkit-scrollbar {
+            width: 0;
+            display: none;
+          }
+          .modal-scrollbar {
+            scrollbar-width: none;
+          }
+        }
+      `}</style>
     </AnimatePresence>
   );
 }

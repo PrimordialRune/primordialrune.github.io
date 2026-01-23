@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Navigation from "@/components/Navigation";
 import ProjectGrid from "@/components/ProjectGrid";
 import FloatingProjects from "@/components/FloatingProjects";
 import ProjectModal from "@/components/ProjectModal";
 import { motion, AnimatePresence } from "framer-motion";
 import { Project } from "@/types/project";
-import { getProjectsByCategory, getFeaturedProjects } from "@/lib/projects";
+import { getProjectsByCategory, getFeaturedProjects, getAllProjects } from "@/lib/projects";
 
 // Custom hook for responsive detection
 function useResponsive() {
@@ -30,12 +30,180 @@ function useResponsive() {
   return { isMobile, isLandscape };
 }
 
+// Enhanced Discover Button Component with cool animation
+function DiscoverButton({ onDiscover }: { onDiscover: () => void }) {
+  const [isHovered, setIsHovered] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  const handleClick = () => {
+    setIsAnimating(true);
+    // Trigger the animation sequence then call onDiscover
+    setTimeout(() => {
+      onDiscover();
+      setIsAnimating(false);
+    }, 600);
+  };
+
+  return (
+    <motion.button
+      className="relative px-4 md:px-6 py-2 md:py-2.5 rounded-lg font-black text-xs md:text-sm overflow-hidden"
+      style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={handleClick}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+    >
+      {/* Background layers */}
+      <motion.div
+        className="absolute inset-0 border-2 border-blood-orange rounded-lg"
+        animate={{
+          borderColor: isHovered ? "var(--gold)" : "var(--blood-orange)",
+        }}
+        transition={{ duration: 0.2 }}
+      />
+      
+      {/* Animated background fill */}
+      <motion.div
+        className="absolute inset-0 bg-blood-orange rounded-lg origin-left"
+        initial={{ scaleX: 0 }}
+        animate={{ 
+          scaleX: isHovered ? 1 : 0,
+          backgroundColor: isAnimating ? "var(--gold)" : "var(--blood-orange)"
+        }}
+        transition={{ 
+          scaleX: { duration: 0.3, ease: "easeOut" },
+          backgroundColor: { duration: 0.2 }
+        }}
+      />
+
+      {/* Scanline sweep effect on click */}
+      <AnimatePresence>
+        {isAnimating && (
+          <motion.div
+            key="scanline-sweep"
+            className="absolute inset-0 pointer-events-none"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            {[...Array(5)].map((_, i) => (
+              <motion.div
+                key={`scanline-${i}`}
+                className="absolute left-0 right-0 h-[2px] bg-cream/60"
+                style={{ top: `${20 + i * 15}%` }}
+                initial={{ scaleX: 0, originX: 0 }}
+                animate={{ 
+                  scaleX: [0, 1, 1, 0],
+                  originX: [0, 0, 1, 1]
+                }}
+                transition={{ 
+                  duration: 0.5, 
+                  delay: i * 0.05,
+                  ease: "easeInOut"
+                }}
+              />
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Sparkle particles on hover */}
+      <AnimatePresence>
+        {isHovered && !isAnimating && (
+          <>
+            {[...Array(3)].map((_, i) => (
+              <motion.div
+                key={`sparkle-${i}`}
+                className="absolute w-1 h-1 bg-gold rounded-full"
+                style={{
+                  left: `${20 + i * 30}%`,
+                  top: "50%",
+                }}
+                initial={{ opacity: 0, scale: 0, y: 0 }}
+                animate={{ 
+                  opacity: [0, 1, 0],
+                  scale: [0, 1.5, 0],
+                  y: [-10, -20, -30],
+                }}
+                transition={{ 
+                  duration: 0.8,
+                  delay: i * 0.15,
+                  repeat: Infinity,
+                  repeatDelay: 0.5
+                }}
+              />
+            ))}
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Button text */}
+      <motion.span
+        className="relative z-10 flex items-center gap-2"
+        animate={{
+          color: isHovered ? "var(--cream)" : "var(--blood-orange)",
+        }}
+        transition={{ duration: 0.2 }}
+      >
+        <motion.span
+          animate={{
+            x: isAnimating ? [0, 5, 0] : 0,
+          }}
+          transition={{ duration: 0.3 }}
+        >
+          DISCOVER
+        </motion.span>
+        <motion.svg
+          className="w-3.5 h-3.5 md:w-4 md:h-4"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          animate={{
+            x: isHovered ? 3 : 0,
+            rotate: isAnimating ? 360 : 0,
+          }}
+          transition={{ 
+            x: { duration: 0.2 },
+            rotate: { duration: 0.5 }
+          }}
+        >
+          <path d="M5 12h14M12 5l7 7-7 7" />
+        </motion.svg>
+      </motion.span>
+
+      {/* Glow effect */}
+      <motion.div
+        className="absolute inset-0 rounded-lg pointer-events-none"
+        animate={{
+          boxShadow: isHovered 
+            ? "0 0 20px rgba(250, 219, 104, 0.4), 0 0 40px rgba(236, 86, 59, 0.2)"
+            : "0 0 0px rgba(250, 219, 104, 0)",
+        }}
+        transition={{ duration: 0.3 }}
+      />
+    </motion.button>
+  );
+}
+
 export default function Home() {
   const [navOpen, setNavOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>("hero");
   const [projects, setProjects] = useState<Project[]>([]);
+  const [allProjects, setAllProjects] = useState<Project[]>([]);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const { isMobile, isLandscape } = useResponsive();
+
+  // Load all projects on mount for discover feature
+  useEffect(() => {
+    async function loadAllProjects() {
+      const all = await getAllProjects();
+      setAllProjects(all);
+    }
+    loadAllProjects();
+  }, []);
 
   // Load projects when category changes
   useEffect(() => {
@@ -63,6 +231,15 @@ export default function Home() {
   const closeModal = () => {
     setSelectedProject(null);
   };
+
+  // Discover feature: show a random project
+  const handleDiscover = useCallback(() => {
+    if (allProjects.length > 0) {
+      const randomIndex = Math.floor(Math.random() * allProjects.length);
+      const randomProject = allProjects[randomIndex];
+      setSelectedProject(randomProject);
+    }
+  }, [allProjects]);
 
   return (
     <div className="relative min-h-screen bg-background overflow-hidden">
@@ -106,30 +283,11 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Secondary Nav */}
+        {/* Secondary Nav - Only Discover button now */}
         <div className="hidden sm:flex gap-2 md:gap-3">
-          <button
-            className="px-3 md:px-5 py-1.5 md:py-2 border-2 border-blood-orange text-blood-orange rounded-lg font-black text-xs md:text-sm hover:bg-blood-orange hover:text-cream transition-all"
-            style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
-          >
-            DISCOVER
-          </button>
-          <button
-            className="px-3 md:px-5 py-1.5 md:py-2 border-2 border-blood-orange text-blood-orange rounded-lg font-black text-xs md:text-sm hover:bg-blood-orange hover:text-cream transition-all"
-            style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
-          >
-            ABOUT ME
-          </button>
+          <DiscoverButton onDiscover={handleDiscover} />
         </div>
       </header>
-
-      {/* Navigation - Pass responsive state */}
-      <Navigation 
-        onOpenChange={setNavOpen} 
-        onCategoryChange={setActiveCategory}
-        isMobile={isMobile}
-        isLandscape={isLandscape}
-      />
 
       {/* Main Content Area (CRT Panel) */}
       <main className="fixed inset-0 pt-14 sm:pt-16 md:pt-[5rem] pb-4 sm:pb-6 md:pb-8 px-2 sm:px-4 md:px-6 flex justify-center items-center">
@@ -160,11 +318,19 @@ export default function Home() {
               />
             </div>
 
+            {/* Navigation - Now inside CRT panel for proper containment */}
+            <Navigation 
+              onOpenChange={setNavOpen} 
+              onCategoryChange={setActiveCategory}
+              isMobile={isMobile}
+              isLandscape={isLandscape}
+            />
+
             {/* Content - Shifts when nav is open on desktop, no shift on mobile (overlay) */}
             <motion.div
               className="relative z-10 w-full h-full"
               animate={{
-                paddingLeft: !isMobile && navOpen ? "min(420px, 30vw)" : "clamp(1rem, 3vw, 3rem)",
+                paddingLeft: !isMobile && navOpen ? "min(360px, 26vw)" : "clamp(1rem, 3vw, 3rem)",
               }}
               transition={{
                 type: "spring",

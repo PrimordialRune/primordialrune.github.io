@@ -11,6 +11,7 @@ export interface Project {
   abstract: string; // Longer detailed description
   featured?: boolean; // For hero section
   thumbnail?: string; // Main thumbnail, defaults to first image
+  importance?: number; // 1-5 scale affecting card size (higher = larger)
 }
 
 export interface ProjectMetadata {
@@ -26,4 +27,5 @@ export interface ProjectMetadata {
   abstract: string;
   featured?: string;
   thumbnail?: string;
+  importance?: string; // 1-5 scale affecting card size (higher = larger)
 }
