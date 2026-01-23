@@ -212,7 +212,9 @@ export default function FloatingProjects({
     droppedPos: { x: number; y: number },
     currentPositions: Map<string, { x: number; y: number }>
   ) => {
-    const minDistance = layout.cardWidth * 1.2; // Minimum distance between projects
+    // Collision detection spacing multiplier - projects need 1.2x card width apart
+    const COLLISION_SPACING_MULTIPLIER = 1.2;
+    const minDistance = layout.cardWidth * COLLISION_SPACING_MULTIPLIER;
     const padding = 60;
     const newPositions = new Map(currentPositions);
     
@@ -232,9 +234,11 @@ export default function FloatingProjects({
           dx = (dx / dist) * (minDistance - dist + 20);
           dy = (dy / dist) * (minDistance - dist + 20);
         } else {
-          // If exactly on top, push in random direction
-          dx = (Math.random() - 0.5) * minDistance;
-          dy = (Math.random() - 0.5) * minDistance;
+          // If exactly on top, push using deterministic direction based on project index
+          // Use index-based angle to ensure consistent behavior
+          const angle = (index * 137.508) % 360 * (Math.PI / 180); // Golden angle distribution
+          dx = Math.cos(angle) * minDistance;
+          dy = Math.sin(angle) * minDistance;
         }
         
         // Calculate new position with bounds clamping
