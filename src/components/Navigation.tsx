@@ -118,12 +118,13 @@ export default function Navigation({
       </AnimatePresence>
 
       {/* Navigation container - now contained within CRT panel bounds */}
-      <div 
+      {/* On mobile when closed, disable pointer events to allow interaction with content underneath */}
+      <div
         className={`absolute z-30 flex flex-col justify-between ${
-          useOverlayMode 
-            ? "top-2 bottom-2 left-2" 
+          useOverlayMode
+            ? "top-2 bottom-2 left-2"
             : "top-2 md:top-3 lg:top-4 bottom-2 md:bottom-3 lg:bottom-4 left-2 sm:left-3 md:left-4 lg:left-6"
-        }`}
+        } ${useOverlayMode && !isOpen ? "pointer-events-none" : ""}`}
         style={{
           // Ensure nav stays within the CRT panel
           maxHeight: "calc(100% - 1rem)",
@@ -157,7 +158,7 @@ export default function Navigation({
                     : "bg-blood-orange/40 backdrop-blur-sm"
                 } ${
                   isOpen ? "rounded-xl md:rounded-2xl" : "rounded-full"
-                } transition-colors`}
+                } transition-colors ${useOverlayMode && !isOpen ? "pointer-events-auto" : ""}`}
                 style={{
                   width: isOpen ? navWidth : "min(280px, 55vw)",
                   flex: isOpen ? (isActive ? "2" : "1") : "0 0 clamp(8px, 1.5vh, 12px)",

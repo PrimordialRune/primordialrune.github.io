@@ -116,6 +116,8 @@ export default function FloatingProjects({
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [projectPositions, setProjectPositions] = useState<Map<string, { x: number; y: number }>>(new Map());
+  // Track position version to force clean re-render after drag (prevents transform accumulation)
+  const [positionVersion, setPositionVersion] = useState<Map<string, number>>(new Map());
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   
@@ -256,23 +258,40 @@ export default function FloatingProjects({
   const handleDragEnd = useCallback((slug: string, info: PanInfo, index: number) => {
     // Get the current position (either saved or initial)
     const currentPos = getPosition(index, slug);
+    // Use info.point for absolute position when available, fallback to offset calculation
+    // info.offset gives us how far the element moved from its original position during drag
     const newX = currentPos.x + info.offset.x;
     const newY = currentPos.y + info.offset.y;
-    
+
     // Clamp position to container bounds with proper padding
-    const padding = 60; // Increased padding to prevent projects from going out of bounds
+    const padding = 60;
     const clampedX = Math.max(padding, Math.min(dimensions.width - padding, newX));
     const clampedY = Math.max(padding, Math.min(dimensions.height - padding, newY));
-    
+
     const droppedPos = { x: clampedX, y: clampedY };
-    
+
+    // Update position and increment version to force clean re-render
+    // This ensures Framer Motion's drag transform is reset with fresh component state
     setProjectPositions(prev => {
       const newMap = new Map(prev);
       newMap.set(slug, droppedPos);
-      // Resolve collisions with other projects
-      return resolveCollisions(slug, droppedPos, newMap);
+      return newMap;
     });
-    
+
+    // Increment version to force component re-mount with clean transform state
+    setPositionVersion(prev => {
+      const newMap = new Map(prev);
+      newMap.set(slug, (prev.get(slug) || 0) + 1);
+      return newMap;
+    });
+
+    // Resolve collisions after position is set
+    setTimeout(() => {
+      setProjectPositions(prev => {
+        return resolveCollisions(slug, droppedPos, prev);
+      });
+    }, 50);
+
     setIsDragging(false);
     setDraggedIndex(null);
   }, [getPosition, dimensions, resolveCollisions]);
@@ -355,9 +374,12 @@ export default function FloatingProjects({
           const thumbnailSize = getSizeVariation(project.importance || 3, baseThumbnailSize);
           const fontSize = Math.max(10, Math.min(14, layout.cardWidth * 0.08));
 
+          // Include version in key to force clean re-mount after drag
+          const version = positionVersion.get(project.slug) || 0;
+
           return (
             <motion.div
-              key={project.slug}
+              key={`${project.slug}-v${version}`}
               className="absolute"
               style={{
                 left: position.x,
@@ -366,21 +388,23 @@ export default function FloatingProjects({
                 zIndex: isBeingDragged ? 100 : 1,
               }}
               initial={{ opacity: 0, scale: 0 }}
-              animate={{ 
-                opacity: 1, 
+              animate={{
+                opacity: 1,
                 scale: 1,
-                x: projectPositions.has(project.slug) ? 0 : undefined,
-                y: projectPositions.has(project.slug) ? 0 : undefined,
               }}
               transition={{
                 type: "spring",
                 damping: 20,
                 stiffness: 100,
                 delay: index * 0.08,
+                // Disable position animation after drag to prevent jumping
+                left: { type: "tween", duration: 0 },
+                top: { type: "tween", duration: 0 },
               }}
               drag={isBeingDragged}
               dragConstraints={containerRef}
               dragElastic={0.1}
+              dragMomentum={false}
               onDragEnd={(_, info) => handleDragEnd(project.slug, info, index)}
               onPointerDown={() => handlePointerDown(index)}
               onPointerUp={handlePointerUp}

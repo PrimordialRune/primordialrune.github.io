@@ -16,10 +16,32 @@ interface ProjectModalProps {
 export default function ProjectModal({ project, onClose, isDiscoverMode = false }: ProjectModalProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
   const [showScrollIndicator, setShowScrollIndicator] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [thumbHeight, setThumbHeight] = useState(20);
   const [showSparkles, setShowSparkles] = useState(isDiscoverMode);
+  const [mousePosition, setMousePosition] = useState({ x: 0.5, y: 0.5 });
+  const [isHovered, setIsHovered] = useState(false);
+
+  // Handle mouse movement for 3D tilt effect
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!modalRef.current) return;
+    const rect = modalRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+    setMousePosition({ x, y });
+  };
+
+  const handleMouseEnter = () => setIsHovered(true);
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    setMousePosition({ x: 0.5, y: 0.5 });
+  };
+
+  // Calculate subtle 3D tilt (less intense than button)
+  const tiltX = isHovered ? (mousePosition.y - 0.5) * -8 : 0;
+  const tiltY = isHovered ? (mousePosition.x - 0.5) * 8 : 0;
 
   // Generate sparkle positions for discover mode using seeded random
   const discoverSparkles = useMemo(() => {
@@ -132,25 +154,41 @@ export default function ProjectModal({ project, onClose, isDiscoverMode = false 
           )}
         </AnimatePresence>
 
-        {/* Modal Content */}
+        {/* Modal Content with 3D tilt effect */}
         <motion.div
+          ref={modalRef}
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
+          animate={{
+            opacity: 1,
+            scale: 1,
+            y: 0,
+            rotateX: tiltX,
+            rotateY: tiltY,
+          }}
           exit={{ opacity: 0, scale: 0.9, y: 20 }}
           transition={{
             type: "spring",
             damping: 25,
             stiffness: 300,
+            rotateX: { type: "spring", stiffness: 400, damping: 30 },
+            rotateY: { type: "spring", stiffness: 400, damping: 30 },
           }}
-          className="relative w-full max-w-5xl max-h-[95vh] sm:max-h-[90vh] bg-peacock-blue rounded-xl sm:rounded-2xl md:rounded-3xl overflow-hidden"
+          onMouseMove={handleMouseMove}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          className={`relative w-full max-w-5xl max-h-[95vh] sm:max-h-[90vh] rounded-xl sm:rounded-2xl md:rounded-3xl overflow-hidden ${
+            isDiscoverMode ? "bg-blood-orange" : "bg-peacock-blue"
+          }`}
           style={{
-            border: `4px solid ${borderColor}`,
+            border: `4px solid ${isDiscoverMode ? "var(--gold)" : "var(--teal)"}`,
+            transformStyle: "preserve-3d",
+            perspective: "1000px",
             boxShadow: isDiscoverMode
               ? `
-                inset 4px 4px 8px rgba(0, 0, 0, 0.3),
-                inset -4px -4px 8px rgba(255, 255, 255, 0.05),
-                0 0 0 2px var(--blood-orange),
-                0 0 30px rgba(236, 86, 59, 0.3),
+                inset 4px 4px 8px rgba(0, 0, 0, 0.2),
+                inset -4px -4px 8px rgba(255, 255, 255, 0.1),
+                0 0 0 2px var(--gold),
+                0 0 30px rgba(250, 219, 104, 0.3),
                 0 12px 40px rgba(0, 0, 0, 0.5)
               `
               : `
@@ -164,9 +202,15 @@ export default function ProjectModal({ project, onClose, isDiscoverMode = false 
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="absolute top-2 sm:top-3 md:top-4 right-2 sm:right-3 md:right-4 z-10 w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 flex items-center justify-center bg-blood-orange/90 hover:bg-blood-orange rounded-lg sm:rounded-xl text-cream font-black transition-all"
+            className={`absolute top-2 sm:top-3 md:top-4 right-2 sm:right-3 md:right-4 z-10 w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 flex items-center justify-center rounded-lg sm:rounded-xl font-black transition-all ${
+              isDiscoverMode
+                ? "bg-gold/90 hover:bg-gold text-peacock-blue"
+                : "bg-blood-orange/90 hover:bg-blood-orange text-cream"
+            }`}
             style={{
-              boxShadow: "0 4px 12px rgba(236, 86, 59, 0.4)",
+              boxShadow: isDiscoverMode
+                ? "0 4px 12px rgba(250, 219, 104, 0.4)"
+                : "0 4px 12px rgba(236, 86, 59, 0.4)",
             }}
           >
             <svg
@@ -188,7 +232,18 @@ export default function ProjectModal({ project, onClose, isDiscoverMode = false 
           >
             {/* Header */}
             <div className="mb-4 sm:mb-6">
-              <div className="flex items-start justify-between gap-2 sm:gap-4 mb-2 sm:mb-3 pr-8 sm:pr-10">
+              <div className="flex items-start gap-2 sm:gap-4 mb-2 sm:mb-3 pr-10 sm:pr-12 md:pr-14">
+                {/* Year badge - now on the left */}
+                <span
+                  className={`px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 rounded-lg sm:rounded-xl font-black text-sm sm:text-base md:text-lg flex-shrink-0 mt-1 ${
+                    isDiscoverMode
+                      ? "bg-gold text-peacock-blue"
+                      : "bg-blood-orange text-cream"
+                  }`}
+                  style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
+                >
+                  {project.year}
+                </span>
                 <div>
                   <h2
                     className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-cream mb-1 sm:mb-2"
@@ -199,7 +254,7 @@ export default function ProjectModal({ project, onClose, isDiscoverMode = false 
                   {project.titleJp && (
                     <p
                       className="text-sm sm:text-base md:text-lg tracking-wider"
-                      style={{ 
+                      style={{
                         fontFamily: "var(--font-8bit-darling)",
                         color: isDiscoverMode ? "var(--gold)" : "rgba(78, 185, 159, 0.7)"
                       }}
@@ -208,12 +263,6 @@ export default function ProjectModal({ project, onClose, isDiscoverMode = false 
                     </p>
                   )}
                 </div>
-                <span
-                  className="px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 bg-blood-orange rounded-lg sm:rounded-xl text-cream font-black text-sm sm:text-base md:text-lg flex-shrink-0"
-                  style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
-                >
-                  {project.year}
-                </span>
               </div>
 
               {/* Meta Info */}
@@ -244,7 +293,11 @@ export default function ProjectModal({ project, onClose, isDiscoverMode = false 
                     {project.tools.map((tool) => (
                       <span
                         key={tool}
-                        className="px-1.5 sm:px-2 md:px-3 py-0.5 sm:py-1 bg-dark-teal/60 rounded-md sm:rounded-lg text-[10px] sm:text-xs text-cream/80 font-black"
+                        className={`px-1.5 sm:px-2 md:px-3 py-0.5 sm:py-1 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-black ${
+                          isDiscoverMode
+                            ? "bg-cream/20 text-cream"
+                            : "bg-dark-teal/60 text-cream/80"
+                        }`}
                         style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
                       >
                         {tool}
@@ -262,7 +315,11 @@ export default function ProjectModal({ project, onClose, isDiscoverMode = false 
             {/* Image Gallery */}
             {project.images.length > 0 && (
               <div className="mb-4 sm:mb-6">
-                <div className="relative aspect-video bg-dark-teal/40 rounded-lg sm:rounded-xl md:rounded-2xl overflow-hidden border-2 border-teal/40">
+                <div className={`relative aspect-video rounded-lg sm:rounded-xl md:rounded-2xl overflow-hidden border-2 ${
+                  isDiscoverMode
+                    ? "bg-peacock-blue/60 border-gold/60"
+                    : "bg-dark-teal/40 border-teal/40"
+                }`}>
                   <img
                     src={project.images[currentImageIndex]}
                     alt={`${project.title} screenshot ${currentImageIndex + 1}`}
@@ -273,8 +330,9 @@ export default function ProjectModal({ project, onClose, isDiscoverMode = false 
                   <div
                     className="absolute inset-0 pointer-events-none opacity-10"
                     style={{
-                      backgroundImage:
-                        "repeating-linear-gradient(0deg, transparent, transparent 2px, var(--teal) 2px, var(--teal) 4px)",
+                      backgroundImage: isDiscoverMode
+                        ? "repeating-linear-gradient(0deg, transparent, transparent 2px, var(--gold) 2px, var(--gold) 4px)"
+                        : "repeating-linear-gradient(0deg, transparent, transparent 2px, var(--teal) 2px, var(--teal) 4px)",
                     }}
                   />
 
@@ -283,10 +341,14 @@ export default function ProjectModal({ project, onClose, isDiscoverMode = false 
                     <>
                       <button
                         onClick={prevImage}
-                        className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center bg-blood-orange/80 hover:bg-blood-orange rounded-lg sm:rounded-xl transition-all"
+                        className={`absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center rounded-lg sm:rounded-xl transition-all ${
+                          isDiscoverMode
+                            ? "bg-gold/80 hover:bg-gold text-peacock-blue"
+                            : "bg-blood-orange/80 hover:bg-blood-orange text-cream"
+                        }`}
                       >
                         <svg
-                          className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-cream"
+                          className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6"
                           viewBox="0 0 24 24"
                           fill="none"
                           stroke="currentColor"
@@ -298,10 +360,14 @@ export default function ProjectModal({ project, onClose, isDiscoverMode = false 
                       </button>
                       <button
                         onClick={nextImage}
-                        className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center bg-blood-orange/80 hover:bg-blood-orange rounded-lg sm:rounded-xl transition-all"
+                        className={`absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center rounded-lg sm:rounded-xl transition-all ${
+                          isDiscoverMode
+                            ? "bg-gold/80 hover:bg-gold text-peacock-blue"
+                            : "bg-blood-orange/80 hover:bg-blood-orange text-cream"
+                        }`}
                       >
                         <svg
-                          className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-cream"
+                          className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6"
                           viewBox="0 0 24 24"
                           fill="none"
                           stroke="currentColor"
@@ -316,7 +382,11 @@ export default function ProjectModal({ project, onClose, isDiscoverMode = false 
 
                   {/* Image counter */}
                   <div
-                    className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 px-2 sm:px-3 py-0.5 sm:py-1 bg-peacock-blue/80 backdrop-blur-sm rounded-md sm:rounded-lg text-cream text-xs sm:text-sm font-black"
+                    className={`absolute bottom-2 sm:bottom-4 right-2 sm:right-4 px-2 sm:px-3 py-0.5 sm:py-1 backdrop-blur-sm rounded-md sm:rounded-lg text-xs sm:text-sm font-black ${
+                      isDiscoverMode
+                        ? "bg-gold/80 text-peacock-blue"
+                        : "bg-peacock-blue/80 text-cream"
+                    }`}
                     style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
                   >
                     {currentImageIndex + 1} / {project.images.length}
@@ -332,8 +402,12 @@ export default function ProjectModal({ project, onClose, isDiscoverMode = false 
                         onClick={() => setCurrentImageIndex(index)}
                         className={`flex-shrink-0 w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-md sm:rounded-lg overflow-hidden border-2 transition-all ${
                           index === currentImageIndex
-                            ? "border-blood-orange scale-105"
-                            : "border-teal/30 opacity-60 hover:opacity-100"
+                            ? isDiscoverMode
+                              ? "border-gold scale-105"
+                              : "border-blood-orange scale-105"
+                            : isDiscoverMode
+                              ? "border-cream/30 opacity-60 hover:opacity-100"
+                              : "border-teal/30 opacity-60 hover:opacity-100"
                         }`}
                       >
                         <img
@@ -365,11 +439,15 @@ export default function ProjectModal({ project, onClose, isDiscoverMode = false 
             {/* CTA Button */}
             <Link
               href={`/projects/${project.slug}`}
-              className="inline-flex items-center gap-2 sm:gap-3 px-4 sm:px-5 md:px-6 py-2 sm:py-3 md:py-4 bg-blood-orange hover:bg-blood-orange/80 rounded-lg sm:rounded-xl text-cream font-black text-sm sm:text-base md:text-lg transition-all group"
+              className={`inline-flex items-center gap-2 sm:gap-3 px-4 sm:px-5 md:px-6 py-2 sm:py-3 md:py-4 rounded-lg sm:rounded-xl font-black text-sm sm:text-base md:text-lg transition-all group ${
+                isDiscoverMode
+                  ? "bg-gold hover:bg-gold/90 text-peacock-blue"
+                  : "bg-blood-orange hover:bg-blood-orange/80 text-cream"
+              }`}
               style={{
                 fontFamily: "var(--font-fk-grotesk-black)",
-                boxShadow: isDiscoverMode 
-                  ? "0 8px 24px rgba(250, 219, 104, 0.4), 0 0 20px rgba(236, 86, 59, 0.3)"
+                boxShadow: isDiscoverMode
+                  ? "0 8px 24px rgba(250, 219, 104, 0.5), 0 0 20px rgba(250, 219, 104, 0.3)"
                   : "0 8px 24px rgba(236, 86, 59, 0.4)",
               }}
             >
@@ -397,10 +475,14 @@ export default function ProjectModal({ project, onClose, isDiscoverMode = false 
                 className="absolute right-1 top-16 bottom-4 w-1.5 sm:w-2 z-20 pointer-events-none"
               >
                 {/* Track */}
-                <div className="absolute inset-0 bg-teal/20 rounded-full" />
+                <div className={`absolute inset-0 rounded-full ${
+                  isDiscoverMode ? "bg-cream/20" : "bg-teal/20"
+                }`} />
                 {/* Progress */}
                 <motion.div
-                  className="absolute top-0 left-0 right-0 bg-aquamarine/60 rounded-full"
+                  className={`absolute top-0 left-0 right-0 rounded-full ${
+                    isDiscoverMode ? "bg-gold/80" : "bg-aquamarine/60"
+                  }`}
                   style={{
                     height: `${thumbHeight}%`,
                   }}
