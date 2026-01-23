@@ -1,12 +1,25 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, PanInfo } from "framer-motion";
 import { Project } from "@/types/project";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 
 interface FloatingProjectsProps {
   projects: Project[];
   onProjectClick: (project: Project) => void;
+}
+
+// Seeded random number generator for consistent but random positions
+function seededRandom(seed: number) {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+}
+
+// Calculate size variation based on importance (1-5 scale, ±10-20 pixels)
+function getSizeVariation(importance: number = 3, baseSize: number): number {
+  // importance 1 = smallest (-20px), importance 5 = largest (+20px)
+  const variation = ((importance - 3) / 2) * 20; // -20 to +20 range
+  return baseSize + variation;
 }
 
 // Calculate optimal grid layout based on container size and number of projects
@@ -97,6 +110,13 @@ export default function FloatingProjects({
 }: FloatingProjectsProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [projectPositions, setProjectPositions] = useState<Map<string, { x: number; y: number }>>(new Map());
+  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  
+  // Generate random seed on mount for position randomization
+  const [randomSeed] = useState(() => Math.random() * 1000);
 
   // Update dimensions on resize
   useEffect(() => {
@@ -120,8 +140,8 @@ export default function FloatingProjects({
     [dimensions.width, dimensions.height, projects.length]
   );
 
-  // Calculate position for each project
-  const getPosition = useCallback((index: number) => {
+  // Calculate initial position for each project with randomization
+  const getInitialPosition = useCallback((index: number, _slug: string) => {
     if (layout.cols === 0) return { x: 50, y: 50 };
     
     const row = Math.floor(index / layout.cols);
@@ -134,15 +154,71 @@ export default function FloatingProjects({
     const horizontalPadding = (dimensions.width - totalGridWidth) / 2;
     const verticalPadding = (dimensions.height - totalGridHeight) / 2;
     
-    // Add slight randomness for organic feel (±5% of card size)
-    const randomOffsetX = (Math.sin(index * 137.508) * 0.05) * layout.cardWidth;
-    const randomOffsetY = (Math.cos(index * 137.508) * 0.05) * layout.cardHeight;
+    // Add random offset using seeded random for consistent but random positions (±15% of card size)
+    const seed1 = randomSeed + index * 137.508;
+    const seed2 = randomSeed + index * 247.123;
+    const randomOffsetX = (seededRandom(seed1) - 0.5) * 0.3 * layout.cardWidth;
+    const randomOffsetY = (seededRandom(seed2) - 0.5) * 0.3 * layout.cardHeight;
     
     const x = horizontalPadding + col * layout.cardWidth + layout.cardWidth / 2 + randomOffsetX;
     const y = verticalPadding + row * layout.cardHeight + layout.cardHeight / 2 + randomOffsetY;
     
     return { x, y };
-  }, [layout, dimensions]);
+  }, [layout, dimensions, randomSeed]);
+
+  // Get current position (either from saved positions or calculate initial)
+  const getPosition = useCallback((index: number, slug: string) => {
+    const savedPosition = projectPositions.get(slug);
+    if (savedPosition) {
+      return savedPosition;
+    }
+    return getInitialPosition(index, slug);
+  }, [projectPositions, getInitialPosition]);
+
+  // Handle drag end - save new position
+  const handleDragEnd = useCallback((slug: string, info: PanInfo, index: number) => {
+    const initialPos = getInitialPosition(index, slug);
+    const newX = initialPos.x + info.offset.x;
+    const newY = initialPos.y + info.offset.y;
+    
+    // Clamp position to container bounds
+    const padding = 40;
+    const clampedX = Math.max(padding, Math.min(dimensions.width - padding, newX));
+    const clampedY = Math.max(padding, Math.min(dimensions.height - padding, newY));
+    
+    setProjectPositions(prev => {
+      const newMap = new Map(prev);
+      newMap.set(slug, { x: clampedX, y: clampedY });
+      return newMap;
+    });
+    
+    setIsDragging(false);
+    setDraggedIndex(null);
+  }, [getInitialPosition, dimensions]);
+
+  // Long press handlers
+  const handlePointerDown = useCallback((index: number) => {
+    longPressTimerRef.current = setTimeout(() => {
+      setDraggedIndex(index);
+      setIsDragging(true);
+    }, 300); // 300ms long press
+  }, []);
+
+  const handlePointerUp = useCallback(() => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  }, []);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+      }
+    };
+  }, []);
 
   // Generate unique floating animation for each project
   const getFloatingAnimation = useCallback((index: number) => {
@@ -171,10 +247,6 @@ export default function FloatingProjects({
     );
   }
 
-  // Calculate thumbnail size based on card size
-  const thumbnailSize = Math.max(60, Math.min(160, layout.cardWidth * 0.9));
-  const fontSize = Math.max(10, Math.min(14, layout.cardWidth * 0.08));
-
   return (
     <div ref={containerRef} className="relative w-full h-full overflow-hidden">
       {/* Slow-moving scanline overlay for retro CRT effect */}
@@ -192,141 +264,186 @@ export default function FloatingProjects({
       {/* Virtual space container */}
       <div className="absolute inset-0">
         {dimensions.width > 0 && projects.map((project, index) => {
-          const position = getPosition(index);
+          const position = getPosition(index, project.slug);
           const floating = getFloatingAnimation(index);
           const duration = 8 + (index % 4) * 2; // 8-14s varied durations
+          const isBeingDragged = draggedIndex === index;
+          
+          // Calculate thumbnail size with importance-based variation
+          const baseThumbnailSize = Math.max(60, Math.min(160, layout.cardWidth * 0.9));
+          const thumbnailSize = getSizeVariation(project.importance || 3, baseThumbnailSize);
+          const fontSize = Math.max(10, Math.min(14, layout.cardWidth * 0.08));
 
           return (
-            <motion.button
+            <motion.div
               key={project.slug}
-              onClick={() => onProjectClick(project)}
-              className="group absolute"
+              className="absolute"
               style={{
                 left: position.x,
                 top: position.y,
                 transform: "translate(-50%, -50%)",
+                zIndex: isBeingDragged ? 100 : 1,
               }}
               initial={{ opacity: 0, scale: 0 }}
-              animate={{ opacity: 1, scale: 1 }}
+              animate={{ 
+                opacity: 1, 
+                scale: 1,
+                x: projectPositions.has(project.slug) ? 0 : undefined,
+                y: projectPositions.has(project.slug) ? 0 : undefined,
+              }}
               transition={{
                 type: "spring",
                 damping: 20,
                 stiffness: 100,
                 delay: index * 0.08,
               }}
-              whileHover={{ scale: 1.1, zIndex: 50 }}
-              whileTap={{ scale: 0.95 }}
+              drag={isBeingDragged}
+              dragConstraints={containerRef}
+              dragElastic={0.1}
+              onDragEnd={(_, info) => handleDragEnd(project.slug, info, index)}
+              onPointerDown={() => handlePointerDown(index)}
+              onPointerUp={handlePointerUp}
+              onPointerLeave={handlePointerUp}
+              whileHover={!isDragging ? { scale: 1.1, zIndex: 50 } : undefined}
+              whileTap={!isDragging ? { scale: 0.95 } : undefined}
             >
-              {/* Floating animation wrapper */}
+              {/* Floating animation wrapper - disabled while dragging */}
               <motion.div
-                animate={floating}
+                animate={!isBeingDragged ? floating : undefined}
                 transition={{
                   duration: duration,
                   repeat: Infinity,
                   ease: "easeInOut",
                 }}
               >
-                {/* Icon/Card - 90s desktop/console style */}
-                <div 
-                  className="flex flex-col items-center gap-1 sm:gap-2"
-                  style={{ width: thumbnailSize + 16 }}
+                <button
+                  onClick={() => {
+                    if (!isDragging) {
+                      onProjectClick(project);
+                    }
+                  }}
+                  className="group"
                 >
-                  {/* Thumbnail container - like desktop icon */}
-                  <div
-                    className="relative bg-dark-teal/60 backdrop-blur-sm rounded-lg sm:rounded-xl md:rounded-2xl overflow-hidden border-2 sm:border-3 md:border-4 border-teal/40 group-hover:border-aquamarine transition-all"
-                    style={{
-                      width: thumbnailSize,
-                      height: thumbnailSize,
-                      boxShadow: `
-                        inset 2px 2px 4px rgba(0, 0, 0, 0.3),
-                        inset -2px -2px 4px rgba(255, 255, 255, 0.05),
-                        0 4px 12px rgba(0, 0, 0, 0.3)
-                      `,
-                    }}
-                  >
-                    {/* Thumbnail */}
-                    {project.thumbnail && (
-                      <img
-                        src={project.thumbnail}
-                        alt={project.title}
-                        className="w-full h-full object-cover"
-                      />
-                    )}
-
-                    {/* Scanline effect on hover */}
-                    <div
-                      className="absolute inset-0 opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none"
-                      style={{
-                        backgroundImage:
-                          "repeating-linear-gradient(0deg, transparent, transparent 2px, var(--teal) 2px, var(--teal) 4px)",
-                      }}
-                    />
-
-                    {/* Year badge - top right */}
-                    <div
-                      className="absolute top-1 right-1 px-1 sm:px-1.5 md:px-2 py-0.5 bg-blood-orange/90 backdrop-blur-sm rounded text-cream font-black"
-                      style={{ 
-                        fontFamily: "var(--font-fk-grotesk-black)",
-                        fontSize: Math.max(8, fontSize * 0.75)
-                      }}
-                    >
-                      {project.year}
-                    </div>
-
-                    {/* Glow on hover */}
-                    <div
-                      className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
-                      style={{
-                        boxShadow: "inset 0 0 20px rgba(78, 185, 159, 0.3)",
-                      }}
-                    />
-                  </div>
-
-                  {/* Label - below icon like desktop */}
+                  {/* Icon/Card - 90s desktop/console style */}
                   <div 
-                    className="text-center px-1 sm:px-2 py-0.5 sm:py-1 bg-dark-teal/80 backdrop-blur-sm rounded-md sm:rounded-lg border border-teal/30 group-hover:border-aquamarine/50 transition-all max-w-full"
+                    className="flex flex-col items-center gap-1 sm:gap-2"
+                    style={{ width: thumbnailSize + 16 }}
                   >
-                    <p
-                      className="font-black text-cream leading-tight truncate"
-                      style={{ 
-                        fontFamily: "var(--font-fk-grotesk-black)",
-                        fontSize
+                    {/* Thumbnail container - like desktop icon */}
+                    <div
+                      className={`relative bg-dark-teal/60 backdrop-blur-sm rounded-lg sm:rounded-xl md:rounded-2xl overflow-hidden border-2 sm:border-3 md:border-4 transition-all ${
+                        isBeingDragged 
+                          ? "border-gold shadow-lg" 
+                          : "border-teal/40 group-hover:border-aquamarine"
+                      }`}
+                      style={{
+                        width: thumbnailSize,
+                        height: thumbnailSize,
+                        boxShadow: isBeingDragged 
+                          ? `0 8px 32px rgba(250, 219, 104, 0.4), inset 2px 2px 4px rgba(0, 0, 0, 0.3)`
+                          : `inset 2px 2px 4px rgba(0, 0, 0, 0.3), inset -2px -2px 4px rgba(255, 255, 255, 0.05), 0 4px 12px rgba(0, 0, 0, 0.3)`,
                       }}
                     >
-                      {project.title}
-                    </p>
-                    {project.titleJp && (
-                      <p
-                        className="text-aquamarine/70 tracking-wide truncate"
+                      {/* Thumbnail */}
+                      {project.thumbnail && (
+                        <img
+                          src={project.thumbnail}
+                          alt={project.title}
+                          className="w-full h-full object-cover"
+                          draggable={false}
+                        />
+                      )}
+
+                      {/* Scanline effect on hover */}
+                      <div
+                        className="absolute inset-0 opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none"
+                        style={{
+                          backgroundImage:
+                            "repeating-linear-gradient(0deg, transparent, transparent 2px, var(--teal) 2px, var(--teal) 4px)",
+                        }}
+                      />
+
+                      {/* Year badge - top right */}
+                      <div
+                        className="absolute top-1 right-1 px-1 sm:px-1.5 md:px-2 py-0.5 bg-blood-orange/90 backdrop-blur-sm rounded text-cream font-black"
                         style={{ 
-                          fontFamily: "var(--font-8bit-darling)",
+                          fontFamily: "var(--font-fk-grotesk-black)",
                           fontSize: Math.max(8, fontSize * 0.75)
                         }}
                       >
-                        {project.titleJp}
-                      </p>
-                    )}
-                  </div>
+                        {project.year}
+                      </div>
 
-                  {/* Active indicator on hover */}
-                  <motion.div
-                    className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gold rounded-full opacity-0 group-hover:opacity-100"
-                    style={{
-                      boxShadow: "0 0 8px rgba(250, 219, 104, 0.6)",
-                    }}
-                    initial={false}
-                    animate={{
-                      scale: [1, 1.2, 1],
-                    }}
-                    transition={{
-                      duration: 1.5,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                    }}
-                  />
-                </div>
+                      {/* Drag indicator when being dragged */}
+                      {isBeingDragged && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/20 pointer-events-none">
+                          <motion.div
+                            animate={{ scale: [1, 1.1, 1] }}
+                            transition={{ duration: 0.5, repeat: Infinity }}
+                            className="w-8 h-8 rounded-full bg-gold/80 flex items-center justify-center"
+                          >
+                            <svg className="w-4 h-4 text-peacock-blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M12 12m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+                            </svg>
+                          </motion.div>
+                        </div>
+                      )}
+
+                      {/* Glow on hover */}
+                      <div
+                        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                        style={{
+                          boxShadow: "inset 0 0 20px rgba(78, 185, 159, 0.3)",
+                        }}
+                      />
+                    </div>
+
+                    {/* Label - below icon like desktop */}
+                    <div 
+                      className="text-center px-1 sm:px-2 py-0.5 sm:py-1 bg-dark-teal/80 backdrop-blur-sm rounded-md sm:rounded-lg border border-teal/30 group-hover:border-aquamarine/50 transition-all max-w-full"
+                    >
+                      <p
+                        className="font-black text-cream leading-tight truncate"
+                        style={{ 
+                          fontFamily: "var(--font-fk-grotesk-black)",
+                          fontSize
+                        }}
+                      >
+                        {project.title}
+                      </p>
+                      {project.titleJp && (
+                        <p
+                          className="text-aquamarine/70 tracking-wide truncate"
+                          style={{ 
+                            fontFamily: "var(--font-8bit-darling)",
+                            fontSize: Math.max(8, fontSize * 0.75)
+                          }}
+                        >
+                          {project.titleJp}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Active indicator on hover */}
+                    <motion.div
+                      className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gold rounded-full opacity-0 group-hover:opacity-100"
+                      style={{
+                        boxShadow: "0 0 8px rgba(250, 219, 104, 0.6)",
+                      }}
+                      initial={false}
+                      animate={{
+                        scale: [1, 1.2, 1],
+                      }}
+                      transition={{
+                        duration: 1.5,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                      }}
+                    />
+                  </div>
+                </button>
               </motion.div>
-            </motion.button>
+            </motion.div>
           );
         })}
       </div>
