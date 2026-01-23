@@ -2,20 +2,45 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Project } from "@/types/project";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import Link from "next/link";
+import { AstroidSparkle } from "@/components/AstroidSparkle";
+import { seededRandom } from "@/lib/utils";
 
 interface ProjectModalProps {
   project: Project | null;
   onClose: () => void;
+  isDiscoverMode?: boolean;
 }
 
-export default function ProjectModal({ project, onClose }: ProjectModalProps) {
+export default function ProjectModal({ project, onClose, isDiscoverMode = false }: ProjectModalProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showScrollIndicator, setShowScrollIndicator] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [thumbHeight, setThumbHeight] = useState(20);
+  const [showSparkles, setShowSparkles] = useState(isDiscoverMode);
+
+  // Generate sparkle positions for discover mode using seeded random
+  const discoverSparkles = useMemo(() => {
+    return [...Array(20)].map((_, i) => ({
+      id: i,
+      left: 5 + seededRandom(i * 137.5) * 90,
+      top: 5 + seededRandom(i * 247.1) * 90,
+      delay: seededRandom(i * 317.3) * 0.5,
+      opacity: 0.5 + seededRandom(i * 421.7) * 0.5,
+      size: 10 + seededRandom(i * 523.9) * 20,
+      duration: 1 + seededRandom(i * 631.1) * 0.5,
+    }));
+  }, []);
+
+  // Hide sparkles after entrance animation - sparkles start visible via initial state
+  useEffect(() => {
+    if (isDiscoverMode && showSparkles) {
+      const timer = setTimeout(() => setShowSparkles(false), 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [isDiscoverMode, showSparkles]);
 
   // Check if content is scrollable and track scroll progress
   useEffect(() => {
@@ -48,6 +73,9 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
 
   if (!project) return null;
 
+  // Color scheme based on discover mode
+  const borderColor = isDiscoverMode ? "var(--blood-orange)" : "var(--teal)";
+
   const nextImage = () => {
     setCurrentImageIndex((prev) =>
       prev === project.images.length - 1 ? 0 : prev + 1
@@ -72,6 +100,38 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
           className="absolute inset-0 bg-black/70 backdrop-blur-sm"
         />
 
+        {/* Discover Mode Sparkles */}
+        <AnimatePresence>
+          {showSparkles && isDiscoverMode && (
+            <>
+              {discoverSparkles.map((sparkle) => (
+                <motion.div
+                  key={`discover-sparkle-${sparkle.id}`}
+                  className="absolute pointer-events-none z-[110]"
+                  style={{
+                    left: `${sparkle.left}%`,
+                    top: `${sparkle.top}%`,
+                  }}
+                  initial={{ opacity: 0, scale: 0, rotate: 0 }}
+                  animate={{ 
+                    opacity: [0, sparkle.opacity, sparkle.opacity * 0.5, 0],
+                    scale: [0, 1.5, 1, 0],
+                    rotate: [0, 180, 360],
+                  }}
+                  exit={{ opacity: 0, scale: 0 }}
+                  transition={{ 
+                    duration: sparkle.duration,
+                    delay: sparkle.delay,
+                    ease: "easeOut"
+                  }}
+                >
+                  <AstroidSparkle size={sparkle.size} color="var(--gold)" opacity={1} />
+                </motion.div>
+              ))}
+            </>
+          )}
+        </AnimatePresence>
+
         {/* Modal Content */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -82,13 +142,22 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
             damping: 25,
             stiffness: 300,
           }}
-          className="relative w-full max-w-5xl max-h-[95vh] sm:max-h-[90vh] bg-peacock-blue rounded-xl sm:rounded-2xl md:rounded-3xl overflow-hidden border-2 sm:border-3 md:border-4 border-teal"
+          className="relative w-full max-w-5xl max-h-[95vh] sm:max-h-[90vh] bg-peacock-blue rounded-xl sm:rounded-2xl md:rounded-3xl overflow-hidden"
           style={{
-            boxShadow: `
-              inset 4px 4px 8px rgba(0, 0, 0, 0.3),
-              inset -4px -4px 8px rgba(255, 255, 255, 0.05),
-              0 0 0 2px var(--teal),
-              0 12px 40px rgba(0, 0, 0, 0.5)
+            border: `4px solid ${borderColor}`,
+            boxShadow: isDiscoverMode
+              ? `
+                inset 4px 4px 8px rgba(0, 0, 0, 0.3),
+                inset -4px -4px 8px rgba(255, 255, 255, 0.05),
+                0 0 0 2px var(--blood-orange),
+                0 0 30px rgba(236, 86, 59, 0.3),
+                0 12px 40px rgba(0, 0, 0, 0.5)
+              `
+              : `
+                inset 4px 4px 8px rgba(0, 0, 0, 0.3),
+                inset -4px -4px 8px rgba(255, 255, 255, 0.05),
+                0 0 0 2px var(--teal),
+                0 12px 40px rgba(0, 0, 0, 0.5)
             `,
           }}
         >
@@ -129,8 +198,11 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
                   </h2>
                   {project.titleJp && (
                     <p
-                      className="text-sm sm:text-base md:text-lg text-aquamarine/70 tracking-wider"
-                      style={{ fontFamily: "var(--font-8bit-darling)" }}
+                      className="text-sm sm:text-base md:text-lg tracking-wider"
+                      style={{ 
+                        fontFamily: "var(--font-8bit-darling)",
+                        color: isDiscoverMode ? "var(--gold)" : "rgba(78, 185, 159, 0.7)"
+                      }}
                     >
                       {project.titleJp}
                     </p>
@@ -148,8 +220,11 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
               <div className="flex flex-wrap gap-2 sm:gap-4 mb-4 sm:mb-6">
                 <div>
                   <span
-                    className="text-[10px] sm:text-xs text-aquamarine font-black block mb-0.5 sm:mb-1"
-                    style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
+                    className="text-[10px] sm:text-xs font-black block mb-0.5 sm:mb-1"
+                    style={{ 
+                      fontFamily: "var(--font-fk-grotesk-black)",
+                      color: isDiscoverMode ? "var(--gold)" : "var(--aquamarine)"
+                    }}
                   >
                     ROLE
                   </span>
@@ -157,8 +232,11 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
                 </div>
                 <div className="flex-1">
                   <span
-                    className="text-[10px] sm:text-xs text-aquamarine font-black block mb-0.5 sm:mb-1"
-                    style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
+                    className="text-[10px] sm:text-xs font-black block mb-0.5 sm:mb-1"
+                    style={{ 
+                      fontFamily: "var(--font-fk-grotesk-black)",
+                      color: isDiscoverMode ? "var(--gold)" : "var(--aquamarine)"
+                    }}
                   >
                     TOOLS
                   </span>
@@ -273,8 +351,11 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
             {/* Abstract/Detailed Description */}
             <div className="mb-4 sm:mb-6 md:mb-8">
               <h3
-                className="text-sm sm:text-base md:text-lg font-black text-aquamarine mb-2 sm:mb-3"
-                style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
+                className="text-sm sm:text-base md:text-lg font-black mb-2 sm:mb-3"
+                style={{ 
+                  fontFamily: "var(--font-fk-grotesk-black)",
+                  color: isDiscoverMode ? "var(--gold)" : "var(--aquamarine)"
+                }}
               >
                 ABOUT THIS PROJECT
               </h3>
@@ -287,7 +368,9 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
               className="inline-flex items-center gap-2 sm:gap-3 px-4 sm:px-5 md:px-6 py-2 sm:py-3 md:py-4 bg-blood-orange hover:bg-blood-orange/80 rounded-lg sm:rounded-xl text-cream font-black text-sm sm:text-base md:text-lg transition-all group"
               style={{
                 fontFamily: "var(--font-fk-grotesk-black)",
-                boxShadow: "0 8px 24px rgba(236, 86, 59, 0.4)",
+                boxShadow: isDiscoverMode 
+                  ? "0 8px 24px rgba(250, 219, 104, 0.4), 0 0 20px rgba(236, 86, 59, 0.3)"
+                  : "0 8px 24px rgba(236, 86, 59, 0.4)",
               }}
             >
               VIEW CASE STUDY
