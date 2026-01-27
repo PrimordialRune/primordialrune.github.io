@@ -624,7 +624,7 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
             {/* Japanese text with lightning effect */}
             <motion.div
               className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-cream/60 mb-2 cursor-pointer"
-              style={{ fontFamily: "var(--font-8bit-darling)" }}
+              style={{ fontFamily: "var(--font-gen-ei-kiwami)" }}
               onMouseEnter={(e) => { e.stopPropagation(); handleElementHover("japanese"); }}
               onMouseLeave={handleElementLeave}
               animate={{
@@ -980,7 +980,7 @@ function SpeechBubble({ text, speakerName }: SpeechBubbleProps) {
             className="px-3 py-1 bg-blood-orange text-cream text-[10px] font-black tracking-wider relative"
             style={{ 
               fontFamily: "var(--font-fk-grotesk-black)",
-              clipPath: "polygon(0 0, 95% 0, 100% 50%, 95% 100%, 0 100%)",
+              clipPath: "polygon(0% 50%, 5% 0, 95% 0, 100% 50%, 95% 100%, 0 100%, 5% 100%, 0% 50%)",
               boxShadow: "2px 2px 0 rgba(16, 47, 65, 0.5)",
             }}
           >
@@ -1051,8 +1051,8 @@ function SpeechBubble({ text, speakerName }: SpeechBubbleProps) {
         {/* Morphing terminator - OUTSIDE the clipped bubble */}
         <motion.div
           className="flex items-center -ml-1"
-          initial={{ scale: 0, x: -10 }}
-          animate={{ scale: 1, x: 0 }}
+          initial={{ scale: 0, x: -15 }}
+          animate={{ scale: 1, x: -5 }}
           transition={{ delay: 0.3, type: "spring" }}
         >
           <motion.svg 
