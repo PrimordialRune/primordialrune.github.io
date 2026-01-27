@@ -43,12 +43,21 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
   const [glitchIntensity, setGlitchIntensity] = useState(0);
   
   const autoRotateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const glitchTimeoutsRef = useRef<NodeJS.Timeout[]>([]);
   const lastInteractionRef = useRef<number>(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Initialize lastInteractionRef on mount
   useEffect(() => {
     lastInteractionRef.current = Date.now();
+  }, []);
+
+  // Cleanup glitch timeouts on unmount
+  useEffect(() => {
+    return () => {
+      glitchTimeoutsRef.current.forEach(clearTimeout);
+      glitchTimeoutsRef.current = [];
+    };
   }, []);
   
   // Calculate if we're viewing a hovered keyword (takes priority over active)
@@ -59,18 +68,24 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
   const AUTO_ROTATE_DELAY = 5000; // 5 seconds of inactivity before auto-rotate
 
   const triggerChannelZap = useCallback((newIndex: number) => {
+    // Clear any existing glitch timeouts
+    glitchTimeoutsRef.current.forEach(clearTimeout);
+    glitchTimeoutsRef.current = [];
+    
     setIsTransitioning(true);
     setGlitchIntensity(1);
     
-    // Quick glitch sequence
-    setTimeout(() => setGlitchIntensity(0.7), 50);
-    setTimeout(() => setGlitchIntensity(0.3), 100);
-    setTimeout(() => setGlitchIntensity(0.8), 150);
-    setTimeout(() => {
+    // Quick glitch sequence with cleanup tracking
+    const t1 = setTimeout(() => setGlitchIntensity(0.7), 50);
+    const t2 = setTimeout(() => setGlitchIntensity(0.3), 100);
+    const t3 = setTimeout(() => setGlitchIntensity(0.8), 150);
+    const t4 = setTimeout(() => {
       setGlitchIntensity(0);
       setActiveKeywordIndex(newIndex);
       setIsTransitioning(false);
     }, 250);
+    
+    glitchTimeoutsRef.current = [t1, t2, t3, t4];
   }, []);
 
   // Auto-rotate when user is inactive

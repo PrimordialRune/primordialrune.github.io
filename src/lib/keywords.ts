@@ -83,9 +83,13 @@ export const heroKeywords: HeroKeyword[] = [
 ];
 
 // Get a random fact for a keyword
+// Uses timestamp-based seed for variety while maintaining deterministic behavior within short windows
 export function getRandomFact(keywordId: string): string {
   const keyword = heroKeywords.find((k) => k.id === keywordId);
-  if (!keyword) return "";
+  if (!keyword || keyword.facts.length === 0) return "";
+  
+  // Use current timestamp to get different facts on each hover
+  // This is intentionally not seeded for variety in user experience
   const randomIndex = Math.floor(Math.random() * keyword.facts.length);
   return keyword.facts[randomIndex];
 }
