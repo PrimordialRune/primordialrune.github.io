@@ -202,20 +202,32 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
   const [glitchText, setGlitchText] = useState("GAME DESIGNER");
   const [hoveredElement, setHoveredElement] = useState<string | null>(null);
   const [floatingChars, setFloatingChars] = useState<Array<{id: number, char: string, x: number, y: number, rotation: number}>>([]);
+  const [dialogueCooldown, setDialogueCooldown] = useState(false); // Prevent rapid dialogue changes
   
   const dialogueIndexRef = useRef(0);
   const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
   const glitchIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const randomGlitchRef = useRef<NodeJS.Timeout | null>(null);
   const floatingIdRef = useRef(0);
+  const cooldownTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Track dialogue discovery
+  // Track dialogue discovery with cooldown to allow reading
   const showDialogueWithTracking = useCallback((text: string, id: string) => {
+    // If on cooldown, don't change dialogue (allow user to read)
+    if (dialogueCooldown) return;
+    
     setCurrentDialogue(text);
     setCurrentDialogueId(id);
     setShowDialogue(true);
     setDiscoveredDialogues(prev => new Set([...prev, id]));
-  }, []);
+    
+    // Start cooldown (2 seconds to read)
+    setDialogueCooldown(true);
+    if (cooldownTimerRef.current) clearTimeout(cooldownTimerRef.current);
+    cooldownTimerRef.current = setTimeout(() => {
+      setDialogueCooldown(false);
+    }, 2000);
+  }, [dialogueCooldown]);
 
   // Get random dialogue from category
   const getRandomDialogue = useCallback((category: string[], prefix: string) => {
@@ -411,6 +423,7 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
       clearInterval(timer);
       if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
       if (glitchIntervalRef.current) clearInterval(glitchIntervalRef.current);
+      if (cooldownTimerRef.current) clearTimeout(cooldownTimerRef.current);
     };
   }, [activePower, hoveredSocial, hoveredElement, showDialogueWithTracking]);
 
@@ -498,11 +511,11 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
         ))}
       </div>
 
-      {/* Main content - CENTERED layout for desktop */}
-      <div className={`flex-1 flex ${isMobile && !isLandscape ? "flex-col" : "flex-row"} items-center justify-center p-4 md:p-6 lg:p-8 gap-4 md:gap-6 lg:gap-8 xl:gap-12 overflow-hidden`}>
+      {/* Main content - CENTERED layout for desktop with proper spacing from hamburger */}
+      <div className={`flex-1 flex ${isMobile && !isLandscape ? "flex-col pt-12" : "flex-row"} items-center justify-center p-4 md:p-6 lg:p-8 gap-4 md:gap-8 lg:gap-12 xl:gap-16 overflow-hidden`}>
         
-        {/* Left column - Title and Speech Bubble */}
-        <div className="flex flex-col justify-center items-center md:items-start flex-shrink min-w-0">
+        {/* Left column - Title and Speech Bubble - add left padding for hamburger menu */}
+        <div className="flex flex-col justify-center items-center md:items-start flex-shrink min-w-0 md:pl-8 lg:pl-4">
           {/* Title section */}
           <div 
             className="relative cursor-pointer text-center md:text-left"
@@ -835,28 +848,63 @@ function SpeechBubble({ text, speakerName }: SpeechBubbleProps) {
       }}
       transition={bubbleSpring}
     >
-      {/* Nametag - Persona 5 style */}
-      <motion.div
-        className="absolute -top-5 left-1/2 -translate-x-1/2 flex items-center justify-center"
-        initial={{ y: -10, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.1, ...bubbleSpring }}
-      >
-        <div 
-          className="px-4 py-1 bg-blood-orange text-cream text-xs font-black tracking-wider"
-          style={{ 
-            fontFamily: "var(--font-fk-grotesk-black)",
-            clipPath: "polygon(5% 0, 95% 0, 100% 50%, 95% 100%, 5% 100%, 0% 50%)",
-            boxShadow: "2px 2px 0 rgba(16, 47, 65, 0.5)",
+      {/* Tail pointing UP to title - positioned left with nametag after */}
+      <div className="absolute -top-3 left-4 flex items-start gap-1">
+        {/* Arrow tail */}
+        <motion.div
+          className="w-0 h-0"
+          style={{
+            borderLeft: "10px solid transparent",
+            borderRight: "10px solid transparent",
+            borderBottom: "14px solid var(--cream)",
+            filter: "drop-shadow(-2px -2px 0 var(--blood-orange))",
           }}
+          initial={{ scale: 0, y: 10 }}
+          animate={{ scale: 1, y: 0 }}
+          transition={{ delay: 0.1, ...bubbleSpring }}
+        />
+        
+        {/* Nametag - Persona 5 style, positioned after arrow */}
+        <motion.div
+          className="flex items-center"
+          initial={{ x: -10, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ delay: 0.15, ...bubbleSpring }}
         >
-          {speakerName}
-        </div>
-      </motion.div>
+          <div 
+            className="px-3 py-1 bg-blood-orange text-cream text-[10px] font-black tracking-wider relative"
+            style={{ 
+              fontFamily: "var(--font-fk-grotesk-black)",
+              clipPath: "polygon(0 0, 95% 0, 100% 50%, 95% 100%, 0 100%)",
+              boxShadow: "2px 2px 0 rgba(16, 47, 65, 0.5)",
+            }}
+          >
+            {speakerName}
+          </div>
+          {/* Decorative dots after nametag */}
+          <div className="flex gap-1 ml-2">
+            <motion.span 
+              className="w-1.5 h-1.5 bg-blood-orange/60 rounded-full"
+              animate={{ opacity: [0.4, 1, 0.4] }}
+              transition={{ duration: 1.5, repeat: Infinity, delay: 0 }}
+            />
+            <motion.span 
+              className="w-1.5 h-1.5 bg-blood-orange/50 rounded-full"
+              animate={{ opacity: [0.3, 0.8, 0.3] }}
+              transition={{ duration: 1.5, repeat: Infinity, delay: 0.2 }}
+            />
+            <motion.span 
+              className="w-1.5 h-1.5 bg-blood-orange/40 rounded-full"
+              animate={{ opacity: [0.2, 0.6, 0.2] }}
+              transition={{ duration: 1.5, repeat: Infinity, delay: 0.4 }}
+            />
+          </div>
+        </motion.div>
+      </div>
 
       {/* Main bubble */}
       <div 
-        className="relative bg-cream px-5 py-4 md:px-6 md:py-5 max-w-sm md:max-w-md mt-1"
+        className="relative bg-cream px-5 py-4 md:px-6 md:py-5 max-w-sm md:max-w-md mt-2"
         style={{
           clipPath: "polygon(0 8%, 2% 0, 98% 0, 100% 8%, 100% 92%, 98% 100%, 2% 100%, 0 92%)",
           boxShadow: `
@@ -875,7 +923,7 @@ function SpeechBubble({ text, speakerName }: SpeechBubbleProps) {
         
         {/* Text */}
         <motion.p
-          className="relative text-peacock-blue text-sm md:text-base font-bold leading-relaxed"
+          className="relative text-peacock-blue text-sm md:text-base font-bold leading-relaxed pr-6"
           style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -884,14 +932,7 @@ function SpeechBubble({ text, speakerName }: SpeechBubbleProps) {
           {text}
         </motion.p>
         
-        {/* Decorative corner dots */}
-        <motion.div
-          className="absolute -top-1 -right-1 w-2 h-2 bg-gold rounded-full"
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.2, type: "spring", stiffness: 500 }}
-          style={{ boxShadow: "0 0 8px rgba(250, 219, 104, 0.8)" }}
-        />
+        {/* Decorative corner dot */}
         <motion.div
           className="absolute -bottom-1 -left-1 w-2 h-2 bg-blood-orange rounded-full"
           initial={{ scale: 0 }}
@@ -899,9 +940,9 @@ function SpeechBubble({ text, speakerName }: SpeechBubbleProps) {
           transition={{ delay: 0.25, type: "spring", stiffness: 500 }}
         />
         
-        {/* Morphing terminator - Persona 5 style trapezoid */}
+        {/* Morphing terminator - Persona 5 style - BLOOD ORANGE, sticks OUTSIDE */}
         <motion.div
-          className="absolute -right-3 top-1/2 -translate-y-1/2"
+          className="absolute -right-5 top-1/2 -translate-y-1/2"
           initial={{ scale: 0, x: -10 }}
           animate={{ 
             scale: 1, 
@@ -910,42 +951,35 @@ function SpeechBubble({ text, speakerName }: SpeechBubbleProps) {
           transition={{ delay: 0.3, type: "spring" }}
         >
           <motion.svg 
-            width="16" 
-            height="24" 
-            viewBox="0 0 16 24"
+            width="20" 
+            height="32" 
+            viewBox="0 0 20 32"
             animate={{
-              scaleY: [1, 1.1, 0.9, 1.05, 1],
-              scaleX: [1, 0.95, 1.05, 0.98, 1],
+              scaleY: [1, 1.15, 0.85, 1.1, 0.95, 1],
+              scaleX: [1, 0.9, 1.1, 0.95, 1.05, 1],
             }}
             transition={{
-              duration: 0.8,
+              duration: 0.6,
               repeat: Infinity,
               repeatType: "reverse",
+              ease: "easeInOut",
             }}
           >
+            {/* Blood orange trapezoid */}
             <path 
-              d="M0 2 L12 0 L16 12 L12 24 L0 22 Z" 
-              fill="var(--cream)"
-              stroke="var(--blood-orange)"
-              strokeWidth="2"
+              d="M0 4 L14 0 L20 16 L14 32 L0 28 Z" 
+              fill="var(--blood-orange)"
+            />
+            {/* Highlight */}
+            <path 
+              d="M2 6 L12 3 L16 16 L12 29 L2 26 Z" 
+              fill="none"
+              stroke="rgba(255,255,255,0.3)"
+              strokeWidth="1"
             />
           </motion.svg>
         </motion.div>
       </div>
-      
-      {/* Tail pointing UP to title - CENTERED */}
-      <motion.div
-        className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0"
-        style={{
-          borderLeft: "8px solid transparent",
-          borderRight: "8px solid transparent",
-          borderBottom: "12px solid var(--cream)",
-          filter: "drop-shadow(0 -2px 0 var(--blood-orange))",
-        }}
-        initial={{ scale: 0, y: 10 }}
-        animate={{ scale: 1, y: 0 }}
-        transition={{ delay: 0.1, ...bubbleSpring }}
-      />
     </motion.div>
   );
 }
@@ -965,8 +999,9 @@ function MapPowerNode({ power, index, isActive, isDiscovered, onHover, onLeave }
     <motion.button
       className="absolute flex flex-col items-center"
       style={{
-        left: `calc(8px + ${power.mapPosition.x}% * (100% - 16px) / 100)`,
-        top: `calc(8px + ${power.mapPosition.y}% * (100% - 16px) / 100)`,
+        // Simple percentage positioning within the map container (accounting for 8px padding)
+        left: `${power.mapPosition.x}%`,
+        top: `${power.mapPosition.y}%`,
         transform: "translate(-50%, -50%)",
       }}
       onMouseEnter={onHover}
@@ -1081,15 +1116,15 @@ function SocialButton({ social, index, isHovered, onHover, onLeave }: SocialButt
       className={`relative flex items-center gap-2 px-3 py-2 rounded-lg group
         ${isHovered 
           ? "bg-blood-orange" 
-          : "bg-peacock-blue/50 hover:bg-peacock-blue/70"
+          : "bg-peacock-blue/70 hover:bg-peacock-blue/90"
         }
       `}
       style={{
-        border: isHovered ? "1px solid var(--gold)" : "1px solid rgba(78, 185, 159, 0.3)",
+        border: isHovered ? "2px solid var(--gold)" : "2px solid rgba(78, 185, 159, 0.5)",
         boxShadow: isHovered 
           ? "0 4px 20px rgba(236, 86, 59, 0.5)"
-          : "0 2px 10px rgba(0, 0, 0, 0.2)",
-        minWidth: "130px",
+          : "0 2px 10px rgba(0, 0, 0, 0.3)",
+        minWidth: "140px",
       }}
       onMouseEnter={(e) => onHover(e)}
       onMouseLeave={onLeave}
@@ -1097,6 +1132,7 @@ function SocialButton({ social, index, isHovered, onHover, onLeave }: SocialButt
       onTouchEnd={onLeave}
       initial={{ opacity: 0, x: 20 }}
       animate={{ 
+        opacity: 1,
         x: isHovered ? -4 : 0,
       }}
       transition={{
@@ -1106,20 +1142,20 @@ function SocialButton({ social, index, isHovered, onHover, onLeave }: SocialButt
       whileTap={{ scale: 0.95 }}
     >
       {/* Monochromatic Icon */}
-      <span className={`text-sm font-bold ${isHovered ? "text-cream" : "text-cream/80"}`}>
+      <span className={`text-base font-bold ${isHovered ? "text-cream" : "text-cream"}`}>
         {social.icon}
       </span>
       
       {/* Label and tagline - MORE VISIBLE */}
       <div className="flex flex-col min-w-0">
         <span 
-          className={`text-[10px] lg:text-xs font-black ${isHovered ? "text-cream" : "text-cream/90"}`}
+          className={`text-xs font-black ${isHovered ? "text-cream" : "text-cream"}`}
           style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
         >
           {social.label}
         </span>
         <span 
-          className={`text-[8px] lg:text-[9px] ${isHovered ? "text-cream/80" : "text-cream/50"}`}
+          className={`text-[9px] ${isHovered ? "text-cream/80" : "text-cream/70"}`}
         >
           {social.tagline}
         </span>
@@ -1127,7 +1163,7 @@ function SocialButton({ social, index, isHovered, onHover, onLeave }: SocialButt
       
       {/* Arrow indicator */}
       <motion.span 
-        className={`ml-auto text-[10px] ${isHovered ? "text-cream" : "text-cream/50"}`}
+        className={`ml-auto text-xs ${isHovered ? "text-cream" : "text-cream/80"}`}
         animate={{ x: isHovered ? 3 : 0 }}
       >
         →
