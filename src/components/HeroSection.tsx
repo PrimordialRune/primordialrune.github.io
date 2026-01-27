@@ -208,7 +208,8 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
   const [glitchText, setGlitchText] = useState("GAME DESIGNER");
   const [hoveredElement, setHoveredElement] = useState<string | null>(null);
   const [floatingChars, setFloatingChars] = useState<Array<{id: number, char: string, x: number, y: number, rotation: number}>>([]);
-  const [dialogueCooldown, setDialogueCooldown] = useState(false); // Prevent rapid dialogue changes
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_dialogueCooldown, setDialogueCooldown] = useState(false); // State kept for potential UI feedback
   
   const containerRef = useRef<HTMLDivElement>(null);
   const dialogueIndexRef = useRef(0);
@@ -217,11 +218,12 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
   const randomGlitchRef = useRef<NodeJS.Timeout | null>(null);
   const floatingIdRef = useRef(0);
   const cooldownTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const dialogueCooldownRef = useRef(false); // Ref for cooldown to avoid dependency issues
 
   // Track dialogue discovery with cooldown to allow reading
   const showDialogueWithTracking = useCallback((text: string, id: string) => {
     // If on cooldown, don't change dialogue (allow user to read)
-    if (dialogueCooldown) return;
+    if (dialogueCooldownRef.current) return;
     
     setCurrentDialogue(text);
     setCurrentDialogueId(id);
@@ -229,12 +231,14 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
     setDiscoveredDialogues(prev => new Set([...prev, id]));
     
     // Start cooldown to allow user time to read
+    dialogueCooldownRef.current = true;
     setDialogueCooldown(true);
     if (cooldownTimerRef.current) clearTimeout(cooldownTimerRef.current);
     cooldownTimerRef.current = setTimeout(() => {
+      dialogueCooldownRef.current = false;
       setDialogueCooldown(false);
     }, DIALOGUE_COOLDOWN_MS);
-  }, [dialogueCooldown]);
+  }, []); // No dependencies needed - uses refs
 
   // Get random dialogue from category
   const getRandomDialogue = useCallback((category: string[], prefix: string) => {
@@ -480,12 +484,12 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
             key={char.id}
             className="absolute text-aquamarine/60 text-xl font-black pointer-events-none z-50"
             style={{ left: char.x, top: char.y }}
-            initial={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 1, scale: 1, y: 0 }}
             animate={{ 
               opacity: 0, 
               scale: 0,
-              y: char.y - 100,
-              rotate: char.rotation, // Use pre-computed rotation
+              y: -100, // Move upward by 100px from initial position
+              rotate: char.rotation,
             }}
             exit={{ opacity: 0 }}
             transition={{ duration: 2, ease: "easeOut" }}
@@ -890,8 +894,8 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
         </div>
       </div>
 
-      {/* Interactive decorative corners */}
-      <div className="absolute inset-0 pointer-events-none">
+      {/* Interactive decorative corners - easter eggs */}
+      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
         {[
           { pos: "top-4 left-4", rotate: 0 },
           { pos: "top-4 right-4", rotate: 90 },
@@ -926,6 +930,9 @@ function SpeechBubble({ text, speakerName }: SpeechBubbleProps) {
   return (
     <motion.div
       className="relative"
+      role="region"
+      aria-label={`${speakerName} says`}
+      aria-live="polite"
       initial={{ 
         opacity: 0, 
         scale: 0.8, 
@@ -947,7 +954,7 @@ function SpeechBubble({ text, speakerName }: SpeechBubbleProps) {
       transition={bubbleSpring}
     >
       {/* Tail pointing UP to title - positioned left with nametag after */}
-      <div className="absolute -top-3 left-4 flex items-start gap-1 z-10">
+      <div className="absolute -top-3 left-4 flex items-start gap-1 z-10" aria-hidden="true">
         {/* Arrow tail */}
         <motion.div
           className="w-0 h-0"
