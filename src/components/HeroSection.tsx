@@ -24,6 +24,9 @@ const bubbleSpring = {
   mass: 0.4,
 };
 
+// Dialogue cooldown duration in milliseconds (allows user time to read)
+const DIALOGUE_COOLDOWN_MS = 2000;
+
 // UX constraint styles
 const noInteractionStyles: React.CSSProperties = {
   userSelect: "none",
@@ -221,12 +224,12 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
     setShowDialogue(true);
     setDiscoveredDialogues(prev => new Set([...prev, id]));
     
-    // Start cooldown (2 seconds to read)
+    // Start cooldown to allow user time to read
     setDialogueCooldown(true);
     if (cooldownTimerRef.current) clearTimeout(cooldownTimerRef.current);
     cooldownTimerRef.current = setTimeout(() => {
       setDialogueCooldown(false);
-    }, 2000);
+    }, DIALOGUE_COOLDOWN_MS);
   }, [dialogueCooldown]);
 
   // Get random dialogue from category
@@ -999,7 +1002,7 @@ function MapPowerNode({ power, index, isActive, isDiscovered, onHover, onLeave }
     <motion.button
       className="absolute flex flex-col items-center"
       style={{
-        // Simple percentage positioning within the map container (accounting for 8px padding)
+        // Simple percentage positioning within the map container
         left: `${power.mapPosition.x}%`,
         top: `${power.mapPosition.y}%`,
         transform: "translate(-50%, -50%)",
@@ -1142,14 +1145,14 @@ function SocialButton({ social, index, isHovered, onHover, onLeave }: SocialButt
       whileTap={{ scale: 0.95 }}
     >
       {/* Monochromatic Icon */}
-      <span className={`text-base font-bold ${isHovered ? "text-cream" : "text-cream"}`}>
+      <span className="text-base font-bold text-cream">
         {social.icon}
       </span>
       
       {/* Label and tagline - MORE VISIBLE */}
       <div className="flex flex-col min-w-0">
         <span 
-          className={`text-xs font-black ${isHovered ? "text-cream" : "text-cream"}`}
+          className="text-xs font-black text-cream"
           style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
         >
           {social.label}
