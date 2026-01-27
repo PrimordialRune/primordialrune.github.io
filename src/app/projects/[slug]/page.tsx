@@ -140,7 +140,7 @@ export default async function ProjectPage({
           {project.titleJp && (
             <p
               className="text-2xl text-aquamarine/70 mb-6 tracking-wider"
-              style={{ fontFamily: "var(--font-8bit-darling)" }}
+              style={{ fontFamily: "var(--font-gen-ei-kiwami)" }}
             >
               {project.titleJp}
             </p>
@@ -257,7 +257,7 @@ export default async function ProjectPage({
         <div className="max-w-5xl mx-auto px-8 text-center">
           <p
             className="text-2xl text-aquamarine/40 tracking-wider"
-            style={{ fontFamily: "var(--font-8bit-darling)" }}
+            style={{ fontFamily: "var(--font-gen-ei-kiwami)" }}
           >
             原初のルーン
           </p>

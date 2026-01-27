@@ -535,7 +535,7 @@ export default function Home() {
             {/* Footer Signature */}
             <div
               className="absolute bottom-4 sm:bottom-6 md:bottom-8 right-4 sm:right-6 md:right-10 text-aquamarine/40 text-sm md:text-lg tracking-wider z-20"
-              style={{ fontFamily: "var(--font-8bit-darling)" }}
+              style={{ fontFamily: "var(--font-gen-ei-kiwami)" }}
             >
               原初のルーン
             </div>

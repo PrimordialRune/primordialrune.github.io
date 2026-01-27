@@ -269,7 +269,7 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
             {/* Japanese text with lightning effect */}
             <motion.div
               className="text-lg sm:text-xl md:text-2xl text-cream/60 mb-2"
-              style={{ fontFamily: "var(--font-8bit-darling)" }}
+              style={{ fontFamily: "var(--font-gen-ei-kiwami)" }}
               animate={{
                 textShadow: activePower ? [
                   "0 0 10px rgba(250, 219, 104, 0.8)",

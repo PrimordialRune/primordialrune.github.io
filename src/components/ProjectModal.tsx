@@ -278,7 +278,7 @@ export default function ProjectModal({ project, onClose, isDiscoverMode = false 
                     <p
                       className="text-sm sm:text-base md:text-lg tracking-wider"
                       style={{
-                        fontFamily: "var(--font-8bit-darling)",
+                        fontFamily: "var(--font-gen-ei-kiwami)",
                         color: isDiscoverMode ? "var(--gold)" : "rgba(78, 185, 159, 0.7)"
                       }}
                     >

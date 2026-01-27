@@ -258,7 +258,7 @@ export default function Navigation({
                           className={`text-[8px] sm:text-[10px] tracking-wider ${
                             isActive ? "text-cream/90" : "text-cream/80"
                           }`}
-                          style={{ fontFamily: "var(--font-8bit-darling)" }}
+                          style={{ fontFamily: "var(--font-gen-ei-kiwami)" }}
                         >
                           {item.labelJp}
                         </motion.span>
