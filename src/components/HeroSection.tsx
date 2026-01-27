@@ -27,6 +27,9 @@ const bubbleSpring = {
 // Dialogue cooldown duration in milliseconds (allows user time to read)
 const DIALOGUE_COOLDOWN_MS = 2000;
 
+// Auto-rotate interval for intro dialogues
+const INTRO_ROTATE_INTERVAL_MS = 6000;
+
 // UX constraint styles
 const noInteractionStyles: React.CSSProperties = {
   userSelect: "none",
@@ -207,6 +210,7 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
   const [floatingChars, setFloatingChars] = useState<Array<{id: number, char: string, x: number, y: number, rotation: number}>>([]);
   const [dialogueCooldown, setDialogueCooldown] = useState(false); // Prevent rapid dialogue changes
   
+  const containerRef = useRef<HTMLDivElement>(null);
   const dialogueIndexRef = useRef(0);
   const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
   const glitchIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -238,14 +242,22 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
     return { text: category[index], id: `${prefix}-${index}` };
   }, []);
 
-  // Spawn floating characters effect
-  const spawnFloatingChars = useCallback((centerX: number, centerY: number) => {
+  // Spawn floating characters effect - use relative positioning
+  const spawnFloatingChars = useCallback((clientX: number, clientY: number) => {
+    // Get container position to calculate relative coordinates
+    const container = containerRef.current;
+    if (!container) return;
+    
+    const rect = container.getBoundingClientRect();
+    const relX = clientX - rect.left;
+    const relY = clientY - rect.top;
+    
     const newChars = Array.from({ length: 8 }, () => ({
       id: floatingIdRef.current++,
       char: floatingLetters[Math.floor(Math.random() * floatingLetters.length)],
-      x: centerX + (Math.random() - 0.5) * 200,
-      y: centerY + (Math.random() - 0.5) * 200,
-      rotation: Math.random() * 360, // Pre-compute rotation
+      x: relX + (Math.random() - 0.5) * 200,
+      y: relY + (Math.random() - 0.5) * 200,
+      rotation: Math.random() * 360,
     }));
     setFloatingChars(prev => [...prev, ...newChars]);
     
@@ -410,17 +422,19 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
     setHoveredElement(null);
   }, []);
 
-  // Initial dialogue cycle
+  // Initial dialogue cycle - force change without cooldown for auto-rotate
   useEffect(() => {
     const timer = setInterval(() => {
       if (!activePower && !hoveredSocial && !hoveredElement) {
         dialogueIndexRef.current = (dialogueIndexRef.current + 1) % dialogues.intro.length;
-        showDialogueWithTracking(
-          dialogues.intro[dialogueIndexRef.current],
-          `intro-${dialogueIndexRef.current}`
-        );
+        const newId = `intro-${dialogueIndexRef.current}`;
+        // Force update without cooldown check for auto-rotation
+        setCurrentDialogue(dialogues.intro[dialogueIndexRef.current]);
+        setCurrentDialogueId(newId);
+        setShowDialogue(true);
+        setDiscoveredDialogues(prev => new Set([...prev, newId]));
       }
-    }, 8000);
+    }, INTRO_ROTATE_INTERVAL_MS);
     
     return () => {
       clearInterval(timer);
@@ -428,7 +442,7 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
       if (glitchIntervalRef.current) clearInterval(glitchIntervalRef.current);
       if (cooldownTimerRef.current) clearTimeout(cooldownTimerRef.current);
     };
-  }, [activePower, hoveredSocial, hoveredElement, showDialogueWithTracking]);
+  }, [activePower, hoveredSocial, hoveredElement]);
 
   // Discovery milestones
   const prevDiscoveredCountRef = useRef(0);
@@ -454,6 +468,7 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
 
   return (
     <div 
+      ref={containerRef}
       className="relative w-full h-full flex flex-col overflow-hidden"
       style={noInteractionStyles}
       onClick={() => handleElementHover("background")}
@@ -492,26 +507,103 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
           <rect width="100" height="100" fill="url(#bgGrid)" />
         </svg>
         
-        {/* Floating particles */}
-        {[...Array(12)].map((_, i) => (
+        {/* Floating particles - spread across screen */}
+        {[...Array(20)].map((_, i) => (
           <motion.div
             key={`particle-${i}`}
-            className="absolute w-1 h-1 bg-aquamarine/30 rounded-full"
+            className={`absolute rounded-full ${i % 3 === 0 ? "bg-aquamarine/30" : i % 3 === 1 ? "bg-blood-orange/20" : "bg-gold/20"}`}
             style={{
-              left: `${10 + (i * 8)}%`,
-              top: `${20 + (i % 3) * 25}%`,
+              width: 2 + (i % 3) * 2,
+              height: 2 + (i % 3) * 2,
+              left: `${5 + (i * 4.5)}%`,
+              top: `${10 + ((i * 17) % 70)}%`,
             }}
             animate={{
-              y: [0, -20, 0],
-              opacity: [0.2, 0.5, 0.2],
+              y: [0, -30, 0],
+              x: [0, (i % 2 === 0 ? 10 : -10), 0],
+              opacity: [0.2, 0.6, 0.2],
+              scale: [1, 1.2, 1],
             }}
             transition={{
-              duration: 3 + i * 0.5,
+              duration: 4 + (i % 5),
               repeat: Infinity,
-              delay: i * 0.3,
+              delay: i * 0.2,
+              ease: "easeInOut",
             }}
           />
         ))}
+        
+        {/* Occasional shooting stars */}
+        {[...Array(3)].map((_, i) => (
+          <motion.div
+            key={`star-${i}`}
+            className="absolute w-1 h-1 bg-gold rounded-full"
+            style={{
+              top: `${10 + i * 25}%`,
+              left: "-5%",
+              boxShadow: "0 0 6px rgba(250, 219, 104, 0.8), -10px 0 20px rgba(250, 219, 104, 0.4)",
+            }}
+            animate={{
+              x: ["0vw", "110vw"],
+              opacity: [0, 1, 1, 0],
+            }}
+            transition={{
+              duration: 2 + i * 0.5,
+              repeat: Infinity,
+              repeatDelay: 8 + i * 4,
+              delay: i * 5,
+              ease: "easeOut",
+            }}
+          />
+        ))}
+        
+        {/* Random glitch lines */}
+        <motion.div
+          className="absolute w-full h-[2px] bg-blood-orange/20"
+          style={{ top: "30%" }}
+          animate={{ 
+            opacity: [0, 0, 1, 0, 0],
+            scaleX: [0.5, 1, 1, 0.8, 0.5],
+          }}
+          transition={{ duration: 0.3, repeat: Infinity, repeatDelay: 6 }}
+        />
+        <motion.div
+          className="absolute w-full h-[1px] bg-aquamarine/30"
+          style={{ top: "65%" }}
+          animate={{ 
+            opacity: [0, 0, 0.8, 0, 0],
+            scaleX: [0.3, 0.7, 1, 0.6, 0.3],
+          }}
+          transition={{ duration: 0.2, repeat: Infinity, repeatDelay: 9 }}
+        />
+        
+        {/* Ambient glow orbs */}
+        <motion.div
+          className="absolute w-40 h-40 rounded-full"
+          style={{
+            background: "radial-gradient(circle, rgba(78, 185, 159, 0.08) 0%, transparent 70%)",
+            top: "10%",
+            right: "10%",
+          }}
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.5, 0.8, 0.5],
+          }}
+          transition={{ duration: 8, repeat: Infinity }}
+        />
+        <motion.div
+          className="absolute w-32 h-32 rounded-full"
+          style={{
+            background: "radial-gradient(circle, rgba(236, 86, 59, 0.05) 0%, transparent 70%)",
+            bottom: "20%",
+            left: "15%",
+          }}
+          animate={{
+            scale: [1, 1.3, 1],
+            opacity: [0.3, 0.6, 0.3],
+          }}
+          transition={{ duration: 10, repeat: Infinity, delay: 2 }}
+        />
       </div>
 
       {/* Main content - CENTERED layout for desktop with proper spacing from hamburger */}
@@ -631,7 +723,7 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
             DESIGN REALM
           </motion.p>
           
-          {/* Minimap container - ALIGNED grid */}
+          {/* Minimap container */}
           <div className="relative w-[180px] h-[180px] sm:w-[220px] sm:h-[220px] md:w-[260px] md:h-[260px] lg:w-[300px] lg:h-[300px]">
             {/* Map background */}
             <div 
@@ -643,74 +735,77 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
               }}
             />
             
-            {/* Grid lines - ALIGNED */}
-            <svg className="absolute inset-2 w-[calc(100%-16px)] h-[calc(100%-16px)] opacity-25">
-              {/* Horizontal lines */}
-              {[0, 25, 50, 75, 100].map(y => (
-                <line key={`h-${y}`} x1="0%" y1={`${y}%`} x2="100%" y2={`${y}%`} stroke="var(--teal)" strokeWidth="0.5" strokeDasharray="4 4" />
+            {/* Inner content area - all positioned elements go here */}
+            <div className="absolute inset-3 sm:inset-4">
+              {/* Grid lines */}
+              <svg className="absolute inset-0 w-full h-full opacity-25">
+                {/* Horizontal lines */}
+                {[0, 25, 50, 75, 100].map(y => (
+                  <line key={`h-${y}`} x1="0%" y1={`${y}%`} x2="100%" y2={`${y}%`} stroke="var(--teal)" strokeWidth="0.5" strokeDasharray="4 4" />
+                ))}
+                {/* Vertical lines */}
+                {[0, 25, 50, 75, 100].map(x => (
+                  <line key={`v-${x}`} x1={`${x}%`} y1="0%" x2={`${x}%`} y2="100%" stroke="var(--teal)" strokeWidth="0.5" strokeDasharray="4 4" />
+                ))}
+              </svg>
+              
+              {/* Connection lines between discovered powers */}
+              <svg className="absolute inset-0 w-full h-full pointer-events-none">
+                {superpowers.map((power, i) => 
+                  superpowers.slice(i + 1).map((otherPower) => {
+                    const bothDiscovered = discoveredPowers.has(power.id) && discoveredPowers.has(otherPower.id);
+                    return (
+                      <motion.line
+                        key={`line-${power.id}-${otherPower.id}`}
+                        x1={`${power.mapPosition.x}%`}
+                        y1={`${power.mapPosition.y}%`}
+                        x2={`${otherPower.mapPosition.x}%`}
+                        y2={`${otherPower.mapPosition.y}%`}
+                        stroke={bothDiscovered ? "rgba(250, 219, 104, 0.5)" : "rgba(78, 185, 159, 0.2)"}
+                        strokeWidth={bothDiscovered ? "2" : "1"}
+                        strokeDasharray={bothDiscovered ? "none" : "4 4"}
+                        initial={{ pathLength: 0, opacity: 0 }}
+                        animate={{ pathLength: bothDiscovered ? 1 : 0.5, opacity: 1 }}
+                        transition={{ duration: 1, delay: i * 0.1 }}
+                      />
+                    );
+                  })
+                )}
+              </svg>
+              
+              {/* Power locations on map */}
+              {superpowers.map((power, index) => (
+                <MapPowerNode
+                  key={power.id}
+                  power={power}
+                  index={index}
+                  isActive={activePower === power.id}
+                  isDiscovered={discoveredPowers.has(power.id)}
+                  onHover={() => handlePowerHover(power.id)}
+                  onLeave={handlePowerLeave}
+                />
               ))}
-              {/* Vertical lines */}
-              {[0, 25, 50, 75, 100].map(x => (
-                <line key={`v-${x}`} x1={`${x}%`} y1="0%" x2={`${x}%`} y2="100%" stroke="var(--teal)" strokeWidth="0.5" strokeDasharray="4 4" />
-              ))}
-            </svg>
-            
-            {/* Connection lines between discovered powers */}
-            <svg className="absolute inset-2 w-[calc(100%-16px)] h-[calc(100%-16px)] pointer-events-none">
-              {superpowers.map((power, i) => 
-                superpowers.slice(i + 1).map((otherPower) => {
-                  const bothDiscovered = discoveredPowers.has(power.id) && discoveredPowers.has(otherPower.id);
-                  return (
-                    <motion.line
-                      key={`line-${power.id}-${otherPower.id}`}
-                      x1={`${power.mapPosition.x}%`}
-                      y1={`${power.mapPosition.y}%`}
-                      x2={`${otherPower.mapPosition.x}%`}
-                      y2={`${otherPower.mapPosition.y}%`}
-                      stroke={bothDiscovered ? "rgba(250, 219, 104, 0.5)" : "rgba(78, 185, 159, 0.2)"}
-                      strokeWidth={bothDiscovered ? "2" : "1"}
-                      strokeDasharray={bothDiscovered ? "none" : "4 4"}
-                      initial={{ pathLength: 0, opacity: 0 }}
-                      animate={{ pathLength: bothDiscovered ? 1 : 0.5, opacity: 1 }}
-                      transition={{ duration: 1, delay: i * 0.1 }}
-                    />
-                  );
-                })
-              )}
-            </svg>
-            
-            {/* Power locations on map - ALIGNED */}
-            {superpowers.map((power, index) => (
-              <MapPowerNode
-                key={power.id}
-                power={power}
-                index={index}
-                isActive={activePower === power.id}
-                isDiscovered={discoveredPowers.has(power.id)}
-                onHover={() => handlePowerHover(power.id)}
-                onLeave={handlePowerLeave}
-              />
-            ))}
-            
-            {/* Center emblem */}
-            <motion.div
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 rounded-lg bg-peacock-blue/70 flex items-center justify-center"
-              style={{
-                border: "2px solid var(--teal)",
-                boxShadow: "0 0 20px rgba(78, 185, 159, 0.4)",
-              }}
-              animate={{ 
-                scale: [1, 1.05, 1],
-                boxShadow: [
-                  "0 0 20px rgba(78, 185, 159, 0.4)",
-                  "0 0 30px rgba(78, 185, 159, 0.6)",
-                  "0 0 20px rgba(78, 185, 159, 0.4)",
-                ],
-              }}
-              transition={{ duration: 3, repeat: Infinity }}
-            >
-              <span className="text-cream text-lg md:text-xl">◆</span>
-            </motion.div>
+              
+              {/* Center emblem */}
+              <motion.div
+                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 rounded-lg bg-peacock-blue/70 flex items-center justify-center"
+                style={{
+                  border: "2px solid var(--teal)",
+                  boxShadow: "0 0 20px rgba(78, 185, 159, 0.4)",
+                }}
+                animate={{ 
+                  scale: [1, 1.05, 1],
+                  boxShadow: [
+                    "0 0 20px rgba(78, 185, 159, 0.4)",
+                    "0 0 30px rgba(78, 185, 159, 0.6)",
+                    "0 0 20px rgba(78, 185, 159, 0.4)",
+                  ],
+                }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <span className="text-cream text-lg md:text-xl">◆</span>
+              </motion.div>
+            </div>
           </div>
           
           {/* Discovery progress */}
@@ -852,7 +947,7 @@ function SpeechBubble({ text, speakerName }: SpeechBubbleProps) {
       transition={bubbleSpring}
     >
       {/* Tail pointing UP to title - positioned left with nametag after */}
-      <div className="absolute -top-3 left-4 flex items-start gap-1">
+      <div className="absolute -top-3 left-4 flex items-start gap-1 z-10">
         {/* Arrow tail */}
         <motion.div
           className="w-0 h-0"
@@ -905,58 +1000,59 @@ function SpeechBubble({ text, speakerName }: SpeechBubbleProps) {
         </motion.div>
       </div>
 
-      {/* Main bubble */}
-      <div 
-        className="relative bg-cream px-5 py-4 md:px-6 md:py-5 max-w-sm md:max-w-md mt-2"
-        style={{
-          clipPath: "polygon(0 8%, 2% 0, 98% 0, 100% 8%, 100% 92%, 98% 100%, 2% 100%, 0 92%)",
-          boxShadow: `
-            4px 4px 0 var(--blood-orange),
-            8px 8px 0 rgba(16, 47, 65, 0.3)
-          `,
-        }}
-      >
-        {/* Inner border effect */}
+      {/* Main bubble container - NO clip-path on wrapper, only on inner */}
+      <div className="relative mt-2 flex items-stretch">
+        {/* Bubble content */}
         <div 
-          className="absolute inset-[3px] border-2 border-blood-orange/20 pointer-events-none"
+          className="relative bg-cream px-5 py-4 md:px-6 md:py-5 max-w-sm md:max-w-md"
           style={{
             clipPath: "polygon(0 8%, 2% 0, 98% 0, 100% 8%, 100% 92%, 98% 100%, 2% 100%, 0 92%)",
+            boxShadow: `
+              4px 4px 0 var(--blood-orange),
+              8px 8px 0 rgba(16, 47, 65, 0.3)
+            `,
           }}
-        />
-        
-        {/* Text */}
-        <motion.p
-          className="relative text-peacock-blue text-sm md:text-base font-bold leading-relaxed pr-6"
-          style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.15 }}
         >
-          {text}
-        </motion.p>
+          {/* Inner border effect */}
+          <div 
+            className="absolute inset-[3px] border-2 border-blood-orange/20 pointer-events-none"
+            style={{
+              clipPath: "polygon(0 8%, 2% 0, 98% 0, 100% 8%, 100% 92%, 98% 100%, 2% 100%, 0 92%)",
+            }}
+          />
+          
+          {/* Text */}
+          <motion.p
+            className="relative text-peacock-blue text-sm md:text-base font-bold leading-relaxed"
+            style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.15 }}
+          >
+            {text}
+          </motion.p>
+          
+          {/* Decorative corner dot */}
+          <motion.div
+            className="absolute -bottom-1 -left-1 w-2 h-2 bg-blood-orange rounded-full"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.25, type: "spring", stiffness: 500 }}
+          />
+        </div>
         
-        {/* Decorative corner dot */}
+        {/* Morphing terminator - OUTSIDE the clipped bubble */}
         <motion.div
-          className="absolute -bottom-1 -left-1 w-2 h-2 bg-blood-orange rounded-full"
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.25, type: "spring", stiffness: 500 }}
-        />
-        
-        {/* Morphing terminator - Persona 5 style - BLOOD ORANGE, sticks OUTSIDE */}
-        <motion.div
-          className="absolute -right-5 top-1/2 -translate-y-1/2"
+          className="flex items-center -ml-1"
           initial={{ scale: 0, x: -10 }}
-          animate={{ 
-            scale: 1, 
-            x: 0,
-          }}
+          animate={{ scale: 1, x: 0 }}
           transition={{ delay: 0.3, type: "spring" }}
         >
           <motion.svg 
-            width="20" 
-            height="32" 
-            viewBox="0 0 20 32"
+            width="24" 
+            height="40" 
+            viewBox="0 0 24 40"
+            className="drop-shadow-lg"
             animate={{
               scaleY: [1, 1.15, 0.85, 1.1, 0.95, 1],
               scaleX: [1, 0.9, 1.1, 0.95, 1.05, 1],
@@ -970,15 +1066,15 @@ function SpeechBubble({ text, speakerName }: SpeechBubbleProps) {
           >
             {/* Blood orange trapezoid */}
             <path 
-              d="M0 4 L14 0 L20 16 L14 32 L0 28 Z" 
+              d="M0 5 L16 0 L24 20 L16 40 L0 35 Z" 
               fill="var(--blood-orange)"
             />
             {/* Highlight */}
             <path 
-              d="M2 6 L12 3 L16 16 L12 29 L2 26 Z" 
+              d="M3 8 L14 4 L20 20 L14 36 L3 32 Z" 
               fill="none"
               stroke="rgba(255,255,255,0.3)"
-              strokeWidth="1"
+              strokeWidth="1.5"
             />
           </motion.svg>
         </motion.div>
