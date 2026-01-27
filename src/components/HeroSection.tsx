@@ -499,10 +499,10 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
       </div>
 
       {/* Main content - CENTERED layout for desktop */}
-      <div className={`flex-1 flex ${isMobile && !isLandscape ? "flex-col" : "flex-row"} items-center justify-center p-4 md:p-6 lg:p-8 gap-6 md:gap-10 lg:gap-16`}>
+      <div className={`flex-1 flex ${isMobile && !isLandscape ? "flex-col" : "flex-row"} items-center justify-center p-4 md:p-6 lg:p-8 gap-4 md:gap-6 lg:gap-8 xl:gap-12 overflow-hidden`}>
         
         {/* Left column - Title and Speech Bubble */}
-        <div className="flex flex-col justify-center items-center md:items-start flex-shrink-0">
+        <div className="flex flex-col justify-center items-center md:items-start flex-shrink min-w-0">
           {/* Title section */}
           <div 
             className="relative cursor-pointer text-center md:text-left"
@@ -532,7 +532,7 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
             
             {/* Main glitching title - CHANGES with power name */}
             <motion.h1
-              className={`text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black tracking-tight ${
+              className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black tracking-tight whitespace-nowrap ${
                 isGlitching ? "text-blood-orange" : "text-aquamarine"
               }`}
               style={{ 
@@ -604,7 +604,7 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
         </div>
 
         {/* Center - Superpower Minimap - ALIGNED */}
-        <div className="flex flex-col items-center justify-center flex-shrink-0">
+        <div className="flex flex-col items-center justify-center flex-shrink">
           <motion.p 
             className="text-cream/50 text-xs mb-3 tracking-widest"
             style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
@@ -616,7 +616,7 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
           </motion.p>
           
           {/* Minimap container - ALIGNED grid */}
-          <div className="relative w-[220px] h-[220px] md:w-[280px] md:h-[280px] lg:w-[320px] lg:h-[320px]">
+          <div className="relative w-[180px] h-[180px] sm:w-[220px] sm:h-[220px] md:w-[260px] md:h-[260px] lg:w-[300px] lg:h-[300px]">
             {/* Map background */}
             <div 
               className="absolute inset-0 rounded-xl"
@@ -733,7 +733,7 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
         </div>
 
         {/* Right column - Social section - MORE VISIBLE */}
-        <div className="flex flex-col justify-center items-center gap-4 flex-shrink-0 min-w-[160px]">
+        <div className="flex flex-col justify-center items-center gap-3 flex-shrink min-w-[140px] lg:min-w-[160px]">
           <motion.div 
             className="text-center"
             initial={{ opacity: 0 }}
@@ -741,15 +741,15 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
             transition={{ delay: 2.5 }}
           >
             <p 
-              className="text-cream/60 text-xs tracking-widest mb-1"
+              className="text-cream/60 text-[10px] lg:text-xs tracking-widest mb-1"
               style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
             >
               CHANNELS
             </p>
-            <p className="text-cream/40 text-[10px]">pick a frequency</p>
+            <p className="text-cream/40 text-[9px] lg:text-[10px]">pick a frequency</p>
           </motion.div>
           
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1.5 lg:gap-2">
             {socialLinks.map((social, index) => (
               <SocialButton
                 key={social.id}
@@ -764,15 +764,15 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
           
           {/* Social taglines - MORE VISIBLE */}
           <motion.div 
-            className="text-center mt-2"
+            className="text-center mt-1"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 3.5 }}
           >
-            <p className="text-cream/40 text-[10px]">
+            <p className="text-cream/40 text-[9px]">
               response time:
             </p>
-            <p className="text-aquamarine/60 text-[10px] font-bold">
+            <p className="text-aquamarine/60 text-[9px] font-bold">
               eventually™
             </p>
           </motion.div>
@@ -1078,7 +1078,7 @@ function SocialButton({ social, index, isHovered, onHover, onLeave }: SocialButt
       href={social.url}
       target="_blank"
       rel="noopener noreferrer"
-      className={`relative flex items-center gap-3 px-4 py-2.5 rounded-lg group
+      className={`relative flex items-center gap-2 px-3 py-2 rounded-lg group
         ${isHovered 
           ? "bg-blood-orange" 
           : "bg-peacock-blue/50 hover:bg-peacock-blue/70"
@@ -1089,7 +1089,7 @@ function SocialButton({ social, index, isHovered, onHover, onLeave }: SocialButt
         boxShadow: isHovered 
           ? "0 4px 20px rgba(236, 86, 59, 0.5)"
           : "0 2px 10px rgba(0, 0, 0, 0.2)",
-        minWidth: "150px",
+        minWidth: "130px",
       }}
       onMouseEnter={(e) => onHover(e)}
       onMouseLeave={onLeave}
@@ -1097,7 +1097,6 @@ function SocialButton({ social, index, isHovered, onHover, onLeave }: SocialButt
       onTouchEnd={onLeave}
       initial={{ opacity: 0, x: 20 }}
       animate={{ 
-        opacity: 1, 
         x: isHovered ? -4 : 0,
       }}
       transition={{
@@ -1107,20 +1106,20 @@ function SocialButton({ social, index, isHovered, onHover, onLeave }: SocialButt
       whileTap={{ scale: 0.95 }}
     >
       {/* Monochromatic Icon */}
-      <span className={`text-base font-bold ${isHovered ? "text-cream" : "text-cream/80"}`}>
+      <span className={`text-sm font-bold ${isHovered ? "text-cream" : "text-cream/80"}`}>
         {social.icon}
       </span>
       
       {/* Label and tagline - MORE VISIBLE */}
-      <div className="flex flex-col">
+      <div className="flex flex-col min-w-0">
         <span 
-          className={`text-xs font-black ${isHovered ? "text-cream" : "text-cream/90"}`}
+          className={`text-[10px] lg:text-xs font-black ${isHovered ? "text-cream" : "text-cream/90"}`}
           style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
         >
           {social.label}
         </span>
         <span 
-          className={`text-[9px] ${isHovered ? "text-cream/80" : "text-cream/50"}`}
+          className={`text-[8px] lg:text-[9px] ${isHovered ? "text-cream/80" : "text-cream/50"}`}
         >
           {social.tagline}
         </span>
@@ -1128,7 +1127,7 @@ function SocialButton({ social, index, isHovered, onHover, onLeave }: SocialButt
       
       {/* Arrow indicator */}
       <motion.span 
-        className={`ml-auto text-xs ${isHovered ? "text-cream" : "text-cream/50"}`}
+        className={`ml-auto text-[10px] ${isHovered ? "text-cream" : "text-cream/50"}`}
         animate={{ x: isHovered ? 3 : 0 }}
       >
         →
