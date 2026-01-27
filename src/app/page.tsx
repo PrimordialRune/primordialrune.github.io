@@ -5,6 +5,7 @@ import Navigation from "@/components/Navigation";
 import ProjectGrid from "@/components/ProjectGrid";
 import FloatingProjects from "@/components/FloatingProjects";
 import ProjectModal from "@/components/ProjectModal";
+import HeroSection from "@/components/HeroSection";
 import { AstroidSparkle } from "@/components/AstroidSparkle";
 import { motion, AnimatePresence } from "framer-motion";
 import { Project } from "@/types/project";
@@ -501,32 +502,12 @@ export default function Home() {
                   transition={{ duration: 0.3 }}
                   className="w-full h-full"
                 >
-                  {/* Hero Section - TBD */}
+                  {/* Hero Section - Interactive keyword carousel */}
                   {activeCategory === "hero" && (
-                    <div className="flex flex-col items-center justify-center h-full px-4">
-                      <h1
-                        className="text-4xl sm:text-6xl md:text-7xl lg:text-9xl font-black text-cream mb-4 md:mb-6 leading-none text-center"
-                        style={{ fontFamily: "var(--font-8bit-darling)" }}
-                      >
-                        デザイン
-                      </h1>
-                      <div className="relative">
-                        {/* Scanline overlay specifically for DESIGN text */}
-                        <div
-                          className="absolute inset-0 pointer-events-none opacity-[0.15]"
-                          style={{
-                            backgroundImage:
-                              "repeating-linear-gradient(0deg, transparent, transparent 2px, var(--teal) 2px, var(--teal) 4px)",
-                          }}
-                        />
-                        <p
-                          className="relative text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-aquamarine tracking-[0.2em] md:tracking-[0.3em]"
-                          style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
-                        >
-                          DESIGN
-                        </p>
-                      </div>
-                    </div>
+                    <HeroSection
+                      isMobile={isMobile}
+                      isLandscape={isLandscape}
+                    />
                   )}
 
                   {/* Archives Section - Grid View */}
