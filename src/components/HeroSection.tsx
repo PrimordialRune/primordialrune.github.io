@@ -32,65 +32,65 @@ const noInteractionStyles: React.CSSProperties = {
   touchAction: "manipulation",
 };
 
-// Design superpowers data with map positions
+// Design superpowers data with map positions - adjusted for better alignment
 const superpowers = [
   {
     id: "asymmetry",
     power: "ASYMMETRY",
     powerJp: "非対称",
-    icon: "⚔️",
+    icon: "◇",
     description: "* the art of giving each player a unique experience",
-    mapPosition: { x: 15, y: 20 },
+    mapPosition: { x: 20, y: 25 },
   },
   {
     id: "strategy", 
     power: "STRATEGY",
     powerJp: "戦略",
-    icon: "🎯",
+    icon: "◎",
     description: "* turning simple rules into infinite possibilities",
-    mapPosition: { x: 45, y: 15 },
+    mapPosition: { x: 50, y: 18 },
   },
   {
     id: "nostalgia",
     power: "NOSTALGIA",
     powerJp: "郷愁",
-    icon: "🕹️",
+    icon: "▣",
     description: "* pixels that hit different... you know?",
-    mapPosition: { x: 75, y: 25 },
+    mapPosition: { x: 80, y: 25 },
   },
   {
     id: "roleplay",
     power: "ROLEPLAY",
     powerJp: "役割",
-    icon: "⭐",
+    icon: "★",
     description: "* because numbers going up = serotonin",
-    mapPosition: { x: 25, y: 60 },
+    mapPosition: { x: 20, y: 75 },
   },
   {
     id: "paragame",
     power: "PARAGAME",
     powerJp: "超越",
-    icon: "🌀",
+    icon: "◈",
     description: "* games about games... meta, right?",
-    mapPosition: { x: 55, y: 70 },
+    mapPosition: { x: 50, y: 82 },
   },
   {
     id: "modularity",
     power: "MODULARITY",
     powerJp: "模組",
-    icon: "🧩",
+    icon: "⬡",
     description: "* infinite combinations from finite pieces",
-    mapPosition: { x: 80, y: 55 },
+    mapPosition: { x: 80, y: 75 },
   },
 ];
 
-// Expanded dialogues with MANY easter eggs
+// Expanded dialogues with MANY easter eggs - FIXED intro dialogue
 const dialogues = {
   intro: [
-    "* oh hey. you actually clicked on something.",
     "* welcome to my corner of the internet.",
     "* i make games. or try to, anyway.",
     "* stick around if you want. no pressure.",
+    "* hover around. there's stuff to discover.",
   ],
   // Easter egg dialogues for various elements
   nickname: [
@@ -127,11 +127,11 @@ const dialogues = {
     "* that button shows random projects. try it!",
     "* it's like a loot box but free and ethical.",
   ],
-  emptySpace: [
-    "* you're clicking on empty space.",
-    "* bold move. i respect that.",
-    "* nothing here though. sorry.",
-    "* ...unless?",
+  background: [
+    "* you're exploring the void.",
+    "* nothing here but vibes and pixels.",
+    "* i like that you're curious though.",
+    "* maybe try the glowing things instead?",
   ],
   social: {
     twitter: "* tweets about games. sometimes complains about code.",
@@ -143,10 +143,10 @@ const dialogues = {
   idle: [
     "* still here? nice.",
     "* the cursor's looking lonely over there.",
-    "* i wonder what happens if you click more stuff...",
-    "* (nothing bad, i promise)",
+    "* try hovering on different things.",
+    "* there's secrets everywhere. maybe.",
     "* you're pretty patient, huh?",
-    "* try hovering on different things. there's secrets.",
+    "* the design realm awaits exploration...",
   ],
   dialogueCollector: [
     "* oh, you noticed the counter!",
@@ -161,12 +161,12 @@ const dialogues = {
   ],
 };
 
-// Social links with enhanced descriptions
+// Social links with monochromatic icons
 const socialLinks = [
-  { id: "twitter", icon: "𝕏", url: "https://x.com/PrimordialRune", label: "Twitter/X", tagline: "hot takes" },
-  { id: "telegram", icon: "✈", url: "https://t.me/PrimordialRune", label: "Telegram", tagline: "quick chat" },
-  { id: "instagram", icon: "📷", url: "https://instagram.com/primordialrune", label: "Instagram", tagline: "rare posts" },
-  { id: "github", icon: "⌨", url: "https://github.com/PrimordialRune", label: "GitHub", tagline: "the code" },
+  { id: "twitter", icon: "✕", url: "https://x.com/PrimordialRune", label: "X", tagline: "hot takes" },
+  { id: "telegram", icon: "▷", url: "https://t.me/PrimordialRune", label: "Telegram", tagline: "quick chat" },
+  { id: "instagram", icon: "◻", url: "https://instagram.com/primordialrune", label: "Instagram", tagline: "rare posts" },
+  { id: "github", icon: "⌘", url: "https://github.com/PrimordialRune", label: "GitHub", tagline: "the code" },
   { id: "email", icon: "✉", url: "mailto:primordialrune@gmail.com", label: "Email", tagline: "serious stuff" },
 ];
 
@@ -179,13 +179,16 @@ const allDialogueIds = [
   ...dialogues.cornerDecoration.map((_, i) => `corner-${i}`),
   ...dialogues.logo.map((_, i) => `logo-${i}`),
   ...dialogues.discoverButton.map((_, i) => `discover-${i}`),
-  ...dialogues.emptySpace.map((_, i) => `empty-${i}`),
+  ...dialogues.background.map((_, i) => `background-${i}`),
   ...Object.keys(dialogues.social).map(k => `social-${k}`),
   ...dialogues.idle.map((_, i) => `idle-${i}`),
   ...dialogues.dialogueCollector.map((_, i) => `collector-${i}`),
   ...dialogues.scanlines.map((_, i) => `scanlines-${i}`),
   ...superpowers.map(p => `power-${p.id}`),
 ];
+
+// Floating letters for background effect
+const floatingLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789アイウエオカキクケコ".split("");
 
 export default function HeroSection({ isMobile = false, isLandscape = false }: HeroSectionProps) {
   const [currentDialogue, setCurrentDialogue] = useState(dialogues.intro[0]);
@@ -198,11 +201,13 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
   const [isGlitching, setIsGlitching] = useState(false);
   const [glitchText, setGlitchText] = useState("GAME DESIGNER");
   const [hoveredElement, setHoveredElement] = useState<string | null>(null);
+  const [floatingChars, setFloatingChars] = useState<Array<{id: number, char: string, x: number, y: number, rotation: number}>>([]);
   
   const dialogueIndexRef = useRef(0);
   const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
   const glitchIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const randomGlitchRef = useRef<NodeJS.Timeout | null>(null);
+  const floatingIdRef = useRef(0);
 
   // Track dialogue discovery
   const showDialogueWithTracking = useCallback((text: string, id: string) => {
@@ -216,6 +221,23 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
   const getRandomDialogue = useCallback((category: string[], prefix: string) => {
     const index = Math.floor(Math.random() * category.length);
     return { text: category[index], id: `${prefix}-${index}` };
+  }, []);
+
+  // Spawn floating characters effect
+  const spawnFloatingChars = useCallback((centerX: number, centerY: number) => {
+    const newChars = Array.from({ length: 8 }, () => ({
+      id: floatingIdRef.current++,
+      char: floatingLetters[Math.floor(Math.random() * floatingLetters.length)],
+      x: centerX + (Math.random() - 0.5) * 200,
+      y: centerY + (Math.random() - 0.5) * 200,
+      rotation: Math.random() * 360, // Pre-compute rotation
+    }));
+    setFloatingChars(prev => [...prev, ...newChars]);
+    
+    // Remove after animation
+    setTimeout(() => {
+      setFloatingChars(prev => prev.filter(c => !newChars.find(nc => nc.id === c.id)));
+    }, 2000);
   }, []);
 
   // Glitch text effect - Enhanced Cyberpunk style distortion
@@ -267,7 +289,7 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
     };
   }, [activePower, hoveredElement, triggerGlitch]);
 
-  // Handle power discovery
+  // Handle power discovery - NOW CHANGES TITLE
   const handlePowerHover = useCallback((powerId: string) => {
     setActivePower(powerId);
     setHoveredElement(`power-${powerId}`);
@@ -276,6 +298,7 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
     const power = superpowers.find(p => p.id === powerId);
     if (power) {
       showDialogueWithTracking(power.description, `power-${powerId}`);
+      // Glitch to the POWER NAME
       triggerGlitch(power.power, true);
     }
     
@@ -285,6 +308,7 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
   const handlePowerLeave = useCallback(() => {
     setActivePower(null);
     setHoveredElement(null);
+    // Glitch back to GAME DESIGNER
     triggerGlitch("GAME DESIGNER");
     
     idleTimerRef.current = setTimeout(() => {
@@ -293,15 +317,19 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
     }, 5000);
   }, [triggerGlitch, showDialogueWithTracking, getRandomDialogue]);
 
-  // Handle social hover
-  const handleSocialHover = useCallback((socialId: string) => {
+  // Handle social hover with floating letters
+  const handleSocialHover = useCallback((socialId: string, event?: React.MouseEvent) => {
     setHoveredSocial(socialId);
     setHoveredElement(`social-${socialId}`);
     const message = dialogues.social[socialId as keyof typeof dialogues.social];
     if (message) {
       showDialogueWithTracking(message, `social-${socialId}`);
     }
-  }, [showDialogueWithTracking]);
+    // Spawn floating letters
+    if (event) {
+      spawnFloatingChars(event.clientX, event.clientY);
+    }
+  }, [showDialogueWithTracking, spawnFloatingChars]);
 
   const handleSocialLeave = useCallback(() => {
     setHoveredSocial(null);
@@ -350,9 +378,13 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
         category = dialogues.scanlines;
         prefix = "scanlines";
         break;
+      case "background":
+        category = dialogues.background;
+        prefix = "background";
+        break;
       default:
-        category = dialogues.emptySpace;
-        prefix = "empty";
+        category = dialogues.background;
+        prefix = "background";
     }
     
     const { text, id } = getRandomDialogue(category, prefix);
@@ -408,23 +440,80 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
     <div 
       className="relative w-full h-full flex flex-col overflow-hidden"
       style={noInteractionStyles}
+      onClick={() => handleElementHover("background")}
     >
-      {/* Main content - Expanded layout for desktop */}
-      <div className={`flex-1 flex ${isMobile && !isLandscape ? "flex-col" : "flex-row"} items-stretch p-4 md:p-6 lg:p-8 gap-4 md:gap-6`}>
+      {/* Floating characters effect */}
+      <AnimatePresence>
+        {floatingChars.map(char => (
+          <motion.span
+            key={char.id}
+            className="absolute text-aquamarine/60 text-xl font-black pointer-events-none z-50"
+            style={{ left: char.x, top: char.y }}
+            initial={{ opacity: 1, scale: 1 }}
+            animate={{ 
+              opacity: 0, 
+              scale: 0,
+              y: char.y - 100,
+              rotate: char.rotation, // Use pre-computed rotation
+            }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 2, ease: "easeOut" }}
+          >
+            {char.char}
+          </motion.span>
+        ))}
+      </AnimatePresence>
+
+      {/* Background decorative elements */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {/* Grid pattern */}
+        <svg className="absolute inset-0 w-full h-full opacity-[0.03]" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <defs>
+            <pattern id="bgGrid" width="10" height="10" patternUnits="userSpaceOnUse">
+              <path d="M 10 0 L 0 0 0 10" fill="none" stroke="var(--teal)" strokeWidth="0.3"/>
+            </pattern>
+          </defs>
+          <rect width="100" height="100" fill="url(#bgGrid)" />
+        </svg>
+        
+        {/* Floating particles */}
+        {[...Array(12)].map((_, i) => (
+          <motion.div
+            key={`particle-${i}`}
+            className="absolute w-1 h-1 bg-aquamarine/30 rounded-full"
+            style={{
+              left: `${10 + (i * 8)}%`,
+              top: `${20 + (i % 3) * 25}%`,
+            }}
+            animate={{
+              y: [0, -20, 0],
+              opacity: [0.2, 0.5, 0.2],
+            }}
+            transition={{
+              duration: 3 + i * 0.5,
+              repeat: Infinity,
+              delay: i * 0.3,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Main content - CENTERED layout for desktop */}
+      <div className={`flex-1 flex ${isMobile && !isLandscape ? "flex-col" : "flex-row"} items-center justify-center p-4 md:p-6 lg:p-8 gap-6 md:gap-10 lg:gap-16`}>
         
         {/* Left column - Title and Speech Bubble */}
-        <div className="flex flex-col justify-center flex-1 max-w-xl">
+        <div className="flex flex-col justify-center items-center md:items-start flex-shrink-0">
           {/* Title section */}
           <div 
-            className="relative cursor-pointer"
+            className="relative cursor-pointer text-center md:text-left"
             onMouseEnter={() => handleElementHover("title")}
             onMouseLeave={handleElementLeave}
           >
             {/* Japanese text with lightning effect */}
             <motion.div
               className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-cream/60 mb-2 cursor-pointer"
-              style={{ fontFamily: "var(--font-gen-ei-kiwami)" }}
-              onMouseEnter={() => handleElementHover("japanese")}
+              style={{ fontFamily: "var(--font-8bit-darling)" }}
+              onMouseEnter={(e) => { e.stopPropagation(); handleElementHover("japanese"); }}
               onMouseLeave={handleElementLeave}
               animate={{
                 textShadow: activePower || hoveredElement === "japanese" ? [
@@ -441,7 +530,7 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
                 : "ゲームデザイナー"}
             </motion.div>
             
-            {/* Main glitching title - NOW CHANGES with power */}
+            {/* Main glitching title - CHANGES with power name */}
             <motion.h1
               className={`text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black tracking-tight ${
                 isGlitching ? "text-blood-orange" : "text-aquamarine"
@@ -469,11 +558,10 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
                 backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, var(--teal) 2px, var(--teal) 3px)",
                 mixBlendMode: "overlay",
               }}
-              onMouseEnter={() => handleElementHover("scanlines")}
             />
           </div>
 
-          {/* Persona 5 style speech bubble with nametag - Arrow from title */}
+          {/* Persona 5 style speech bubble with nametag - Arrow CENTERED */}
           <div className="mt-6 relative">
             <AnimatePresence mode="wait">
               {showDialogue && (
@@ -495,11 +583,11 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
             onMouseEnter={() => handleElementHover("counter")}
             onMouseLeave={handleElementLeave}
           >
-            <div className="text-cream/40 text-xs tracking-wider" style={{ fontFamily: "var(--font-fk-grotesk-black)" }}>
-              [ DIALOGUES FOUND ]
+            <div className="text-cream/50 text-xs tracking-wider" style={{ fontFamily: "var(--font-fk-grotesk-black)" }}>
+              DIALOGUES
             </div>
             <motion.div 
-              className="flex items-center gap-1 px-2 py-1 bg-peacock-blue/40 rounded"
+              className="flex items-center gap-1 px-3 py-1.5 bg-peacock-blue/50 rounded border border-teal/30"
               animate={{ 
                 boxShadow: hoveredElement === "counter" 
                   ? "0 0 15px rgba(250, 219, 104, 0.4)" 
@@ -510,47 +598,49 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
                 {foundDialogues}
               </span>
               <span className="text-cream/40 text-sm">/</span>
-              <span className="text-cream/60 text-sm">{totalDialogues}</span>
+              <span className="text-cream/70 text-sm">{totalDialogues}</span>
             </motion.div>
           </motion.div>
         </div>
 
-        {/* Center - Superpower Minimap */}
-        <div className="flex-1 flex flex-col items-center justify-center max-w-md">
+        {/* Center - Superpower Minimap - ALIGNED */}
+        <div className="flex flex-col items-center justify-center flex-shrink-0">
           <motion.p 
-            className="text-cream/40 text-xs mb-4 tracking-wider"
+            className="text-cream/50 text-xs mb-3 tracking-widest"
             style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 2 }}
           >
-            [ DESIGN REALM ]
+            DESIGN REALM
           </motion.p>
           
-          {/* Minimap container */}
-          <div className="relative w-full aspect-square max-w-[280px] md:max-w-[320px] lg:max-w-[360px]">
+          {/* Minimap container - ALIGNED grid */}
+          <div className="relative w-[220px] h-[220px] md:w-[280px] md:h-[280px] lg:w-[320px] lg:h-[320px]">
             {/* Map background */}
             <div 
-              className="absolute inset-0 rounded-2xl"
+              className="absolute inset-0 rounded-xl"
               style={{
-                background: "linear-gradient(135deg, rgba(16, 47, 65, 0.6) 0%, rgba(16, 47, 65, 0.3) 100%)",
-                border: "2px solid rgba(78, 185, 159, 0.3)",
-                boxShadow: "inset 0 0 30px rgba(0, 0, 0, 0.3), 0 4px 20px rgba(0, 0, 0, 0.3)",
+                background: "linear-gradient(135deg, rgba(16, 47, 65, 0.7) 0%, rgba(16, 47, 65, 0.4) 100%)",
+                border: "2px solid rgba(78, 185, 159, 0.4)",
+                boxShadow: "inset 0 0 40px rgba(0, 0, 0, 0.4), 0 4px 30px rgba(0, 0, 0, 0.3)",
               }}
             />
             
-            {/* Grid lines */}
-            <svg className="absolute inset-0 w-full h-full opacity-20" viewBox="0 0 100 100">
-              <defs>
-                <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-                  <path d="M 20 0 L 0 0 0 20" fill="none" stroke="var(--teal)" strokeWidth="0.5"/>
-                </pattern>
-              </defs>
-              <rect width="100" height="100" fill="url(#grid)" />
+            {/* Grid lines - ALIGNED */}
+            <svg className="absolute inset-2 w-[calc(100%-16px)] h-[calc(100%-16px)] opacity-25">
+              {/* Horizontal lines */}
+              {[0, 25, 50, 75, 100].map(y => (
+                <line key={`h-${y}`} x1="0%" y1={`${y}%`} x2="100%" y2={`${y}%`} stroke="var(--teal)" strokeWidth="0.5" strokeDasharray="4 4" />
+              ))}
+              {/* Vertical lines */}
+              {[0, 25, 50, 75, 100].map(x => (
+                <line key={`v-${x}`} x1={`${x}%`} y1="0%" x2={`${x}%`} y2="100%" stroke="var(--teal)" strokeWidth="0.5" strokeDasharray="4 4" />
+              ))}
             </svg>
             
             {/* Connection lines between discovered powers */}
-            <svg className="absolute inset-0 w-full h-full pointer-events-none">
+            <svg className="absolute inset-2 w-[calc(100%-16px)] h-[calc(100%-16px)] pointer-events-none">
               {superpowers.map((power, i) => 
                 superpowers.slice(i + 1).map((otherPower) => {
                   const bothDiscovered = discoveredPowers.has(power.id) && discoveredPowers.has(otherPower.id);
@@ -561,11 +651,11 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
                       y1={`${power.mapPosition.y}%`}
                       x2={`${otherPower.mapPosition.x}%`}
                       y2={`${otherPower.mapPosition.y}%`}
-                      stroke={bothDiscovered ? "rgba(250, 219, 104, 0.4)" : "rgba(78, 185, 159, 0.15)"}
+                      stroke={bothDiscovered ? "rgba(250, 219, 104, 0.5)" : "rgba(78, 185, 159, 0.2)"}
                       strokeWidth={bothDiscovered ? "2" : "1"}
                       strokeDasharray={bothDiscovered ? "none" : "4 4"}
-                      initial={{ pathLength: 0 }}
-                      animate={{ pathLength: bothDiscovered ? 1 : 0.3 }}
+                      initial={{ pathLength: 0, opacity: 0 }}
+                      animate={{ pathLength: bothDiscovered ? 1 : 0.5, opacity: 1 }}
                       transition={{ duration: 1, delay: i * 0.1 }}
                     />
                   );
@@ -573,7 +663,7 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
               )}
             </svg>
             
-            {/* Power locations on map */}
+            {/* Power locations on map - ALIGNED */}
             {superpowers.map((power, index) => (
               <MapPowerNode
                 key={power.id}
@@ -588,63 +678,62 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
             
             {/* Center emblem */}
             <motion.div
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 md:w-14 md:h-14 rounded-full bg-peacock-blue/60 flex items-center justify-center"
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 rounded-lg bg-peacock-blue/70 flex items-center justify-center"
               style={{
                 border: "2px solid var(--teal)",
-                boxShadow: "0 0 20px rgba(78, 185, 159, 0.3)",
+                boxShadow: "0 0 20px rgba(78, 185, 159, 0.4)",
               }}
               animate={{ 
                 scale: [1, 1.05, 1],
                 boxShadow: [
-                  "0 0 20px rgba(78, 185, 159, 0.3)",
-                  "0 0 30px rgba(78, 185, 159, 0.5)",
-                  "0 0 20px rgba(78, 185, 159, 0.3)",
+                  "0 0 20px rgba(78, 185, 159, 0.4)",
+                  "0 0 30px rgba(78, 185, 159, 0.6)",
+                  "0 0 20px rgba(78, 185, 159, 0.4)",
                 ],
               }}
               transition={{ duration: 3, repeat: Infinity }}
             >
-              <span className="text-2xl">🎮</span>
+              <span className="text-cream text-lg md:text-xl">◆</span>
             </motion.div>
           </div>
           
           {/* Discovery progress */}
           <motion.div 
-            className="mt-4 flex items-center gap-2"
+            className="mt-3 flex items-center gap-3"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 2.5 }}
           >
-            <span className="text-cream/40 text-xs" style={{ fontFamily: "var(--font-fk-grotesk-black)" }}>
-              DISCOVERED:
-            </span>
-            <div className="flex gap-1">
+            <div className="flex gap-1.5">
               {superpowers.map((power) => (
                 <motion.div
                   key={`progress-${power.id}`}
-                  className={`w-3 h-3 rounded-sm ${
-                    discoveredPowers.has(power.id) ? "bg-gold" : "bg-cream/20"
+                  className={`w-3 h-3 rounded-sm flex items-center justify-center text-[8px] ${
+                    discoveredPowers.has(power.id) ? "bg-gold text-peacock-blue" : "bg-cream/20 text-cream/40"
                   }`}
                   animate={{
-                    scale: discoveredPowers.has(power.id) ? [1, 1.3, 1] : 1,
+                    scale: discoveredPowers.has(power.id) ? [1, 1.2, 1] : 1,
                   }}
                   transition={{ duration: 0.3 }}
                   style={{
                     boxShadow: discoveredPowers.has(power.id) 
-                      ? "0 0 10px rgba(250, 219, 104, 0.8)" 
+                      ? "0 0 8px rgba(250, 219, 104, 0.8)" 
                       : "none",
                   }}
                   title={power.power}
-                />
+                >
+                  {power.icon}
+                </motion.div>
               ))}
             </div>
-            <span className="text-gold text-xs font-black" style={{ fontFamily: "var(--font-fk-grotesk-black)" }}>
+            <span className="text-cream/50 text-xs" style={{ fontFamily: "var(--font-fk-grotesk-black)" }}>
               {discoveredPowers.size}/{superpowers.length}
             </span>
           </motion.div>
         </div>
 
-        {/* Right column - Social section with more character */}
-        <div className="flex flex-col justify-center items-center gap-6 min-w-[180px]">
+        {/* Right column - Social section - MORE VISIBLE */}
+        <div className="flex flex-col justify-center items-center gap-4 flex-shrink-0 min-w-[160px]">
           <motion.div 
             className="text-center"
             initial={{ opacity: 0 }}
@@ -652,39 +741,39 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
             transition={{ delay: 2.5 }}
           >
             <p 
-              className="text-cream/40 text-xs tracking-wider mb-1"
+              className="text-cream/60 text-xs tracking-widest mb-1"
               style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
             >
-              [ TRANSMISSION CHANNELS ]
+              CHANNELS
             </p>
-            <p className="text-cream/30 text-[10px]">pick your frequency</p>
+            <p className="text-cream/40 text-[10px]">pick a frequency</p>
           </motion.div>
           
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2">
             {socialLinks.map((social, index) => (
               <SocialButton
                 key={social.id}
                 social={social}
                 index={index}
                 isHovered={hoveredSocial === social.id}
-                onHover={() => handleSocialHover(social.id)}
+                onHover={(e) => handleSocialHover(social.id, e)}
                 onLeave={handleSocialLeave}
               />
             ))}
           </div>
           
-          {/* Social taglines */}
+          {/* Social taglines - MORE VISIBLE */}
           <motion.div 
-            className="text-center"
+            className="text-center mt-2"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 3.5 }}
           >
-            <p className="text-cream/20 text-[10px] italic">
-              all channels monitored by a human
+            <p className="text-cream/40 text-[10px]">
+              response time:
             </p>
-            <p className="text-cream/20 text-[10px] italic">
-              (response time: eventually™)
+            <p className="text-aquamarine/60 text-[10px] font-bold">
+              eventually™
             </p>
           </motion.div>
         </div>
@@ -700,15 +789,15 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
         ].map((corner, i) => (
           <motion.div
             key={`corner-${i}`}
-            className={`absolute ${corner.pos} w-12 h-12 pointer-events-auto cursor-pointer`}
+            className={`absolute ${corner.pos} w-8 h-8 pointer-events-auto cursor-pointer`}
             style={{ transform: `rotate(${corner.rotate}deg)` }}
-            animate={{ opacity: [0.2, 0.4, 0.2] }}
+            animate={{ opacity: [0.3, 0.5, 0.3] }}
             transition={{ duration: 3, repeat: Infinity, delay: i * 0.75 }}
             onMouseEnter={() => handleElementHover("corner")}
             onMouseLeave={handleElementLeave}
           >
-            <div className="w-full h-1 bg-blood-orange/40" />
-            <div className="w-1 h-full bg-blood-orange/40" />
+            <div className="w-full h-[2px] bg-blood-orange/50" />
+            <div className="w-[2px] h-full bg-blood-orange/50" />
           </motion.div>
         ))}
       </div>
@@ -716,7 +805,7 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
   );
 }
 
-// Persona 5 style speech bubble with nametag
+// Persona 5 style speech bubble with morphing terminator
 interface SpeechBubbleProps {
   text: string;
   speakerName: string;
@@ -748,42 +837,37 @@ function SpeechBubble({ text, speakerName }: SpeechBubbleProps) {
     >
       {/* Nametag - Persona 5 style */}
       <motion.div
-        className="absolute -top-6 left-0 flex items-center"
-        initial={{ x: -20, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
+        className="absolute -top-5 left-1/2 -translate-x-1/2 flex items-center justify-center"
+        initial={{ y: -10, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.1, ...bubbleSpring }}
       >
         <div 
-          className="px-3 py-1 bg-blood-orange text-cream text-xs font-black tracking-wider"
+          className="px-4 py-1 bg-blood-orange text-cream text-xs font-black tracking-wider"
           style={{ 
             fontFamily: "var(--font-fk-grotesk-black)",
-            clipPath: "polygon(0 0, 100% 0, 95% 100%, 5% 100%)",
+            clipPath: "polygon(5% 0, 95% 0, 100% 50%, 95% 100%, 5% 100%, 0% 50%)",
             boxShadow: "2px 2px 0 rgba(16, 47, 65, 0.5)",
           }}
         >
           {speakerName}
         </div>
-        {/* Nametag connector */}
-        <div 
-          className="w-4 h-[2px] bg-blood-orange"
-          style={{ marginLeft: -2 }}
-        />
       </motion.div>
 
       {/* Main bubble */}
       <div 
-        className="relative bg-cream px-5 py-4 md:px-6 md:py-5 max-w-md"
+        className="relative bg-cream px-5 py-4 md:px-6 md:py-5 max-w-sm md:max-w-md mt-1"
         style={{
           clipPath: "polygon(0 8%, 2% 0, 98% 0, 100% 8%, 100% 92%, 98% 100%, 2% 100%, 0 92%)",
           boxShadow: `
-            5px 5px 0 var(--blood-orange),
-            10px 10px 0 rgba(16, 47, 65, 0.3)
+            4px 4px 0 var(--blood-orange),
+            8px 8px 0 rgba(16, 47, 65, 0.3)
           `,
         }}
       >
         {/* Inner border effect */}
         <div 
-          className="absolute inset-[4px] border-2 border-blood-orange/20 pointer-events-none"
+          className="absolute inset-[3px] border-2 border-blood-orange/20 pointer-events-none"
           style={{
             clipPath: "polygon(0 8%, 2% 0, 98% 0, 100% 8%, 100% 92%, 98% 100%, 2% 100%, 0 92%)",
           }}
@@ -800,13 +884,13 @@ function SpeechBubble({ text, speakerName }: SpeechBubbleProps) {
           {text}
         </motion.p>
         
-        {/* Decorative elements */}
+        {/* Decorative corner dots */}
         <motion.div
-          className="absolute -top-1 -right-1 w-3 h-3 bg-gold rounded-full"
+          className="absolute -top-1 -right-1 w-2 h-2 bg-gold rounded-full"
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ delay: 0.2, type: "spring", stiffness: 500 }}
-          style={{ boxShadow: "0 0 12px rgba(250, 219, 104, 0.8)" }}
+          style={{ boxShadow: "0 0 8px rgba(250, 219, 104, 0.8)" }}
         />
         <motion.div
           className="absolute -bottom-1 -left-1 w-2 h-2 bg-blood-orange rounded-full"
@@ -815,32 +899,47 @@ function SpeechBubble({ text, speakerName }: SpeechBubbleProps) {
           transition={{ delay: 0.25, type: "spring", stiffness: 500 }}
         />
         
-        {/* Bubble terminator - Persona 5 style angular end */}
+        {/* Morphing terminator - Persona 5 style trapezoid */}
         <motion.div
-          className="absolute -right-2 top-1/2 -translate-y-1/2"
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
+          className="absolute -right-3 top-1/2 -translate-y-1/2"
+          initial={{ scale: 0, x: -10 }}
+          animate={{ 
+            scale: 1, 
+            x: 0,
+          }}
           transition={{ delay: 0.3, type: "spring" }}
         >
-          <div 
-            className="w-0 h-0"
-            style={{
-              borderTop: "8px solid transparent",
-              borderBottom: "8px solid transparent",
-              borderLeft: "10px solid var(--cream)",
-              filter: "drop-shadow(3px 0 0 var(--blood-orange))",
+          <motion.svg 
+            width="16" 
+            height="24" 
+            viewBox="0 0 16 24"
+            animate={{
+              scaleY: [1, 1.1, 0.9, 1.05, 1],
+              scaleX: [1, 0.95, 1.05, 0.98, 1],
             }}
-          />
+            transition={{
+              duration: 0.8,
+              repeat: Infinity,
+              repeatType: "reverse",
+            }}
+          >
+            <path 
+              d="M0 2 L12 0 L16 12 L12 24 L0 22 Z" 
+              fill="var(--cream)"
+              stroke="var(--blood-orange)"
+              strokeWidth="2"
+            />
+          </motion.svg>
         </motion.div>
       </div>
       
-      {/* Tail pointing UP to title */}
+      {/* Tail pointing UP to title - CENTERED */}
       <motion.div
-        className="absolute -top-2 left-12 w-0 h-0"
+        className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0"
         style={{
-          borderLeft: "10px solid transparent",
-          borderRight: "10px solid transparent",
-          borderBottom: "14px solid var(--cream)",
+          borderLeft: "8px solid transparent",
+          borderRight: "8px solid transparent",
+          borderBottom: "12px solid var(--cream)",
           filter: "drop-shadow(0 -2px 0 var(--blood-orange))",
         }}
         initial={{ scale: 0, y: 10 }}
@@ -851,7 +950,7 @@ function SpeechBubble({ text, speakerName }: SpeechBubbleProps) {
   );
 }
 
-// Map power node - location on minimap
+// Map power node - location on minimap with monochromatic icons
 interface MapPowerNodeProps {
   power: typeof superpowers[0];
   index: number;
@@ -866,8 +965,8 @@ function MapPowerNode({ power, index, isActive, isDiscovered, onHover, onLeave }
     <motion.button
       className="absolute flex flex-col items-center"
       style={{
-        left: `${power.mapPosition.x}%`,
-        top: `${power.mapPosition.y}%`,
+        left: `calc(8px + ${power.mapPosition.x}% * (100% - 16px) / 100)`,
+        top: `calc(8px + ${power.mapPosition.y}% * (100% - 16px) / 100)`,
         transform: "translate(-50%, -50%)",
       }}
       onMouseEnter={onHover}
@@ -879,27 +978,27 @@ function MapPowerNode({ power, index, isActive, isDiscovered, onHover, onLeave }
       transition={{ delay: 0.5 + index * 0.15, ...persona5Spring }}
       whileTap={{ scale: 0.9 }}
     >
-      {/* Node circle */}
+      {/* Node circle with monochromatic icon */}
       <motion.div
-        className={`relative w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-base md:text-lg
+        className={`relative w-8 h-8 md:w-10 md:h-10 rounded-lg flex items-center justify-center text-sm md:text-base font-bold
           ${isActive 
-            ? "bg-blood-orange" 
+            ? "bg-blood-orange text-cream" 
             : isDiscovered 
-              ? "bg-teal/80" 
-              : "bg-peacock-blue/50"
+              ? "bg-teal text-cream" 
+              : "bg-peacock-blue/60 text-cream/60"
           }
         `}
         style={{
           border: isActive 
-            ? "3px solid var(--gold)" 
+            ? "2px solid var(--gold)" 
             : isDiscovered 
               ? "2px solid var(--aquamarine)" 
               : "2px solid rgba(78, 185, 159, 0.3)",
           boxShadow: isActive 
-            ? "0 0 25px rgba(236, 86, 59, 0.7), 0 0 50px rgba(236, 86, 59, 0.4)"
+            ? "0 0 20px rgba(236, 86, 59, 0.7), 0 0 40px rgba(236, 86, 59, 0.4)"
             : isDiscovered
-              ? "0 0 15px rgba(78, 185, 159, 0.4)"
-              : "0 0 8px rgba(0, 0, 0, 0.3)",
+              ? "0 0 12px rgba(78, 185, 159, 0.5)"
+              : "0 0 6px rgba(0, 0, 0, 0.3)",
         }}
         animate={{
           scale: isActive ? [1, 1.1, 1] : 1,
@@ -911,61 +1010,65 @@ function MapPowerNode({ power, index, isActive, isDiscovered, onHover, onLeave }
         {/* Pulse ring when active */}
         {isActive && (
           <motion.div
-            className="absolute inset-0 rounded-full border-2 border-gold"
+            className="absolute inset-0 rounded-lg border-2 border-gold"
             initial={{ scale: 1, opacity: 1 }}
-            animate={{ scale: 2, opacity: 0 }}
-            transition={{ duration: 1, repeat: Infinity }}
+            animate={{ scale: 1.5, opacity: 0 }}
+            transition={{ duration: 0.8, repeat: Infinity }}
           />
         )}
         
         {/* Discovery sparkle */}
         {isDiscovered && !isActive && (
           <motion.div
-            className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-gold rounded-full"
+            className="absolute -top-1 -right-1 w-2 h-2 bg-gold rounded-full"
             animate={{ scale: [1, 1.3, 1], opacity: [0.8, 1, 0.8] }}
             transition={{ duration: 2, repeat: Infinity }}
-            style={{ boxShadow: "0 0 8px rgba(250, 219, 104, 1)" }}
+            style={{ boxShadow: "0 0 6px rgba(250, 219, 104, 1)" }}
           />
         )}
         
         {/* Undiscovered pulse */}
         {!isDiscovered && (
           <motion.div
-            className="absolute inset-0 rounded-full"
-            animate={{ opacity: [0.2, 0.5, 0.2] }}
+            className="absolute inset-0 rounded-lg"
+            animate={{ opacity: [0.2, 0.4, 0.2] }}
             transition={{ duration: 2.5, repeat: Infinity, delay: index * 0.4 }}
             style={{
-              background: "radial-gradient(circle at 30% 30%, rgba(250, 219, 104, 0.4), transparent 60%)",
+              background: "radial-gradient(circle at 30% 30%, rgba(250, 219, 104, 0.3), transparent 60%)",
             }}
           />
         )}
       </motion.div>
       
-      {/* Label */}
-      <motion.div
-        className={`mt-1 px-2 py-0.5 rounded text-[10px] font-black tracking-wider whitespace-nowrap
-          ${isActive 
-            ? "bg-blood-orange text-cream" 
-            : isDiscovered 
-              ? "bg-teal/60 text-cream" 
-              : "bg-peacock-blue/40 text-cream/50"
-          }
-        `}
-        style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
-        animate={{ opacity: isActive || isDiscovered ? 1 : 0.6 }}
-      >
-        {isDiscovered ? power.power : "???"}
-      </motion.div>
+      {/* Label - shows on discover */}
+      <AnimatePresence>
+        {(isActive || isDiscovered) && (
+          <motion.div
+            className={`mt-1 px-1.5 py-0.5 rounded text-[8px] md:text-[9px] font-black tracking-wider whitespace-nowrap
+              ${isActive 
+                ? "bg-blood-orange text-cream" 
+                : "bg-teal/80 text-cream"
+              }
+            `}
+            style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -5 }}
+          >
+            {power.power}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.button>
   );
 }
 
-// Enhanced social button component
+// Enhanced social button with monochromatic icons and better visibility
 interface SocialButtonProps {
   social: typeof socialLinks[0];
   index: number;
   isHovered: boolean;
-  onHover: () => void;
+  onHover: (e?: React.MouseEvent) => void;
   onLeave: () => void;
 }
 
@@ -975,21 +1078,22 @@ function SocialButton({ social, index, isHovered, onHover, onLeave }: SocialButt
       href={social.url}
       target="_blank"
       rel="noopener noreferrer"
-      className={`relative flex items-center gap-3 px-4 py-3 rounded-lg group
+      className={`relative flex items-center gap-3 px-4 py-2.5 rounded-lg group
         ${isHovered 
           ? "bg-blood-orange" 
-          : "bg-peacock-blue/40 hover:bg-peacock-blue/60"
+          : "bg-peacock-blue/50 hover:bg-peacock-blue/70"
         }
       `}
       style={{
+        border: isHovered ? "1px solid var(--gold)" : "1px solid rgba(78, 185, 159, 0.3)",
         boxShadow: isHovered 
-          ? "0 4px 20px rgba(236, 86, 59, 0.5), inset 0 2px 4px rgba(255,255,255,0.2)"
-          : "inset 0 2px 4px rgba(0,0,0,0.2), 0 2px 8px rgba(0,0,0,0.2)",
-        minWidth: "160px",
+          ? "0 4px 20px rgba(236, 86, 59, 0.5)"
+          : "0 2px 10px rgba(0, 0, 0, 0.2)",
+        minWidth: "150px",
       }}
-      onMouseEnter={onHover}
+      onMouseEnter={(e) => onHover(e)}
       onMouseLeave={onLeave}
-      onTouchStart={onHover}
+      onTouchStart={() => onHover()}
       onTouchEnd={onLeave}
       initial={{ opacity: 0, x: 20 }}
       animate={{ 
@@ -1002,21 +1106,21 @@ function SocialButton({ social, index, isHovered, onHover, onLeave }: SocialButt
       }}
       whileTap={{ scale: 0.95 }}
     >
-      {/* Icon */}
-      <span className={`text-xl ${isHovered ? "text-cream" : "text-cream/70"}`}>
+      {/* Monochromatic Icon */}
+      <span className={`text-base font-bold ${isHovered ? "text-cream" : "text-cream/80"}`}>
         {social.icon}
       </span>
       
-      {/* Label and tagline */}
+      {/* Label and tagline - MORE VISIBLE */}
       <div className="flex flex-col">
         <span 
-          className={`text-sm font-black ${isHovered ? "text-cream" : "text-cream/80"}`}
+          className={`text-xs font-black ${isHovered ? "text-cream" : "text-cream/90"}`}
           style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
         >
           {social.label}
         </span>
         <span 
-          className={`text-[10px] ${isHovered ? "text-cream/80" : "text-cream/40"}`}
+          className={`text-[9px] ${isHovered ? "text-cream/80" : "text-cream/50"}`}
         >
           {social.tagline}
         </span>
@@ -1024,15 +1128,15 @@ function SocialButton({ social, index, isHovered, onHover, onLeave }: SocialButt
       
       {/* Arrow indicator */}
       <motion.span 
-        className={`ml-auto text-sm ${isHovered ? "text-cream" : "text-cream/40"}`}
-        animate={{ x: isHovered ? 4 : 0 }}
+        className={`ml-auto text-xs ${isHovered ? "text-cream" : "text-cream/50"}`}
+        animate={{ x: isHovered ? 3 : 0 }}
       >
         →
       </motion.span>
       
       {/* Shine effect */}
       <motion.div
-        className="absolute inset-0 rounded-lg overflow-hidden"
+        className="absolute inset-0 rounded-lg overflow-hidden pointer-events-none"
         initial={{ opacity: 0 }}
         animate={{ opacity: isHovered ? 1 : 0 }}
       >
