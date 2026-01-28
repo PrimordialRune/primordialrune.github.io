@@ -51,7 +51,7 @@ const superpowers = [
     powerJp: "戦略",
     icon: "◎",
     description: "* turning simple rules into infinite possibilities",
-    mapPosition: { x: 50, y: 20 },
+    mapPosition: { x: 50, y: 25 },
   },
   {
     id: "nostalgia",
@@ -75,7 +75,7 @@ const superpowers = [
     powerJp: "超越",
     icon: "◈",
     description: "* games about games... meta, right?",
-    mapPosition: { x: 50, y: 80 },
+    mapPosition: { x: 50, y: 75 },
   },
   {
     id: "modularity",
@@ -1016,6 +1016,7 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
                 {superpowers.map((power, index) => (
                   <motion.button
                     key={power.id}
+                    aria-label={`Explore ${power.power} power${discoveredPowers.has(power.id) ? " (discovered)" : ""}`}
                     className={`relative flex flex-col items-center justify-center p-3 rounded-lg ${
                       activePower === power.id 
                         ? "bg-blood-orange text-cream" 
@@ -1035,13 +1036,12 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
                       minHeight: "70px",
                     }}
                     onClick={() => handlePowerHover(power.id)}
-                    onTouchEnd={handlePowerLeave}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 + index * 0.1 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    <span className="text-2xl mb-1">{power.icon}</span>
+                    <span className="text-2xl mb-1" aria-hidden="true">{power.icon}</span>
                     <span 
                       className="text-[9px] font-black tracking-wide"
                       style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
@@ -1055,6 +1055,7 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         style={{ boxShadow: "0 0 6px rgba(250, 219, 104, 0.8)" }}
+                        aria-hidden="true"
                       />
                     )}
                   </motion.button>
