@@ -23,6 +23,17 @@ export default function ProjectModal({ project, onClose, isDiscoverMode = false 
   const [showSparkles, setShowSparkles] = useState(isDiscoverMode);
   const [mousePosition, setMousePosition] = useState({ x: 0.5, y: 0.5 });
   const [isHovered, setIsHovered] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  // Detect desktop for 3D effects (only on desktop)
+  useEffect(() => {
+    const checkDesktop = () => {
+      setIsDesktop(window.innerWidth >= 1024);
+    };
+    checkDesktop();
+    window.addEventListener("resize", checkDesktop);
+    return () => window.removeEventListener("resize", checkDesktop);
+  }, []);
 
   // Handle mouse movement for 3D tilt effect
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -39,9 +50,10 @@ export default function ProjectModal({ project, onClose, isDiscoverMode = false 
     setMousePosition({ x: 0.5, y: 0.5 });
   };
 
-  // Calculate subtle 3D tilt (less intense than button)
-  const tiltX = isHovered ? (mousePosition.y - 0.5) * -8 : 0;
-  const tiltY = isHovered ? (mousePosition.x - 0.5) * 8 : 0;
+  // Calculate 3D tilt - Pokemon-card-like effect (desktop only)
+  // Mouse Y controls up/down rotation, Mouse X controls left/right rotation
+  const tiltX = isDesktop && isHovered ? (mousePosition.y - 0.5) * -12 : 0;
+  const tiltY = isDesktop && isHovered ? (mousePosition.x - 0.5) * 12 : 0;
 
   // Generate sparkle positions for discover mode using seeded random
   const discoverSparkles = useMemo(() => {
@@ -161,7 +173,7 @@ export default function ProjectModal({ project, onClose, isDiscoverMode = false 
           animate={{
             opacity: 1,
             scale: 1,
-            y: isHovered ? -4 : 0,  // Slight lift on hover
+            y: isDesktop && isHovered ? -6 : 0,  // Slight lift on hover (desktop only)
             rotateX: tiltX,
             rotateY: tiltY,
           }}
@@ -170,8 +182,8 @@ export default function ProjectModal({ project, onClose, isDiscoverMode = false 
             type: "spring",
             damping: 25,
             stiffness: 300,
-            rotateX: { type: "spring", stiffness: 400, damping: 30 },
-            rotateY: { type: "spring", stiffness: 400, damping: 30 },
+            rotateX: { type: "spring", stiffness: 300, damping: 25 },
+            rotateY: { type: "spring", stiffness: 300, damping: 25 },
             y: { type: "spring", stiffness: 300, damping: 25 },
           }}
           onMouseMove={handleMouseMove}
@@ -182,9 +194,9 @@ export default function ProjectModal({ project, onClose, isDiscoverMode = false 
           }`}
           style={{
             border: `4px solid ${isDiscoverMode ? "var(--gold)" : "var(--teal)"}`,
-            transformStyle: "preserve-3d",
-            perspective: "1200px",
-            boxShadow: isHovered
+            transformStyle: isDesktop ? "preserve-3d" : "flat",
+            perspective: isDesktop ? "1200px" : "none",
+            boxShadow: isDesktop && isHovered
               ? isDiscoverMode
                 ? `
                   inset 6px 6px 12px rgba(0, 0, 0, 0.25),
@@ -218,15 +230,19 @@ export default function ProjectModal({ project, onClose, isDiscoverMode = false 
               `,
           }}
         >
-          {/* 3D highlight edge effect */}
-          <div 
+          {/* 3D highlight edge effect - desktop only, follows mouse position */}
+          <div
             className="absolute inset-0 pointer-events-none"
             style={{
-              background: isHovered 
-                ? `linear-gradient(${135 + (mousePosition.x - 0.5) * 30}deg, 
-                    rgba(255, 255, 255, 0.15) 0%, 
-                    transparent 40%, 
-                    transparent 60%, 
+              background: isDesktop && isHovered
+                ? `linear-gradient(${
+                    Math.atan2(
+                      mousePosition.y - 0.5,
+                      mousePosition.x - 0.5
+                    ) * (180 / Math.PI) + 90
+                  }deg,
+                    rgba(255, 255, 255, 0.15) 0%,
+                    transparent 50%,
                     rgba(0, 0, 0, 0.1) 100%)`
                 : 'none',
               borderRadius: 'inherit',

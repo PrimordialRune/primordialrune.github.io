@@ -25,7 +25,7 @@
   /* Responsive Layout Variables */
   --nav-width: min(400px, 85vw);
   --header-height: clamp(3.5rem, 8vh, 5rem);
-  --stripe-height: clamp(2px, 0.4vh, 3px);
+  --stripe-height: clamp(0.5rem, 0.4vh, 3px);
   --content-padding: clamp(0.5rem, 2vw, 1.5rem);
   --nav-left-offset: clamp(0.5rem, 2vw, 2.5rem);
 }

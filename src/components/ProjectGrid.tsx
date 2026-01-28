@@ -13,7 +13,7 @@ interface ProjectGridProps {
 const ITEMS_PER_PAGE = 6;
 
 // Height that matches the hamburger menu height (for collision prevention)
-const TITLE_SECTION_HEIGHT = "clamp(40px, 6vh, 60px)";
+const TITLE_SECTION_HEIGHT = "clamp(120px, 6vh, 60px)";
 
 export default function ProjectGrid({
   projects,
@@ -57,7 +57,7 @@ export default function ProjectGrid({
     <motion.div 
       className="w-full h-full flex flex-col"
       animate={{
-        paddingLeft: navOpen ? "clamp(2rem, 5vw, 4rem)" : "0px",
+        paddingLeft: navOpen ? "clamp(3rem, 5vw, 4rem)" : "0px",
       }}
       transition={{
         type: "spring",
@@ -67,20 +67,24 @@ export default function ProjectGrid({
       }}
     >
       {/* Archive Title Section - matches hamburger menu height to prevent overlap */}
-      <div 
+      <div
         className="flex-shrink-0 flex items-center px-2 sm:px-4"
-        style={{ height: TITLE_SECTION_HEIGHT }}
+        style={{
+          height: TITLE_SECTION_HEIGHT,
+          paddingTop: navOpen ? "0px" : TITLE_SECTION_HEIGHT,
+        }}
       >
         <div className="flex items-center gap-2 sm:gap-3">
           <span 
             className="text-lg sm:text-xl md:text-2xl font-black text-aquamarine"
-            style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
+            style={{ fontFamily: "var(--font-fk-grotesk-black)", paddingTop: "clamp(1rem, 1vw, 2rem)" }}
           >
             ARCHIVES
           </span>
           <span 
             className="text-xs sm:text-sm text-aquamarine/60 tracking-wider"
-            style={{ fontFamily: "var(--font-gen-ei-kiwami)" }}
+            style={{ fontFamily: "var(--font-gen-ei-kiwami)", paddingTop: "clamp(1rem, 1vw, 2rem)"
+             }}
           >
             アーカイブ
           </span>
@@ -88,7 +92,7 @@ export default function ProjectGrid({
       </div>
       
       {/* Scrollable grid area */}
-      <div className="flex-1 overflow-y-auto pr-4 sm:pr-8 md:pr-12 py-2 sm:py-4 md:py-6">
+      <div className="flex-1 overflow-y-auto pr-4 sm:pr-8 md:pr-12 px-3 py-8 sm:py-4 md:py-">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentPage}
