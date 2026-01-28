@@ -55,9 +55,9 @@ export default function ProjectGrid({
 
   return (
     <motion.div 
-      className="w-full h-full flex flex-col"
+      className="w-full h-full flex flex-col relative overflow-hidden"
       animate={{
-        paddingLeft: navOpen ? "clamp(3rem, 5vw, 4rem)" : "0px",
+        paddingLeft: navOpen ? "clamp(3rem, 5vw, 4rem)" : "clamp(1rem, 2vw, 2rem)",
       }}
       transition={{
         type: "spring",
@@ -66,25 +66,77 @@ export default function ProjectGrid({
         mass: 0.8,
       }}
     >
+      {/* Background decorative elements - matching HeroSection */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {/* Grid pattern */}
+        <svg className="absolute inset-0 w-full h-full opacity-[0.02]" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <defs>
+            <pattern id="archiveGrid" width="10" height="10" patternUnits="userSpaceOnUse">
+              <path d="M 10 0 L 0 0 0 10" fill="none" stroke="var(--teal)" strokeWidth="0.3"/>
+            </pattern>
+          </defs>
+          <rect width="100" height="100" fill="url(#archiveGrid)" />
+        </svg>
+        
+        {/* Floating particles - spread across screen */}
+        {[...Array(12)].map((_, i) => (
+          <motion.div
+            key={`archive-particle-${i}`}
+            className={`absolute rounded-full ${i % 3 === 0 ? "bg-aquamarine/20" : i % 3 === 1 ? "bg-blood-orange/15" : "bg-gold/15"}`}
+            style={{
+              width: 2 + (i % 3) * 2,
+              height: 2 + (i % 3) * 2,
+              left: `${8 + (i * 7.5)}%`,
+              top: `${15 + ((i * 17) % 65)}%`,
+            }}
+            animate={{
+              y: [0, -15, 0],
+              x: [0, (i % 2 === 0 ? 6 : -6), 0],
+              opacity: [0.12, 0.35, 0.12],
+              scale: [1, 1.1, 1],
+            }}
+            transition={{
+              duration: 6 + (i % 4),
+              repeat: Infinity,
+              delay: i * 0.25,
+              ease: "easeInOut",
+            }}
+          />
+        ))}
+        
+        {/* Ambient glow orb */}
+        <motion.div
+          className="absolute w-28 h-28 rounded-full"
+          style={{
+            background: "radial-gradient(circle, rgba(78, 185, 159, 0.05) 0%, transparent 70%)",
+            top: "20%",
+            right: "10%",
+          }}
+          animate={{
+            scale: [1, 1.12, 1],
+            opacity: [0.3, 0.5, 0.3],
+          }}
+          transition={{ duration: 9, repeat: Infinity }}
+        />
+      </div>
+      
       {/* Archive Title Section - matches hamburger menu height to prevent overlap */}
       <div
-        className="flex-shrink-0 flex items-center px-2 sm:px-4"
+        className="flex-shrink-0 flex items-center px-2 sm:px-4 pt-4 sm:pt-6 relative z-10"
         style={{
-          height: TITLE_SECTION_HEIGHT,
-          paddingTop: navOpen ? "0px" : TITLE_SECTION_HEIGHT,
+          minHeight: TITLE_SECTION_HEIGHT,
         }}
       >
         <div className="flex items-center gap-2 sm:gap-3">
           <span 
             className="text-lg sm:text-xl md:text-2xl font-black text-aquamarine"
-            style={{ fontFamily: "var(--font-fk-grotesk-black)", paddingTop: "clamp(1rem, 1vw, 2rem)" }}
+            style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
           >
             ARCHIVES
           </span>
           <span 
             className="text-xs sm:text-sm text-aquamarine/60 tracking-wider"
-            style={{ fontFamily: "var(--font-gen-ei-kiwami)", paddingTop: "clamp(1rem, 1vw, 2rem)"
-             }}
+            style={{ fontFamily: "var(--font-gen-ei-kiwami)" }}
           >
             アーカイブ
           </span>
@@ -92,7 +144,7 @@ export default function ProjectGrid({
       </div>
       
       {/* Scrollable grid area */}
-      <div className="flex-1 overflow-y-auto pr-4 sm:pr-8 md:pr-12 px-3 py-8 sm:py-4 md:py-">
+      <div className="flex-1 overflow-y-auto pr-4 sm:pr-8 md:pr-12 px-3 py-4 sm:py-4 md:py-4 relative z-10">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentPage}

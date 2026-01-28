@@ -363,6 +363,73 @@ export default function FloatingProjects({
 
   return (
     <div ref={containerRef} className="relative w-full h-full overflow-hidden">
+      {/* Background decorative elements - matching HeroSection */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {/* Grid pattern */}
+        <svg className="absolute inset-0 w-full h-full opacity-[0.02]" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <defs>
+            <pattern id="floatingGrid" width="10" height="10" patternUnits="userSpaceOnUse">
+              <path d="M 10 0 L 0 0 0 10" fill="none" stroke="var(--teal)" strokeWidth="0.3"/>
+            </pattern>
+          </defs>
+          <rect width="100" height="100" fill="url(#floatingGrid)" />
+        </svg>
+        
+        {/* Floating particles - spread across screen */}
+        {[...Array(15)].map((_, i) => (
+          <motion.div
+            key={`floating-particle-${i}`}
+            className={`absolute rounded-full ${i % 3 === 0 ? "bg-aquamarine/20" : i % 3 === 1 ? "bg-blood-orange/15" : "bg-gold/15"}`}
+            style={{
+              width: 2 + (i % 3) * 2,
+              height: 2 + (i % 3) * 2,
+              left: `${5 + (i * 6)}%`,
+              top: `${10 + ((i * 17) % 70)}%`,
+            }}
+            animate={{
+              y: [0, -20, 0],
+              x: [0, (i % 2 === 0 ? 8 : -8), 0],
+              opacity: [0.15, 0.4, 0.15],
+              scale: [1, 1.15, 1],
+            }}
+            transition={{
+              duration: 5 + (i % 5),
+              repeat: Infinity,
+              delay: i * 0.3,
+              ease: "easeInOut",
+            }}
+          />
+        ))}
+        
+        {/* Ambient glow orbs */}
+        <motion.div
+          className="absolute w-32 h-32 rounded-full"
+          style={{
+            background: "radial-gradient(circle, rgba(78, 185, 159, 0.06) 0%, transparent 70%)",
+            top: "15%",
+            right: "15%",
+          }}
+          animate={{
+            scale: [1, 1.15, 1],
+            opacity: [0.4, 0.6, 0.4],
+          }}
+          transition={{ duration: 10, repeat: Infinity }}
+        />
+        <motion.div
+          className="absolute w-24 h-24 rounded-full"
+          style={{
+            background: "radial-gradient(circle, rgba(236, 86, 59, 0.04) 0%, transparent 70%)",
+            bottom: "25%",
+            left: "20%",
+          }}
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.3, 0.5, 0.3],
+          }}
+          transition={{ duration: 12, repeat: Infinity, delay: 3 }}
+        />
+      </div>
+      
       {/* Slow-moving scanline overlay for retro CRT effect */}
       <div className="absolute inset-0 pointer-events-none z-10">
         <div

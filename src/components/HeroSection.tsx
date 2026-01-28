@@ -97,6 +97,7 @@ const dialogues = {
     "* i make games. or try to, anyway.",
     "* stick around if you want. no pressure.",
     "* hover around. there's stuff to discover.",
+    "* a wild game designer appeared!",
   ],
   // Easter egg dialogues for various elements
   nickname: [
@@ -104,40 +105,47 @@ const dialogues = {
     "* primordial = ancient. rune = symbol. deep stuff, huh?",
     "* i came up with it when i was 14. still like it.",
     "* you can call me omar though. or just... hey you.",
+    "* it's super effective! ...wait, wrong game.",
   ],
   title: [
     "* that's what i do. design games.",
     "* sometimes they're even good. sometimes.",
     "* it's like architecture but more fun and less money.",
     "* the glitch effect? that's intentional. probably.",
+    "* game designer used 'creative block'. it's not very effective...",
   ],
   japaneseText: [
     "* ゲームデザイナー means 'game designer'. fancy, right?",
     "* i don't actually speak japanese fluently.",
     "* but the aesthetic is *chef's kiss*",
     "* blame jrpgs for my obsession with kanji.",
+    "* this reminds me of the elite four subtitle style.",
   ],
   cornerDecoration: [
     "* you found a corner. congratulations.",
     "* these are just for looks. no secrets here.",
     "* ...or are there?",
     "* (there aren't. i'm messing with you.)",
+    "* you checked every corner? gotta catch 'em all, huh?",
   ],
   logo: [
     "* that's my logo! designed it myself.",
     "* it's supposed to look like a rune. does it?",
     "* took me like 50 iterations to get it right.",
+    "* if logos had IV stats, this one would be perfect.",
   ],
   discoverButton: [
     "* ooh, feeling adventurous?",
     "* that button shows random projects. try it!",
     "* it's like a loot box but free and ethical.",
+    "* it's like a mystery gift! but for projects.",
   ],
   background: [
     "* you're exploring the void.",
     "* nothing here but vibes and pixels.",
     "* i like that you're curious though.",
     "* maybe try the glowing things instead?",
+    "* tall grass warning: wild ideas may appear.",
   ],
   social: {
     twitter: "* tweets about games. sometimes complains about code.",
@@ -153,17 +161,21 @@ const dialogues = {
     "* there's secrets everywhere. maybe.",
     "* you're pretty patient, huh?",
     "* the design realm awaits exploration...",
+    "* not every pokemon was caught in one ball...",
+    "* your patience stat is maxed out, i see.",
   ],
   dialogueCollector: [
     "* oh, you noticed the counter!",
     "* it tracks unique dialogues you've found.",
     "* can you find them all? probably not. there's a lot.",
     "* ...i may have gone overboard with the easter eggs.",
+    "* you're collecting dialogues like pokemon badges!",
   ],
   scanlines: [
     "* those are scanlines. retro crt effect.",
     "* makes everything feel more... authentic?",
     "* or maybe i just like the aesthetic. who knows.",
+    "* gives me gen 1 & 2 vibes. peak nostalgia.",
   ],
 };
 
@@ -218,14 +230,57 @@ const celebrationParticles = Array.from({ length: 30 }, (_, i) => {
   };
 });
 
+// Local Storage keys for persistence
+const STORAGE_KEY_DIALOGUES = "primordialrune-discovered-dialogues";
+const STORAGE_KEY_POWERS = "primordialrune-discovered-powers";
+
+// Helper functions for localStorage persistence
+function loadFromStorage(key: string): Set<string> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return new Set(Array.isArray(parsed) ? parsed : []);
+    }
+  } catch {
+    // Ignore errors, return empty set
+  }
+  return new Set();
+}
+
+function saveToStorage(key: string, data: Set<string>) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(key, JSON.stringify([...data]));
+  } catch {
+    // Ignore errors (quota exceeded, etc)
+  }
+}
+
 export default function HeroSection({ isMobile = false, isLandscape = false }: HeroSectionProps) {
   const [currentDialogue, setCurrentDialogue] = useState(dialogues.intro[0]);
   const [currentDialogueId, setCurrentDialogueId] = useState("intro-0");
   const [showDialogue, setShowDialogue] = useState(true);
   const [activePower, setActivePower] = useState<string | null>(null);
   const [hoveredSocial, setHoveredSocial] = useState<string | null>(null);
-  const [discoveredPowers, setDiscoveredPowers] = useState<Set<string>>(new Set());
-  const [discoveredDialogues, setDiscoveredDialogues] = useState<Set<string>>(new Set(["intro-0"]));
+  // Initialize with saved data using lazy initialization
+  const [discoveredPowers, setDiscoveredPowers] = useState<Set<string>>(() => {
+    // Only run on client
+    if (typeof window !== "undefined") {
+      const saved = loadFromStorage(STORAGE_KEY_POWERS);
+      if (saved.size > 0) return saved;
+    }
+    return new Set();
+  });
+  const [discoveredDialogues, setDiscoveredDialogues] = useState<Set<string>>(() => {
+    // Only run on client
+    if (typeof window !== "undefined") {
+      const saved = loadFromStorage(STORAGE_KEY_DIALOGUES);
+      if (saved.size > 0) return new Set(["intro-0", ...saved]);
+    }
+    return new Set(["intro-0"]);
+  });
   const [isGlitching, setIsGlitching] = useState(false);
   const [glitchText, setGlitchText] = useState("GAME DESIGNER");
   const [hoveredElement, setHoveredElement] = useState<string | null>(null);
@@ -245,6 +300,20 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
   const cooldownTimerRef = useRef<NodeJS.Timeout | null>(null);
   const dialogueCooldownRef = useRef(false); // Ref for cooldown to avoid dependency issues
   const mouseTrailIdRef = useRef(0);
+  
+  // Save discovered dialogues to localStorage whenever they change
+  useEffect(() => {
+    if (discoveredDialogues.size > 1) { // Only save if we have more than the initial intro-0
+      saveToStorage(STORAGE_KEY_DIALOGUES, discoveredDialogues);
+    }
+  }, [discoveredDialogues]);
+  
+  // Save discovered powers to localStorage whenever they change
+  useEffect(() => {
+    if (discoveredPowers.size > 0) {
+      saveToStorage(STORAGE_KEY_POWERS, discoveredPowers);
+    }
+  }, [discoveredPowers]);
 
   // Track dialogue discovery with cooldown to allow reading - IMPROVED responsiveness
   const showDialogueWithTracking = useCallback((text: string, id: string, forceTrigger = false) => {
@@ -324,6 +393,7 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
   }, []);
 
   // Glitch text effect - Enhanced Cyberpunk style distortion
+  // FIXED: Sets text FIRST, then applies glitch visual effect
   const triggerGlitch = useCallback((targetText: string, intense = false) => {
     // Immediately clear any existing interval
     if (glitchIntervalRef.current) {
@@ -331,11 +401,14 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
       glitchIntervalRef.current = null;
     }
     
+    // FIXED: Set the text IMMEDIATELY before glitching effect
+    setGlitchText(targetText);
     setIsGlitching(true);
+    
     const chars = "!@#$%^&*()_+-=[]{}|;':\",./<>?アイウエオカキクケコサシスセソタチツテト";
     let iterations = 0;
-    const maxIterations = intense ? 15 : 10;
-    const speed = intense ? 30 : 50;
+    const maxIterations = intense ? 12 : 8;
+    const speed = intense ? 25 : 40;
     
     // Store target text in ref to avoid closure issues
     const target = targetText;
@@ -348,18 +421,21 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
           clearInterval(glitchIntervalRef.current);
           glitchIntervalRef.current = null;
         }
-        // Final state - set the target text
+        // Final state - ensure the target text is set clean
         setGlitchText(target);
         setIsGlitching(false);
         return;
       }
       
-      // Generate scrambled text progressively revealing target
+      // Generate glitching text that's already the target but with random visual distortions
+      // Letters randomly glitch in and out, giving a "settling" effect
       setGlitchText(
         target
           .split("")
           .map((char, index) => {
-            if (index < iterations) return target[index];
+            // As iterations increase, more characters stabilize
+            const stabilityChance = iterations / maxIterations;
+            if (Math.random() < stabilityChance) return target[index];
             if (char === " ") return " ";
             return chars[Math.floor(Math.random() * chars.length)];
           })
@@ -569,6 +645,9 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
 
   const totalDialogues = allDialogueIds.length;
   const foundDialogues = discoveredDialogues.size;
+  
+  // Check if mobile landscape (should show rotation message)
+  const showLandscapeWarning = isMobile && isLandscape;
 
   return (
     <div 
@@ -578,6 +657,45 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
       onClick={() => handleElementHover("background")}
       onMouseMove={handleMouseMove}
     >
+      {/* Mobile Landscape Warning Overlay */}
+      <AnimatePresence>
+        {showLandscapeWarning && (
+          <motion.div
+            className="fixed inset-0 z-[100] bg-peacock-blue flex items-center justify-center p-8"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <div className="text-center">
+              <motion.div
+                animate={{ rotate: [0, -90, 0] }}
+                transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
+                className="text-6xl mb-6"
+              >
+                📱
+              </motion.div>
+              <h2 
+                className="text-cream text-xl font-black mb-3"
+                style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
+              >
+                Please Rotate Your Device
+              </h2>
+              <p className="text-cream/70 text-sm max-w-xs">
+                This experience is designed for portrait mode. Please rotate your phone for the best experience.
+              </p>
+              <motion.div 
+                className="mt-6 text-aquamarine/60 text-xs"
+                animate={{ opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                style={{ fontFamily: "var(--font-gen-ei-kiwami)" }}
+              >
+                縦向きにしてください
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
       {/* Mouse trail dots effect - pixelated dots following cursor */}
       <AnimatePresence>
         {mouseTrailDots.map(dot => (
@@ -774,11 +892,18 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
         />
       </div>
 
-      {/* Main content - CENTERED layout for desktop with proper spacing from hamburger */}
-      <div className={`flex-1 flex ${isMobile && !isLandscape ? "flex-col pt-12" : "flex-row"} items-center justify-center p-4 md:p-6 lg:p-8 gap-4 md:gap-8 lg:gap-12 xl:gap-16 overflow-hidden`}>
+      {/* Main content - CENTERED layout for desktop, COMPACT layout for mobile portrait */}
+      {/* Mobile portrait: stacked layout with power realm + social side by side at bottom */}
+      <div className={`flex-1 flex ${
+        isMobile && !isLandscape 
+          ? "flex-col pt-16 pb-4 px-2" 
+          : "flex-row p-4 md:p-6 lg:p-8"
+      } items-center justify-center gap-3 md:gap-8 lg:gap-12 xl:gap-16 overflow-hidden`}>
         
         {/* Left column - Title and Speech Bubble - add left padding for hamburger menu */}
-        <div className="flex flex-col justify-center items-center md:items-start flex-shrink min-w-0 md:pl-8 lg:pl-4">
+        <div className={`flex flex-col justify-center items-center md:items-start flex-shrink min-w-0 md:pl-8 lg:pl-4 ${
+          isMobile && !isLandscape ? "flex-grow-0" : ""
+        }`}>
           {/* Title section */}
           <div 
             className="relative cursor-pointer text-center md:text-left"
@@ -787,7 +912,11 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
           >
             {/* Japanese text with lightning effect */}
             <motion.div
-              className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-cream/60 mb-2 cursor-pointer"
+              className={`text-cream/60 mb-1 cursor-pointer ${
+                isMobile && !isLandscape 
+                  ? "text-base" 
+                  : "text-lg sm:text-xl md:text-2xl lg:text-3xl mb-2"
+              }`}
               style={{ fontFamily: "var(--font-gen-ei-kiwami)" }}
               onMouseEnter={(e) => { e.stopPropagation(); handleElementHover("japanese"); }}
               onMouseLeave={handleElementLeave}
@@ -808,9 +937,11 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
             
             {/* Main glitching title - CHANGES with power name */}
             <motion.h1
-              className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black tracking-tight whitespace-nowrap ${
-                isGlitching ? "text-blood-orange" : "text-aquamarine"
-              }`}
+              className={`font-black tracking-tight whitespace-nowrap ${
+                isMobile && !isLandscape 
+                  ? "text-2xl" 
+                  : "text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl"
+              } ${isGlitching ? "text-blood-orange" : "text-aquamarine"}`}
               style={{ 
                 fontFamily: "var(--font-fk-grotesk-black)",
                 textShadow: isGlitching 
@@ -838,7 +969,7 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
           </div>
 
           {/* Persona 5 style speech bubble with nametag - Arrow CENTERED */}
-          <div className="mt-6 relative">
+          <div className={`relative ${isMobile && !isLandscape ? "mt-3" : "mt-6"}`}>
             <AnimatePresence mode="wait">
               {showDialogue && (
                 <SpeechBubble 
@@ -852,53 +983,178 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
 
           {/* Dialogue collector counter */}
           <motion.div 
-            className="mt-4 flex items-center gap-2 cursor-pointer"
+            className={`flex items-center gap-2 cursor-pointer ${isMobile && !isLandscape ? "mt-2" : "mt-4"}`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 3 }}
             onMouseEnter={() => handleElementHover("counter")}
             onMouseLeave={handleElementLeave}
           >
-            <div className="text-cream/50 text-xs tracking-wider" style={{ fontFamily: "var(--font-fk-grotesk-black)" }}>
+            <div className={`text-cream/50 tracking-wider ${isMobile && !isLandscape ? "text-[10px]" : "text-xs"}`} style={{ fontFamily: "var(--font-fk-grotesk-black)" }}>
               DIALOGUES
             </div>
             <motion.div 
-              className="flex items-center gap-1 px-3 py-1.5 bg-peacock-blue/50 rounded border border-teal/30"
+              className={`flex items-center gap-1 bg-peacock-blue/50 rounded border border-teal/30 ${isMobile && !isLandscape ? "px-2 py-1" : "px-3 py-1.5"}`}
               animate={{ 
                 boxShadow: hoveredElement === "counter" 
                   ? "0 0 15px rgba(250, 219, 104, 0.4)" 
                   : "none" 
               }}
             >
-              <span className="text-gold text-sm font-black" style={{ fontFamily: "var(--font-fk-grotesk-black)" }}>
+              <span className={`text-gold font-black ${isMobile && !isLandscape ? "text-xs" : "text-sm"}`} style={{ fontFamily: "var(--font-fk-grotesk-black)" }}>
                 {foundDialogues}
               </span>
-              <span className="text-cream/40 text-sm">/</span>
-              <span className="text-cream/70 text-sm">{totalDialogues}</span>
+              <span className={`text-cream/40 ${isMobile && !isLandscape ? "text-xs" : "text-sm"}`}>/</span>
+              <span className={`text-cream/70 ${isMobile && !isLandscape ? "text-xs" : "text-sm"}`}>{totalDialogues}</span>
             </motion.div>
           </motion.div>
         </div>
 
-        {/* Center - Superpower Minimap - ALIGNED */}
-        <div className="flex flex-col items-center justify-center flex-shrink">
-          <motion.p 
-            className="text-cream/50 text-xs mb-3 tracking-widest"
-            style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 2 }}
-          >
-            DESIGN REALM
-          </motion.p>
-          
-          {/* Minimap container */}
-          <div className="relative w-[180px] h-[180px] sm:w-[220px] sm:h-[220px] md:w-[260px] md:h-[260px] lg:w-[300px] lg:h-[300px]">
-            {/* Map background */}
-            <div 
-              className="absolute inset-0 rounded-xl"
-              style={{
-                background: "linear-gradient(135deg, rgba(16, 47, 65, 0.7) 0%, rgba(16, 47, 65, 0.4) 100%)",
-                border: "2px solid rgba(78, 185, 159, 0.4)",
+        {/* Mobile Portrait: Power Realm + Social in horizontal row */}
+        {isMobile && !isLandscape ? (
+          <div className="flex flex-row items-start justify-center gap-3 w-full mt-2 px-2">
+            {/* Compact Power Realm for Mobile */}
+            <div className="flex flex-col items-center flex-1 min-w-0">
+              <motion.p 
+                className="text-cream/50 text-[10px] mb-2 tracking-widest"
+                style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 2 }}
+              >
+                DESIGN REALM
+              </motion.p>
+              
+              {/* Compact Minimap for mobile */}
+              <div className="relative w-[120px] h-[120px]">
+                <div 
+                  className="absolute inset-0 rounded-lg"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(16, 47, 65, 0.7) 0%, rgba(16, 47, 65, 0.4) 100%)",
+                    border: "2px solid rgba(78, 185, 159, 0.4)",
+                    boxShadow: "inset 0 0 20px rgba(0, 0, 0, 0.4), 0 2px 15px rgba(0, 0, 0, 0.3)",
+                  }}
+                />
+                
+                <div className="absolute inset-2">
+                  {/* Grid lines - simplified for mobile */}
+                  <svg className="absolute inset-0 w-full h-full opacity-20">
+                    {[0, 50, 100].map(y => (
+                      <line key={`mh-${y}`} x1="0%" y1={`${y}%`} x2="100%" y2={`${y}%`} stroke="var(--teal)" strokeWidth="0.5" strokeDasharray="3 3" />
+                    ))}
+                    {[0, 50, 100].map(x => (
+                      <line key={`mv-${x}`} x1={`${x}%`} y1="0%" x2={`${x}%`} y2="100%" stroke="var(--teal)" strokeWidth="0.5" strokeDasharray="3 3" />
+                    ))}
+                  </svg>
+                  
+                  {/* Power nodes - compact */}
+                  {superpowers.map((power, index) => (
+                    <MobileMapPowerNode
+                      key={power.id}
+                      power={power}
+                      index={index}
+                      isActive={activePower === power.id}
+                      isDiscovered={discoveredPowers.has(power.id)}
+                      onHover={() => handlePowerHover(power.id)}
+                      onLeave={handlePowerLeave}
+                    />
+                  ))}
+                  
+                  {/* Center emblem - smaller */}
+                  <motion.div
+                    className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-md bg-peacock-blue/70 flex items-center justify-center"
+                    style={{
+                      border: "1px solid var(--teal)",
+                      boxShadow: "0 0 10px rgba(78, 185, 159, 0.4)",
+                    }}
+                  >
+                    <span className="text-cream text-xs">◆</span>
+                  </motion.div>
+                </div>
+              </div>
+              
+              {/* Compact discovery progress */}
+              <div className="mt-2 flex items-center gap-1.5">
+                {superpowers.map((power) => (
+                  <div
+                    key={`mobile-progress-${power.id}`}
+                    className={`w-2 h-2 rounded-sm flex items-center justify-center text-[6px] ${
+                      discoveredPowers.has(power.id) ? "bg-gold text-peacock-blue" : "bg-cream/20 text-cream/40"
+                    }`}
+                    style={{
+                      boxShadow: discoveredPowers.has(power.id) 
+                        ? "0 0 4px rgba(250, 219, 104, 0.8)" 
+                        : "none",
+                    }}
+                  >
+                    {power.icon}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Compact Social section for Mobile */}
+            <div className="flex flex-col items-center gap-1.5 flex-1 min-w-0">
+              <motion.p 
+                className="text-cream/50 text-[10px] mb-1 tracking-widest"
+                style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 2.5 }}
+              >
+                CHANNELS
+              </motion.p>
+              
+              {/* Compact social buttons */}
+              <div className="flex flex-col gap-1">
+                {socialLinks.map((social, index) => (
+                  <MobileSocialButton
+                    key={social.id}
+                    social={social}
+                    index={index}
+                    isHovered={hoveredSocial === social.id}
+                    onHover={() => handleSocialHover(social.id)}
+                    onLeave={handleSocialLeave}
+                  />
+                ))}
+              </div>
+              
+              {/* About Me Button - compact */}
+              <motion.button
+                className="mt-1 px-3 py-1.5 bg-peacock-blue/60 border border-aquamarine/60 rounded text-cream text-[10px] font-black tracking-wider"
+                style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
+                onClick={() => setShowAboutMe(true)}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 3 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                ABOUT ME
+              </motion.button>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Desktop: Center - Superpower Minimap - ALIGNED */}
+            <div className="flex flex-col items-center justify-center flex-shrink">
+              <motion.p 
+                className="text-cream/50 text-xs mb-3 tracking-widest"
+                style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 2 }}
+              >
+                DESIGN REALM
+              </motion.p>
+              
+              {/* Minimap container */}
+              <div className="relative w-[180px] h-[180px] sm:w-[220px] sm:h-[220px] md:w-[260px] md:h-[260px] lg:w-[300px] lg:h-[300px]">
+                {/* Map background */}
+                <div 
+                  className="absolute inset-0 rounded-xl"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(16, 47, 65, 0.7) 0%, rgba(16, 47, 65, 0.4) 100%)",
+                    border: "2px solid rgba(78, 185, 159, 0.4)",
                 boxShadow: "inset 0 0 40px rgba(0, 0, 0, 0.4), 0 4px 30px rgba(0, 0, 0, 0.3)",
               }}
             />
@@ -1073,6 +1329,8 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
             </p>
           </motion.div>
         </div>
+          </>
+        )}
       </div>
 
       {/* Interactive decorative corners - easter eggs */}
@@ -1520,7 +1778,7 @@ function AboutMeModal({ onClose }: AboutMeModalProps) {
       
       {/* Modal */}
       <motion.div
-        className="relative bg-cream rounded-2xl p-6 md:p-8 max-w-md w-full"
+        className="relative bg-cream rounded-2xl p-6 md:p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto"
         style={{
           boxShadow: `
             0 0 0 4px var(--blood-orange),
@@ -1562,23 +1820,24 @@ function AboutMeModal({ onClose }: AboutMeModalProps) {
           ✕
         </motion.button>
         
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
-          {/* Profile placeholder */}
+        {/* Header - restructured for larger avatar */}
+        <div className="flex flex-col sm:flex-row items-center gap-4 mb-6">
+          {/* Profile placeholder - increased size for 480x480 avatar */}
           <div 
-            className="w-20 h-20 rounded-xl bg-peacock-blue/20 flex items-center justify-center"
+            className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 rounded-xl bg-peacock-blue/20 flex items-center justify-center flex-shrink-0 overflow-hidden"
             style={{
-              border: "3px solid var(--teal)",
-              boxShadow: "inset 0 0 20px rgba(0, 0, 0, 0.2)",
+              border: "4px solid var(--teal)",
+              boxShadow: "inset 0 0 30px rgba(0, 0, 0, 0.2), 0 4px 20px rgba(0, 0, 0, 0.15)",
             }}
           >
-            <span className="text-3xl">🎮</span>
+            {/* Avatar placeholder - can be replaced with actual image */}
+            <span className="text-5xl sm:text-6xl">🎮</span>
           </div>
           
-          <div>
+          <div className="text-center sm:text-left">
             <h2 
               id="about-modal-title"
-              className="text-peacock-blue text-2xl font-black"
+              className="text-peacock-blue text-xl sm:text-2xl font-black"
               style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
             >
               Omar Golinelli
@@ -1625,5 +1884,107 @@ function AboutMeModal({ onClose }: AboutMeModalProps) {
         </motion.p>
       </motion.div>
     </motion.div>
+  );
+}
+
+// Mobile Map Power Node - compact version for portrait mode
+interface MobileMapPowerNodeProps {
+  power: typeof superpowers[0];
+  index: number;
+  isActive: boolean;
+  isDiscovered: boolean;
+  onHover: () => void;
+  onLeave: () => void;
+}
+
+function MobileMapPowerNode({ power, index, isActive, isDiscovered, onHover, onLeave }: MobileMapPowerNodeProps) {
+  return (
+    <motion.button
+      className="absolute flex items-center justify-center"
+      style={{
+        left: `${power.mapPosition.x}%`,
+        top: `${power.mapPosition.y}%`,
+        transform: "translate(-50%, -50%)",
+      }}
+      onTouchStart={onHover}
+      onTouchEnd={onLeave}
+      onClick={onHover}
+      initial={{ opacity: 0, scale: 0 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay: 0.3 + index * 0.1 }}
+    >
+      <motion.div
+        className={`w-5 h-5 rounded flex items-center justify-center text-[9px] font-bold
+          ${isActive 
+            ? "bg-blood-orange text-cream" 
+            : isDiscovered 
+              ? "bg-teal text-cream" 
+              : "bg-peacock-blue/60 text-cream/60"
+          }
+        `}
+        style={{
+          border: isActive 
+            ? "1px solid var(--gold)" 
+            : isDiscovered 
+              ? "1px solid var(--aquamarine)" 
+              : "1px solid rgba(78, 185, 159, 0.3)",
+          boxShadow: isActive 
+            ? "0 0 8px rgba(236, 86, 59, 0.7)"
+            : isDiscovered
+              ? "0 0 4px rgba(78, 185, 159, 0.5)"
+              : "none",
+        }}
+        animate={{
+          scale: isActive ? [1, 1.15, 1] : 1,
+        }}
+        transition={{ duration: 0.5, repeat: isActive ? Infinity : 0 }}
+      >
+        {power.icon}
+      </motion.div>
+    </motion.button>
+  );
+}
+
+// Mobile Social Button - compact version for portrait mode
+interface MobileSocialButtonProps {
+  social: typeof socialLinks[0];
+  index: number;
+  isHovered: boolean;
+  onHover: () => void;
+  onLeave: () => void;
+}
+
+function MobileSocialButton({ social, index, isHovered, onHover, onLeave }: MobileSocialButtonProps) {
+  return (
+    <motion.a
+      href={social.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`relative flex items-center gap-1.5 px-2 py-1.5 rounded
+        ${isHovered 
+          ? "bg-blood-orange" 
+          : "bg-peacock-blue/70"
+        }
+      `}
+      style={{
+        border: isHovered ? "1px solid var(--gold)" : "1px solid rgba(78, 185, 159, 0.4)",
+      }}
+      onTouchStart={onHover}
+      onTouchEnd={onLeave}
+      initial={{ opacity: 0, x: 10 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: 2.5 + index * 0.08 }}
+    >
+      <span className="text-[10px] font-bold text-cream">
+        {social.icon}
+      </span>
+      <span 
+        className="text-[9px] font-black text-cream"
+        style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
+      >
+        {social.label}
+      </span>
+      <span className="text-cream/70 text-[9px]">→</span>
+    </motion.a>
   );
 }
