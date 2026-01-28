@@ -351,7 +351,7 @@ export default function FloatingProjects({
         <div className="text-center">
           <p
             className="text-4xl sm:text-5xl md:text-6xl font-black text-aquamarine/30 mb-4"
-            style={{ fontFamily: "var(--font-8bit-darling)" }}
+            style={{ fontFamily: "var(--font-gen-ei-kiwami)" }}
           >
             準備中
           </p>
@@ -566,7 +566,7 @@ export default function FloatingProjects({
                         <p
                           className="text-aquamarine/70 tracking-wide truncate"
                           style={{ 
-                            fontFamily: "var(--font-8bit-darling)",
+                            fontFamily: "var(--font-gen-ei-kiwami)",
                             fontSize: Math.max(8, fontSize * 0.75)
                           }}
                         >

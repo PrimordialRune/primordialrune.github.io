@@ -46,7 +46,7 @@
   --color-accent-secondary: var(--accent-secondary);
   --font-sans: var(--font-fk-grotesk);
   --font-display: var(--font-fk-grotesk-black);
-  --font-retro: var(--font-8bit-darling);
+  --font-retro: var(--font-gen-ei-kiwami);
 }
 
 body {
@@ -76,4 +76,59 @@ main * {
 main::-webkit-scrollbar,
 main *::-webkit-scrollbar {
   display: none;
+}
+
+/* ==========================================
+   UX Constraints - Game-like UI behavior
+   Prevents unwanted web interactions
+   ========================================== */
+
+/* Prevent image dragging globally */
+img {
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  user-drag: none;
+  pointer-events: none;
+}
+
+/* Re-enable pointer events for clickable images */
+a img,
+button img {
+  pointer-events: auto;
+}
+
+/* Prevent text selection on interactive elements */
+button,
+[role="button"],
+nav,
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Prevent long-press context menu on mobile */
+* {
+  -webkit-touch-callout: none;
+}
+
+/* Allow text selection on content areas */
+article,
+p,
+.selectable {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+
+/* Disable tap highlight on mobile */
+button,
+a,
+[role="button"] {
+  -webkit-tap-highlight-color: transparent;
 }

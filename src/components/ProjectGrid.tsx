@@ -41,7 +41,7 @@ export default function ProjectGrid({
         <div className="text-center">
           <p
             className="text-4xl sm:text-5xl md:text-6xl font-black text-aquamarine/30 mb-4"
-            style={{ fontFamily: "var(--font-8bit-darling)" }}
+            style={{ fontFamily: "var(--font-gen-ei-kiwami)" }}
           >
             準備中
           </p>
@@ -83,7 +83,7 @@ export default function ProjectGrid({
           </span>
           <span 
             className="text-xs sm:text-sm text-aquamarine/60 tracking-wider"
-            style={{ fontFamily: "var(--font-8bit-darling)", paddingTop: "clamp(1rem, 1vw, 2rem)"
+            style={{ fontFamily: "var(--font-gen-ei-kiwami)", paddingTop: "clamp(1rem, 1vw, 2rem)"
              }}
           >
             アーカイブ
@@ -174,7 +174,7 @@ export default function ProjectGrid({
                   {project.titleJp && (
                     <p
                       className="text-[10px] sm:text-xs text-aquamarine/60 mb-2 sm:mb-3 tracking-wider"
-                      style={{ fontFamily: "var(--font-8bit-darling)" }}
+                      style={{ fontFamily: "var(--font-gen-ei-kiwami)" }}
                     >
                       {project.titleJp}
                     </p>

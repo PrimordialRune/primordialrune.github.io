@@ -34,6 +34,16 @@ const bitDarling = localFont({
   variable: "--font-8bit-darling",
 });
 
+const killGothic = localFont({
+  src: "../../public/fonts/GN-KillGothic-U-KanaNA.ttf",
+  variable: "--font-kill-gothic",
+});
+
+const genEiKiwami = localFont({
+  src: "../../public/fonts/GenEiKiwamiGo.ttf",
+  variable: "--font-gen-ei-kiwami",
+});
+
 export const metadata: Metadata = {
   title: "PrimordialRune — Game Design & Development Portfolio",
   description: "Portfolio of Omar Golinelli (PrimordialRune) — Game Designer and Developer. Board games, videogames, UI/UX, and interactive experiences.",
@@ -47,7 +57,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${fkGrotesk.variable} ${fkGroteskBlack.variable} ${bitDarling.variable} antialiased`}
+        className={`${fkGrotesk.variable} ${fkGroteskBlack.variable} ${bitDarling.variable} ${killGothic.variable} ${genEiKiwami.variable} antialiased`}
       >
         {children}
       </body>
