@@ -54,7 +54,7 @@ const dialogueCategories: Record<string, DialogueCategory> = {
       "* welcome to my corner of the internet.",
       "* i make games. or try to, anyway.",
       "* stick around if you want. no pressure.",
-      "* hover around. there's stuff to discover.",
+      "* click around. there's stuff to discover.",
     ],
     random: [
       "* a wild game designer appeared!",
@@ -142,7 +142,7 @@ const dialogueCategories: Record<string, DialogueCategory> = {
     numbered: [],
     random: [
       "* still here? nice.",
-      "* the cursor's looking lonely over there.",
+      "* nothing clicked yet? the powers are waiting.",
       "* try clicking on different things.",
       "* there's secrets everywhere. maybe.",
       "* you're pretty patient, huh?",
@@ -203,8 +203,8 @@ const calculateTotalDialogues = (): number => {
     total += category.numbered.length + category.random.length;
   }
   total += Object.keys(socialDialogues).length;
-  // Add power dialogues
-  total += 6; // superpowers count
+  // Add power dialogues (6 superpowers)
+  total += 6;
   return total;
 };
 
@@ -579,7 +579,7 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
       );
     }, speed);
     
-    // Safety timeout - force cleanup after max animation time
+    // Safety timeout - force cleanup after max animation time with buffer
     setTimeout(() => {
       if (glitchIntervalRef.current) {
         clearInterval(glitchIntervalRef.current);
@@ -587,7 +587,7 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
       }
       setGlitchText(target);
       setIsGlitching(false);
-    }, (maxIterations + 2) * speed);
+    }, (maxIterations + 3) * speed + 100);
   }, []);
 
   // Random glitch effect on title
