@@ -380,6 +380,7 @@ export default function Home() {
   // Discover feature: show a random project with CRT effect
   const handleDiscoverAnimationStart = useCallback(() => {
     setShowCRTNoise(true);
+    window.dispatchEvent(new CustomEvent("primordialrune:discover-triggered"));
     setTimeout(() => setShowCRTNoise(false), 600);
   }, []);
 
@@ -393,7 +394,7 @@ export default function Home() {
   }, [allProjects]);
 
   return (
-    <div className="relative min-h-screen bg-background overflow-hidden">
+    <div className="relative min-h-screen bg-background overflow-hidden" onContextMenu={(e) => e.preventDefault()}>
       {/* Top NES Stripe */}
       <div className="fixed top-0 left-0 right-0 h-[var(--stripe-height)] bg-blood-orange z-50" />
 
