@@ -141,18 +141,15 @@ export default function Navigation({
                 layoutId={`nav-item-${item.id}`}
                 onClick={() => {
                   if (!isOpen) {
-                    // Clicking on hamburger stripe: only open the nav, don't navigate
                     toggleNav(true);
                   } else {
-                    // Nav is open: clicking navigates to section
                     changeCategory(item.id);
-                    // On mobile, close nav after selecting
                     if (isMobile) {
                       toggleNav(false);
                     }
                   }
                 }}
-                className={`relative overflow-hidden ${
+                className={`nav-item relative overflow-hidden ${
                   isActive && isOpen
                     ? "bg-blood-orange"
                     : "bg-blood-orange/40 backdrop-blur-sm"
@@ -276,7 +273,7 @@ export default function Navigation({
                             stiffness: 300,
                             delay: 0.15,
                           }}
-                          className="absolute top-1.5 md:top-2 right-1.5 md:right-2 w-1.5 h-1.5 md:w-2 md:h-2 bg-gold rounded-full"
+                          className="active-dot absolute top-1.5 md:top-2 right-1.5 md:right-2 w-1.5 h-1.5 md:w-2 md:h-2 bg-gold rounded-full"
                           style={{
                             boxShadow: "0 0 10px rgba(250, 219, 104, 0.6)",
                           }}

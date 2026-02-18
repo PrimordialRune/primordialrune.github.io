@@ -83,7 +83,7 @@ function DiscoverButton({ onDiscover, onAnimationStart }: { onDiscover: () => vo
   return (
     <motion.button
       ref={buttonRef}
-      className="relative px-4 md:px-6 py-2 md:py-2.5 rounded-lg font-black text-xs md:text-sm"
+      className="discover-btn relative px-4 md:px-6 py-2 md:py-2.5 rounded-lg font-black text-xs md:text-sm"
       style={{ 
         fontFamily: "var(--font-fk-grotesk-black)",
         transformStyle: "preserve-3d",
@@ -397,8 +397,8 @@ export default function Home() {
 
   return (
     <div className="relative min-h-screen bg-background overflow-hidden" onContextMenu={(e) => e.preventDefault()}>
-      {/* Top NES Stripe */}
-      <div className="fixed top-0 left-0 right-0 h-[var(--stripe-height)] bg-blood-orange z-50" />
+      {/* Top NES Stripe — hidden in Industrial, neon in Retrowave */}
+      <div className="nes-stripe fixed top-0 left-0 right-0 h-[var(--stripe-height)] bg-blood-orange z-50" style={{ display: "var(--stripe-display)" }} />
 
       {/* Header */}
       <header className="fixed top-[var(--stripe-height)] left-0 right-0 z-40 flex items-center justify-between px-3 sm:px-4 md:px-6 py-2 md:py-3 bg-background/95 backdrop-blur-sm">
@@ -423,14 +423,14 @@ export default function Home() {
           </svg>
           <div className="flex items-center gap-1 md:gap-2">
             <span
-              className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-blood-orange italic leading-none"
-              style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
+              className="brand-primary text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-blood-orange italic leading-none"
+              style={{ fontFamily: "var(--font-fk-grotesk-black)", letterSpacing: "var(--heading-tracking)" }}
             >
               PRIMORDIAL
             </span>
             <span
-              className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-peacock-blue italic leading-none"
-              style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
+              className="brand-secondary text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-peacock-blue italic leading-none"
+              style={{ fontFamily: "var(--font-fk-grotesk-black)", letterSpacing: "var(--heading-tracking)" }}
             >
               RUNE
             </span>
@@ -451,16 +451,10 @@ export default function Home() {
         <div className="relative w-full h-full">
           {/* CRT Display Panel with Embossing */}
           <div
-            className="relative w-full h-full bg-panel-bg rounded-xl sm:rounded-2xl md:rounded-3xl overflow-hidden"
+            className="crt-panel relative w-full h-full bg-panel-bg overflow-hidden"
             style={{
-              boxShadow: `
-                inset 4px 4px 8px rgba(0, 0, 0, 0.2),
-                inset -4px -4px 8px rgba(255, 255, 255, 0.03),
-                0 0 0 4px transparent,
-                0 0 0 6px rgba(0, 0, 0, 0.2),
-                0 0 0 10px rgba(0, 0, 0, 0.1),
-                0 8px 24px rgba(0, 0, 0, 0.3)
-              `,
+              borderRadius: "var(--panel-radius)",
+              boxShadow: "var(--panel-shadow)",
             }}
           >
             {/* Scanline Effect Overlay - Animated */}
@@ -535,15 +529,41 @@ export default function Home() {
               </AnimatePresence>
             </motion.div>
 
-            {/* Footer Signature — Theme Toggle */}
+            {/* Footer Signature — Theme Toggle (Design Mode Switch) */}
             <motion.button
               onClick={toggleTheme}
-              className="absolute bottom-4 sm:bottom-6 md:bottom-8 right-4 sm:right-6 md:right-10 z-20 flex flex-col items-end gap-1 cursor-pointer group"
+              className="theme-toggle absolute bottom-4 sm:bottom-6 md:bottom-8 right-4 sm:right-6 md:right-10 z-20 flex flex-col items-end gap-1 cursor-pointer group"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               title={`Switch to ${theme === "industrial" ? "Retro Wave" : "Industrial"} theme`}
               aria-label={`Current theme: ${themeLabel}. Click to switch.`}
             >
+              {/* Designer identity indicator */}
+              <motion.div
+                className="flex items-center gap-2 mb-0.5"
+                initial={false}
+                animate={{ opacity: 1 }}
+              >
+                <motion.div
+                  className="w-2 h-2 rounded-full"
+                  animate={{
+                    backgroundColor: theme === "industrial" ? "var(--accent)" : "var(--gold)",
+                    boxShadow: theme === "retrowave" ? "0 0 8px var(--gold)" : "none",
+                  }}
+                  transition={{ duration: 0.4 }}
+                />
+                <motion.span
+                  key={`designer-${theme}`}
+                  className="text-[8px] md:text-[10px] tracking-[0.25em] text-aquamarine/50 group-hover:text-aquamarine/90 transition-colors uppercase"
+                  style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
+                  initial={{ opacity: 0, x: 8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: 0.1 }}
+                >
+                  {theme === "industrial" ? "DESIGNER A" : "DESIGNER B"}
+                </motion.span>
+              </motion.div>
+
               <motion.span
                 className="text-aquamarine/40 text-sm md:text-lg tracking-wider group-hover:text-aquamarine/80 transition-colors"
                 style={{ fontFamily: "var(--font-gen-ei-kiwami)" }}
@@ -566,8 +586,8 @@ export default function Home() {
         </div>
       </main>
 
-      {/* Bottom NES Stripe */}
-      <div className="fixed bottom-0 left-0 right-0 h-[var(--stripe-height)] bg-blood-orange z-50" />
+      {/* Bottom NES Stripe — hidden in Industrial, neon in Retrowave */}
+      <div className="nes-stripe fixed bottom-0 left-0 right-0 h-[var(--stripe-height)] bg-blood-orange z-50" style={{ display: "var(--stripe-display)" }} />
 
       {/* Project Modal */}
       {selectedProject && (

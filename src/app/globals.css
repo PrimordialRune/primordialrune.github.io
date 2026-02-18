@@ -28,6 +28,29 @@
   --stripe-height: clamp(0.5rem, 0.4vh, 3px);
   --content-padding: clamp(0.5rem, 2vw, 1.5rem);
   --nav-left-offset: clamp(0.5rem, 2vw, 2.5rem);
+
+  /* ==========================================
+     Design System Tokens — Layout & Visual
+     ========================================== */
+  --panel-radius: 1.5rem;
+  --nav-radius: 1rem;
+  --card-radius: 0.75rem;
+  --border-weight: 2px;
+  --header-border: none;
+  --panel-shadow: inset 4px 4px 8px rgba(0, 0, 0, 0.2),
+    inset -4px -4px 8px rgba(255, 255, 255, 0.03),
+    0 0 0 4px transparent,
+    0 0 0 6px rgba(0, 0, 0, 0.2),
+    0 0 0 10px rgba(0, 0, 0, 0.1),
+    0 8px 24px rgba(0, 0, 0, 0.3);
+  --stripe-display: block;
+  --scanline-opacity: 0.08;
+  --nav-badge-radius: 0.75rem;
+  --heading-tracking: 0em;
+  --body-tracking: 0em;
+  --toggle-glow: none;
+  --interactive-glow: none;
+  --header-divider: none;
 }
 
 @theme inline {
@@ -154,64 +177,293 @@ a,
     background-color 0.6s cubic-bezier(0.4, 0, 0.2, 1),
     border-color 0.6s cubic-bezier(0.4, 0, 0.2, 1),
     color 0.6s cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+    border-radius 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    letter-spacing 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ==========================================
-   Theme A — Industrial Minimalism
-   (Teenage Engineering / Scandinavian)
+   DESIGNER A — Industrial Instrument Minimalism
+   Teenage Engineering × Braun × Control Panel DNA
+
+   Design like a physical precision device.
+   Modular panels. Data-like typography.
+   Strong grid constraints. High contrast.
+   UI like a synth interface, not a webpage.
    ========================================== */
 :root[data-theme="industrial"] {
-  /* Core palette: high-contrast mono + functional orange */
-  --teal: #999999;
-  --aquamarine: #888888;
-  --dark-teal: #666666;
+  /* Core palette: high-contrast mono + functional signal orange */
+  --teal: #A0A0A0;
+  --aquamarine: #707070;
+  --dark-teal: #505050;
   --peacock-blue: #1A1A1A;
 
-  --blood-orange: #FF5500;
-  --gold: #FF5500;
+  --blood-orange: #FF4400;
+  --gold: #FF4400;
 
-  --cream: #F5F5F0;
+  --cream: #F2F0EB;
 
-  --background: #F5F5F0;
+  --background: #F2F0EB;
   --foreground: #1A1A1A;
-  --panel-bg: #E8E8E3;
-  --panel-border: #CCCCCC;
-  --accent: #FF5500;
-  --accent-secondary: #FF5500;
+  --panel-bg: #E6E4DF;
+  --panel-border: #C8C6C1;
+  --accent: #FF4400;
+  --accent-secondary: #FF4400;
+
+  /* Industrial Layout — Sharp, modular, engineered */
+  --panel-radius: 4px;
+  --nav-radius: 2px;
+  --card-radius: 2px;
+  --border-weight: 1px;
+  --header-border: 1px solid #C8C6C1;
+  --panel-shadow:
+    inset 1px 1px 0 rgba(255, 255, 255, 0.7),
+    inset -1px -1px 0 rgba(0, 0, 0, 0.08),
+    0 1px 3px rgba(0, 0, 0, 0.1);
+  --stripe-display: none;
+  --scanline-opacity: 0;
+  --nav-badge-radius: 2px;
+  --heading-tracking: 0.15em;
+  --body-tracking: 0.02em;
+  --toggle-glow: none;
+  --interactive-glow: none;
+  --header-divider: 1px solid #C8C6C1;
+}
+
+/* Industrial: Panel becomes a flat modular surface */
+:root[data-theme="industrial"] .crt-panel {
+  border: 1px solid var(--panel-border);
+  border-radius: var(--panel-radius) !important;
+  box-shadow: var(--panel-shadow) !important;
+}
+
+/* Industrial: No scanlines — precision, not nostalgia */
+:root[data-theme="industrial"] .scanline-overlay {
+  opacity: 0 !important;
+}
+
+/* Industrial: Header becomes a toolbar strip */
+:root[data-theme="industrial"] header {
+  border-bottom: var(--header-divider);
+  backdrop-filter: none;
+  background: var(--background) !important;
+}
+
+/* Industrial: Nav items become flat modular buttons */
+:root[data-theme="industrial"] .nav-item {
+  border-radius: var(--nav-radius) !important;
+  box-shadow: none !important;
+  border: 1px solid transparent;
+}
+
+:root[data-theme="industrial"] .nav-item:hover {
+  border-color: var(--accent);
+}
+
+/* Industrial: Typography — data-label style, wide-tracked */
+:root[data-theme="industrial"] .theme-heading {
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-feature-settings: "tnum" 1, "ss01" 1;
+}
+
+/* Industrial: Toggle button — minimal, labeled */
+:root[data-theme="industrial"] .theme-toggle {
+  border: 1px solid var(--panel-border);
+  border-radius: 2px;
+  padding: 0.5rem 1rem;
+  background: transparent;
+}
+
+:root[data-theme="industrial"] .theme-toggle:hover {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--background);
+}
+
+/* Industrial: Status indicators — functional, not decorative */
+:root[data-theme="industrial"] .active-dot {
+  border-radius: 1px !important;
+  box-shadow: none !important;
+  width: 6px !important;
+  height: 6px !important;
+}
+
+/* Industrial: Brand identity — Monochrome authority */
+:root[data-theme="industrial"] .brand-primary {
+  color: var(--foreground) !important;
+}
+
+:root[data-theme="industrial"] .brand-secondary {
+  color: var(--foreground) !important;
+  opacity: 0.5;
+}
+
+/* Industrial: Discover button — tool-like */
+:root[data-theme="industrial"] .discover-btn {
+  border-radius: 2px !important;
+  border-width: 1px !important;
 }
 
 /* ==========================================
-   Theme B — Retro Wave × Modern Minimalism
-   (Synth / Neon / Late 80s-90s Digital)
+   DESIGNER B — Retro-Futurism × Contemporary Minimalism
+   Early Digital Optimism × Modern UX Rigor
+
+   Design like a memory of the future.
+   Strong typographic drama. Neon used surgically.
+   Dark space + luminous focus. Cinematic presence.
+   Nostalgia as atmosphere, not decoration.
    ========================================== */
 :root[data-theme="retrowave"] {
-  /* Core palette: deep dark + neon accents */
+  /* Core palette: deep void + neon luminance */
   --teal: #00E5FF;
   --aquamarine: #7B68EE;
   --dark-teal: #1A1A35;
-  --peacock-blue: #0D0D1A;
+  --peacock-blue: #08081A;
 
   --blood-orange: #FF2D95;
   --gold: #FFD700;
 
   --cream: #E8E0F0;
 
-  --background: #0D0D1A;
+  --background: #08081A;
   --foreground: #E8E0F0;
-  --panel-bg: #12122A;
+  --panel-bg: #0E0E24;
   --panel-border: #00E5FF;
   --accent: #FF2D95;
   --accent-secondary: #FFD700;
+
+  /* Retrowave Layout — Cinematic, luminous, dramatic */
+  --panel-radius: 1.25rem;
+  --nav-radius: 1rem;
+  --card-radius: 0.75rem;
+  --border-weight: 2px;
+  --header-border: none;
+  --panel-shadow:
+    inset 2px 2px 8px rgba(0, 229, 255, 0.05),
+    inset -2px -2px 8px rgba(123, 104, 238, 0.03),
+    0 0 0 1px rgba(0, 229, 255, 0.2),
+    0 0 40px rgba(0, 229, 255, 0.06),
+    0 8px 32px rgba(0, 0, 0, 0.6);
+  --stripe-display: block;
+  --scanline-opacity: 0.06;
+  --nav-badge-radius: 0.75rem;
+  --heading-tracking: -0.02em;
+  --body-tracking: 0em;
+  --toggle-glow: 0 0 20px rgba(0, 229, 255, 0.3);
+  --interactive-glow: 0 0 12px currentColor;
+  --header-divider: none;
 }
 
-/* Industrial theme specific overrides */
-:root[data-theme="industrial"] .scanline-overlay {
-  opacity: 0.02 !important;
+/* Retrowave: Panel has neon border glow */
+:root[data-theme="retrowave"] .crt-panel {
+  border: 1px solid rgba(0, 229, 255, 0.15);
+  box-shadow: var(--panel-shadow) !important;
 }
 
-/* Retrowave theme: enhanced glow on interactive elements */
+/* Retrowave: Enhanced scanline atmosphere */
+:root[data-theme="retrowave"] .scanline-overlay {
+  opacity: var(--scanline-opacity) !important;
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 229, 255, 0.4) 2px,
+    rgba(0, 229, 255, 0.4) 4px
+  ) !important;
+}
+
+/* Retrowave: NES stripes become neon accent lines */
+:root[data-theme="retrowave"] .nes-stripe {
+  background: linear-gradient(90deg, var(--accent), var(--aquamarine)) !important;
+  opacity: 0.8;
+}
+
+/* Retrowave: Neon glow on interactive elements */
 :root[data-theme="retrowave"] button:hover,
 :root[data-theme="retrowave"] a:hover {
   text-shadow: 0 0 8px currentColor;
+}
+
+/* Retrowave: Nav items with neon edge glow */
+:root[data-theme="retrowave"] .nav-item {
+  border-radius: var(--nav-radius) !important;
+}
+
+:root[data-theme="retrowave"] .nav-item:hover {
+  box-shadow: 0 0 20px rgba(255, 45, 149, 0.3),
+    inset 0 0 20px rgba(255, 45, 149, 0.05) !important;
+}
+
+/* Retrowave: Toggle button — glowing beacon */
+:root[data-theme="retrowave"] .theme-toggle {
+  border: 1px solid rgba(0, 229, 255, 0.3);
+  border-radius: 0.75rem;
+  box-shadow: var(--toggle-glow);
+}
+
+:root[data-theme="retrowave"] .theme-toggle:hover {
+  border-color: var(--teal);
+  box-shadow: 0 0 30px rgba(0, 229, 255, 0.4), 0 0 60px rgba(0, 229, 255, 0.15);
+}
+
+/* Retrowave: Active dots glow like neon indicators */
+:root[data-theme="retrowave"] .active-dot {
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.8), 0 0 24px rgba(255, 215, 0, 0.4) !important;
+}
+
+/* Retrowave: Brand identity — Neon signature */
+:root[data-theme="retrowave"] .brand-primary {
+  text-shadow: 0 0 20px rgba(255, 45, 149, 0.5);
+}
+
+:root[data-theme="retrowave"] .brand-secondary {
+  text-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
+}
+
+/* Retrowave: Header — transparent with subtle bottom glow */
+:root[data-theme="retrowave"] header {
+  background: rgba(8, 8, 26, 0.85) !important;
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(0, 229, 255, 0.08);
+}
+
+/* Retrowave: Discover button — cinematic glow */
+:root[data-theme="retrowave"] .discover-btn {
+  box-shadow: 0 0 20px rgba(255, 45, 149, 0.3);
+}
+
+:root[data-theme="retrowave"] .discover-btn:hover {
+  box-shadow: 0 0 30px rgba(255, 45, 149, 0.5), 0 0 60px rgba(255, 45, 149, 0.2) !important;
+}
+
+/* Retrowave: Ambient grid background */
+:root[data-theme="retrowave"] .crt-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(rgba(0, 229, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 229, 255, 0.02) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.5;
+}
+
+/* Retrowave: Horizon gradient at bottom of panel */
+:root[data-theme="retrowave"] .crt-panel::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 30%;
+  background: linear-gradient(
+    to top,
+    rgba(123, 104, 238, 0.05),
+    transparent
+  );
+  pointer-events: none;
+  z-index: 1;
 }

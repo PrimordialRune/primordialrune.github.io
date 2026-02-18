@@ -8,15 +8,18 @@ interface ThemeContextType {
   theme: DesignTheme;
   toggleTheme: () => void;
   themeLabel: string;
+  isTransitioning: boolean;
 }
 
 const ThemeContext = createContext<ThemeContextType>({
   theme: "industrial",
   toggleTheme: () => {},
   themeLabel: "INDUSTRIAL",
+  isTransitioning: false,
 });
 
 const STORAGE_KEY = "primordialrune-design-theme";
+const TRANSITION_DURATION = 600; // ms, matches CSS transition
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<DesignTheme>(() => {
@@ -29,6 +32,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }
     return "industrial";
   });
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Apply theme to document
   useEffect(() => {
@@ -41,13 +45,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [theme]);
 
   const toggleTheme = useCallback(() => {
+    setIsTransitioning(true);
     setTheme((prev) => (prev === "industrial" ? "retrowave" : "industrial"));
+    // Clear transitioning state after CSS transitions complete
+    setTimeout(() => setIsTransitioning(false), TRANSITION_DURATION);
   }, []);
 
   const themeLabel = theme === "industrial" ? "INDUSTRIAL" : "RETROWAVE";
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, themeLabel }}>
+    <ThemeContext.Provider value={{ theme, toggleTheme, themeLabel, isTransitioning }}>
       {children}
     </ThemeContext.Provider>
   );
