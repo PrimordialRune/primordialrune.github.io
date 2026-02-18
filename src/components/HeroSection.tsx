@@ -24,9 +24,6 @@ const bubbleSpring = {
   mass: 0.4,
 };
 
-// Dialogue cooldown duration in milliseconds - REDUCED for better responsiveness
-const DIALOGUE_COOLDOWN_MS = 1200;
-
 // Auto-rotate interval for intro dialogues
 const INTRO_ROTATE_INTERVAL_MS = 6000;
 
@@ -38,7 +35,182 @@ const noInteractionStyles: React.CSSProperties = {
   touchAction: "manipulation",
 };
 
-// Design superpowers data with map positions - FIXED alignment accounting for labels
+// =============================================================================
+// DIALOGUE SYSTEM v2 - Numbered (sequential) + Random (poolable) architecture
+// =============================================================================
+
+// Dialogue category structure: 
+// - `numbered`: Array of dialogues shown IN ORDER, one per interaction
+// - `random`: Array of dialogues shown RANDOMLY after numbered are exhausted
+interface DialogueCategory {
+  numbered: string[];  // Shown in sequence, one per interaction
+  random: string[];    // Shown randomly after numbered exhausted
+}
+
+// NEW DIALOGUE STRUCTURE - numbered dialogues play in order, then random ones
+const dialogueCategories: Record<string, DialogueCategory> = {
+  intro: {
+    numbered: [
+      "* welcome to my corner of the internet.",
+      "* i make games. or try to, anyway.",
+      "* stick around if you want. no pressure.",
+      "* click around. there's stuff to discover.",
+    ],
+    random: [
+      "* a wild game designer appeared!",
+      "* still exploring? nice.",
+      "* the pixels are alive with possibilities.",
+    ],
+  },
+  nickname: {
+    numbered: [
+      "* yep, that's my nickname.",
+      "* primordial = ancient. rune = symbol. deep stuff, huh?",
+      "* i came up with it when i was 14. still like it.",
+    ],
+    random: [
+      "* you can call me omar though. or just... hey you.",
+      "* it's super effective! ...wait, wrong game.",
+    ],
+  },
+  title: {
+    numbered: [
+      "* that's what i do. design games.",
+      "* sometimes they're even good. sometimes.",
+      "* it's like architecture but more fun and less money.",
+    ],
+    random: [
+      "* the glitch effect? that's intentional. probably.",
+      "* game designer used 'creative block'. it's not very effective...",
+    ],
+  },
+  japaneseText: {
+    numbered: [
+      "* ゲームデザイナー means 'game designer'. fancy, right?",
+      "* i don't actually speak japanese fluently.",
+      "* but the aesthetic is *chef's kiss*",
+    ],
+    random: [
+      "* blame jrpgs for my obsession with kanji.",
+      "* this reminds me of the elite four subtitle style.",
+    ],
+  },
+  cornerDecoration: {
+    numbered: [
+      "* you found a corner. congratulations.",
+      "* these are just for looks. no secrets here.",
+      "* ...or are there?",
+      "* (there aren't. i'm messing with you.)",
+    ],
+    random: [
+      "* you checked every corner? gotta catch 'em all, huh?",
+      "* corners are underrated in UI design.",
+    ],
+  },
+  logo: {
+    numbered: [
+      "* that's my logo! designed it myself.",
+      "* it's supposed to look like a rune. does it?",
+      "* took me like 50 iterations to get it right.",
+    ],
+    random: [
+      "* if logos had IV stats, this one would be perfect.",
+    ],
+  },
+  discoverButton: {
+    numbered: [
+      "* ooh, feeling adventurous?",
+      "* that button shows random projects. try it!",
+    ],
+    random: [
+      "* it's like a loot box but free and ethical.",
+      "* it's like a mystery gift! but for projects.",
+    ],
+  },
+  background: {
+    numbered: [
+      "* you're exploring the void.",
+      "* nothing here but vibes and pixels.",
+    ],
+    random: [
+      "* i like that you're curious though.",
+      "* maybe try the glowing things instead?",
+      "* tall grass warning: wild ideas may appear.",
+    ],
+  },
+  idle: {
+    numbered: [],
+    random: [
+      "* still here? nice.",
+      "* nothing clicked yet? the powers are waiting.",
+      "* try clicking on different things.",
+      "* there's secrets everywhere. maybe.",
+      "* you're pretty patient, huh?",
+      "* the design realm awaits exploration...",
+      "* not every pokemon was caught in one ball...",
+      "* your patience stat is maxed out, i see.",
+    ],
+  },
+  dialogueCollector: {
+    numbered: [
+      "* oh, you noticed the counter!",
+      "* it tracks unique dialogues you've found.",
+      "* can you find them all? probably not. there's a lot.",
+    ],
+    random: [
+      "* ...i may have gone overboard with the easter eggs.",
+      "* you're collecting dialogues like pokemon badges!",
+    ],
+  },
+  scanlines: {
+    numbered: [
+      "* those are scanlines. retro crt effect.",
+      "* makes everything feel more... authentic?",
+    ],
+    random: [
+      "* or maybe i just like the aesthetic. who knows.",
+      "* gives me gen 1 & 2 vibes. peak nostalgia.",
+    ],
+  },
+  // Fun facts - new category!
+  facts: {
+    numbered: [
+      "* fun fact: this portfolio took 3 months to build.",
+      "* fun fact: i've played over 500 different board games.",
+      "* fun fact: my first game was made in RPG Maker 2003.",
+    ],
+    random: [
+      "* fun fact: i think the best games are those you lose track of time playing.",
+      "* fun fact: asymmetric games are my favorite design challenge.",
+      "* fun fact: i once spent 2 weeks on a single UI button animation.",
+    ],
+  },
+};
+
+// Social dialogues (single message per platform)
+const socialDialogues: Record<string, string> = {
+  twitter: "* tweets about games. sometimes complains about code.",
+  telegram: "* for the brave souls who want real-time chaos.",
+  instagram: "* occasional screenshots. very occasional.",
+  github: "* where the magic happens. also the bugs.",
+  email: "* old school. i respect that.",
+};
+
+// Calculate total dialogue count dynamically
+const calculateTotalDialogues = (): number => {
+  let total = 0;
+  for (const category of Object.values(dialogueCategories)) {
+    total += category.numbered.length + category.random.length;
+  }
+  total += Object.keys(socialDialogues).length;
+  // Add power dialogues (6 superpowers)
+  total += 6;
+  return total;
+};
+
+const TOTAL_DIALOGUE_COUNT = calculateTotalDialogues();
+
+// Design superpowers data with map positions - FIXED: aligned to center of icons
 const superpowers = [
   {
     id: "asymmetry",
@@ -46,7 +218,7 @@ const superpowers = [
     powerJp: "非対称",
     icon: "◇",
     description: "* the art of giving each player a unique experience",
-    mapPosition: { x: 18, y: 20 },
+    mapPosition: { x: 20, y: 25 },
   },
   {
     id: "strategy", 
@@ -54,7 +226,7 @@ const superpowers = [
     powerJp: "戦略",
     icon: "◎",
     description: "* turning simple rules into infinite possibilities",
-    mapPosition: { x: 50, y: 15 },
+    mapPosition: { x: 50, y: 25 },
   },
   {
     id: "nostalgia",
@@ -62,7 +234,7 @@ const superpowers = [
     powerJp: "郷愁",
     icon: "▣",
     description: "* pixels that hit different... you know?",
-    mapPosition: { x: 82, y: 20 },
+    mapPosition: { x: 80, y: 25 },
   },
   {
     id: "roleplay",
@@ -70,7 +242,7 @@ const superpowers = [
     powerJp: "役割",
     icon: "★",
     description: "* because numbers going up = serotonin",
-    mapPosition: { x: 18, y: 68 },
+    mapPosition: { x: 20, y: 75 },
   },
   {
     id: "paragame",
@@ -86,86 +258,9 @@ const superpowers = [
     powerJp: "模組",
     icon: "⬡",
     description: "* infinite combinations from finite pieces",
-    mapPosition: { x: 82, y: 68 },
+    mapPosition: { x: 80, y: 75 },
   },
 ];
-
-// Expanded dialogues with MANY easter eggs - FIXED intro dialogue
-const dialogues = {
-  intro: [
-    "* welcome to my corner of the internet.",
-    "* i make games. or try to, anyway.",
-    "* stick around if you want. no pressure.",
-    "* hover around. there's stuff to discover.",
-  ],
-  // Easter egg dialogues for various elements
-  nickname: [
-    "* yep, that's my nickname.",
-    "* primordial = ancient. rune = symbol. deep stuff, huh?",
-    "* i came up with it when i was 14. still like it.",
-    "* you can call me omar though. or just... hey you.",
-  ],
-  title: [
-    "* that's what i do. design games.",
-    "* sometimes they're even good. sometimes.",
-    "* it's like architecture but more fun and less money.",
-    "* the glitch effect? that's intentional. probably.",
-  ],
-  japaneseText: [
-    "* ゲームデザイナー means 'game designer'. fancy, right?",
-    "* i don't actually speak japanese fluently.",
-    "* but the aesthetic is *chef's kiss*",
-    "* blame jrpgs for my obsession with kanji.",
-  ],
-  cornerDecoration: [
-    "* you found a corner. congratulations.",
-    "* these are just for looks. no secrets here.",
-    "* ...or are there?",
-    "* (there aren't. i'm messing with you.)",
-  ],
-  logo: [
-    "* that's my logo! designed it myself.",
-    "* it's supposed to look like a rune. does it?",
-    "* took me like 50 iterations to get it right.",
-  ],
-  discoverButton: [
-    "* ooh, feeling adventurous?",
-    "* that button shows random projects. try it!",
-    "* it's like a loot box but free and ethical.",
-  ],
-  background: [
-    "* you're exploring the void.",
-    "* nothing here but vibes and pixels.",
-    "* i like that you're curious though.",
-    "* maybe try the glowing things instead?",
-  ],
-  social: {
-    twitter: "* tweets about games. sometimes complains about code.",
-    telegram: "* for the brave souls who want real-time chaos.",
-    instagram: "* occasional screenshots. very occasional.",
-    github: "* where the magic happens. also the bugs.",
-    email: "* old school. i respect that.",
-  },
-  idle: [
-    "* still here? nice.",
-    "* the cursor's looking lonely over there.",
-    "* try hovering on different things.",
-    "* there's secrets everywhere. maybe.",
-    "* you're pretty patient, huh?",
-    "* the design realm awaits exploration...",
-  ],
-  dialogueCollector: [
-    "* oh, you noticed the counter!",
-    "* it tracks unique dialogues you've found.",
-    "* can you find them all? probably not. there's a lot.",
-    "* ...i may have gone overboard with the easter eggs.",
-  ],
-  scanlines: [
-    "* those are scanlines. retro crt effect.",
-    "* makes everything feel more... authentic?",
-    "* or maybe i just like the aesthetic. who knows.",
-  ],
-};
 
 // Social links with monochromatic icons
 const socialLinks = [
@@ -174,23 +269,6 @@ const socialLinks = [
   { id: "instagram", icon: "◻", url: "https://instagram.com/primordialrune", label: "Instagram", tagline: "rare posts" },
   { id: "github", icon: "⌘", url: "https://github.com/PrimordialRune", label: "GitHub", tagline: "the code" },
   { id: "email", icon: "✉", url: "mailto:primordialrune@gmail.com", label: "Email", tagline: "serious stuff" },
-];
-
-// All unique dialogue IDs for tracking
-const allDialogueIds = [
-  ...dialogues.intro.map((_, i) => `intro-${i}`),
-  ...dialogues.nickname.map((_, i) => `nickname-${i}`),
-  ...dialogues.title.map((_, i) => `title-${i}`),
-  ...dialogues.japaneseText.map((_, i) => `japanese-${i}`),
-  ...dialogues.cornerDecoration.map((_, i) => `corner-${i}`),
-  ...dialogues.logo.map((_, i) => `logo-${i}`),
-  ...dialogues.discoverButton.map((_, i) => `discover-${i}`),
-  ...dialogues.background.map((_, i) => `background-${i}`),
-  ...Object.keys(dialogues.social).map(k => `social-${k}`),
-  ...dialogues.idle.map((_, i) => `idle-${i}`),
-  ...dialogues.dialogueCollector.map((_, i) => `collector-${i}`),
-  ...dialogues.scanlines.map((_, i) => `scanlines-${i}`),
-  ...superpowers.map(p => `power-${p.id}`),
 ];
 
 // Floating letters for background effect
@@ -218,23 +296,104 @@ const celebrationParticles = Array.from({ length: 30 }, (_, i) => {
   };
 });
 
+// Local Storage keys for persistence
+const STORAGE_KEY_DIALOGUES = "primordialrune-discovered-dialogues";
+const STORAGE_KEY_POWERS = "primordialrune-discovered-powers";
+const STORAGE_KEY_SEQUENCE = "primordialrune-dialogue-sequence"; // Track numbered sequence progress
+
+// Helper functions for localStorage persistence
+function loadFromStorage(key: string): Set<string> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return new Set(Array.isArray(parsed) ? parsed : []);
+    }
+  } catch {
+    // Ignore errors, return empty set
+  }
+  return new Set();
+}
+
+function saveToStorage(key: string, data: Set<string>) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(key, JSON.stringify([...data]));
+  } catch {
+    // Ignore errors (quota exceeded, etc)
+  }
+}
+
+// Load/save sequence indices (track which numbered dialogue is next for each category)
+function loadSequenceProgress(): Record<string, number> {
+  if (typeof window === "undefined") return {};
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY_SEQUENCE);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch {
+    // Ignore errors
+  }
+  return {};
+}
+
+function saveSequenceProgress(data: Record<string, number>) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(STORAGE_KEY_SEQUENCE, JSON.stringify(data));
+  } catch {
+    // Ignore errors
+  }
+}
+
 export default function HeroSection({ isMobile = false, isLandscape = false }: HeroSectionProps) {
-  const [currentDialogue, setCurrentDialogue] = useState(dialogues.intro[0]);
-  const [currentDialogueId, setCurrentDialogueId] = useState("intro-0");
+  const [currentDialogue, setCurrentDialogue] = useState(dialogueCategories.intro.numbered[0]);
+  const [currentDialogueId, setCurrentDialogueId] = useState("intro-n-0");
   const [showDialogue, setShowDialogue] = useState(true);
   const [activePower, setActivePower] = useState<string | null>(null);
   const [hoveredSocial, setHoveredSocial] = useState<string | null>(null);
-  const [discoveredPowers, setDiscoveredPowers] = useState<Set<string>>(new Set());
-  const [discoveredDialogues, setDiscoveredDialogues] = useState<Set<string>>(new Set(["intro-0"]));
+  
+  // Initialize with saved data using lazy initialization
+  const [discoveredPowers, setDiscoveredPowers] = useState<Set<string>>(() => {
+    if (typeof window !== "undefined") {
+      const saved = loadFromStorage(STORAGE_KEY_POWERS);
+      if (saved.size > 0) return saved;
+    }
+    return new Set();
+  });
+  const [discoveredDialogues, setDiscoveredDialogues] = useState<Set<string>>(() => {
+    if (typeof window !== "undefined") {
+      const saved = loadFromStorage(STORAGE_KEY_DIALOGUES);
+      if (saved.size > 0) return new Set(["intro-n-0", ...saved]);
+    }
+    return new Set(["intro-n-0"]);
+  });
+  
+  // Track sequence progress for each category (which numbered dialogue is next)
+  const [sequenceProgress, setSequenceProgress] = useState<Record<string, number>>(() => {
+    if (typeof window !== "undefined") {
+      return loadSequenceProgress();
+    }
+    return {};
+  });
+  
   const [isGlitching, setIsGlitching] = useState(false);
   const [glitchText, setGlitchText] = useState("GAME DESIGNER");
   const [hoveredElement, setHoveredElement] = useState<string | null>(null);
   const [floatingChars, setFloatingChars] = useState<Array<{id: number, char: string, x: number, y: number, rotation: number}>>([]);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [_dialogueCooldown, setDialogueCooldown] = useState(false); // State kept for potential UI feedback
   const [mouseTrailDots, setMouseTrailDots] = useState<Array<{id: number, x: number, y: number}>>([]);
   const [showCelebration, setShowCelebration] = useState(false);
   const [showAboutMe, setShowAboutMe] = useState(false);
+  // Track if user has found enough dialogues to earn medal
+  const [hasEarnedMedal, setHasEarnedMedal] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      const saved = loadFromStorage(STORAGE_KEY_DIALOGUES);
+      return saved.size >= 10; // Medal at 10+ dialogues
+    }
+    return false;
+  });
   
   const containerRef = useRef<HTMLDivElement>(null);
   const dialogueIndexRef = useRef(0);
@@ -242,35 +401,82 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
   const glitchIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const randomGlitchRef = useRef<NodeJS.Timeout | null>(null);
   const floatingIdRef = useRef(0);
-  const cooldownTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const dialogueCooldownRef = useRef(false); // Ref for cooldown to avoid dependency issues
   const mouseTrailIdRef = useRef(0);
+  
+  // Save discovered dialogues to localStorage whenever they change
+  useEffect(() => {
+    if (discoveredDialogues.size > 1) {
+      saveToStorage(STORAGE_KEY_DIALOGUES, discoveredDialogues);
+      // Check for medal
+      if (discoveredDialogues.size >= 10 && !hasEarnedMedal) {
+        setHasEarnedMedal(true);
+      }
+    }
+  }, [discoveredDialogues, hasEarnedMedal]);
+  
+  // Save discovered powers to localStorage whenever they change
+  useEffect(() => {
+    if (discoveredPowers.size > 0) {
+      saveToStorage(STORAGE_KEY_POWERS, discoveredPowers);
+    }
+  }, [discoveredPowers]);
+  
+  // Save sequence progress whenever it changes
+  useEffect(() => {
+    if (Object.keys(sequenceProgress).length > 0) {
+      saveSequenceProgress(sequenceProgress);
+    }
+  }, [sequenceProgress]);
 
-  // Track dialogue discovery with cooldown to allow reading - IMPROVED responsiveness
-  const showDialogueWithTracking = useCallback((text: string, id: string, forceTrigger = false) => {
-    // If on cooldown and not forced, don't change dialogue (allow user to read)
-    if (dialogueCooldownRef.current && !forceTrigger) return;
-    
+  // Track dialogue discovery - ALWAYS triggers immediately
+  const showDialogueWithTracking = useCallback((text: string, id: string) => {
     setCurrentDialogue(text);
     setCurrentDialogueId(id);
     setShowDialogue(true);
     setDiscoveredDialogues(prev => new Set([...prev, id]));
-    
-    // Start cooldown to allow user time to read
-    dialogueCooldownRef.current = true;
-    setDialogueCooldown(true);
-    if (cooldownTimerRef.current) clearTimeout(cooldownTimerRef.current);
-    cooldownTimerRef.current = setTimeout(() => {
-      dialogueCooldownRef.current = false;
-      setDialogueCooldown(false);
-    }, DIALOGUE_COOLDOWN_MS);
-  }, []); // No dependencies needed - uses refs
-
-  // Get random dialogue from category
-  const getRandomDialogue = useCallback((category: string[], prefix: string) => {
-    const index = Math.floor(Math.random() * category.length);
-    return { text: category[index], id: `${prefix}-${index}` };
   }, []);
+
+  // NEW: Get dialogue from category using numbered-first, then random system
+  const getNextDialogue = useCallback((categoryKey: string): { text: string; id: string } => {
+    const category = dialogueCategories[categoryKey];
+    if (!category) {
+      return { text: "* ...", id: `${categoryKey}-unknown` };
+    }
+    
+    const currentIndex = sequenceProgress[categoryKey] || 0;
+    
+    // Check if we still have numbered dialogues to show
+    if (currentIndex < category.numbered.length) {
+      const text = category.numbered[currentIndex];
+      const id = `${categoryKey}-n-${currentIndex}`;
+      
+      // Advance sequence for next time
+      setSequenceProgress(prev => ({
+        ...prev,
+        [categoryKey]: currentIndex + 1,
+      }));
+      
+      return { text, id };
+    }
+    
+    // All numbered exhausted - pick random
+    if (category.random.length > 0) {
+      const randomIndex = Math.floor(Math.random() * category.random.length);
+      const text = category.random[randomIndex];
+      const id = `${categoryKey}-r-${randomIndex}`;
+      return { text, id };
+    }
+    
+    // Fallback: replay numbered from start
+    if (category.numbered.length > 0) {
+      const randomIndex = Math.floor(Math.random() * category.numbered.length);
+      const text = category.numbered[randomIndex];
+      const id = `${categoryKey}-n-${randomIndex}`;
+      return { text, id };
+    }
+    
+    return { text: "* ...", id: `${categoryKey}-empty` };
+  }, [sequenceProgress]);
 
   // Spawn floating characters effect - use relative positioning
   const spawnFloatingChars = useCallback((clientX: number, clientY: number) => {
@@ -324,48 +530,64 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
   }, []);
 
   // Glitch text effect - Enhanced Cyberpunk style distortion
+  // FIXED: Ensures proper cleanup and reset of isGlitching state
   const triggerGlitch = useCallback((targetText: string, intense = false) => {
-    // Immediately clear any existing interval
+    // Immediately clear any existing interval to prevent multiple concurrent animations
     if (glitchIntervalRef.current) {
       clearInterval(glitchIntervalRef.current);
       glitchIntervalRef.current = null;
     }
     
+    // FIXED: Set the text IMMEDIATELY before glitching effect
+    setGlitchText(targetText);
     setIsGlitching(true);
+    
     const chars = "!@#$%^&*()_+-=[]{}|;':\",./<>?アイウエオカキクケコサシスセソタチツテト";
     let iterations = 0;
-    const maxIterations = intense ? 15 : 10;
-    const speed = intense ? 30 : 50;
+    const maxIterations = intense ? 12 : 8;
+    const speed = intense ? 25 : 40;
     
-    // Store target text in ref to avoid closure issues
+    // Store target text to avoid closure issues
     const target = targetText;
     
     glitchIntervalRef.current = setInterval(() => {
       iterations += 1;
       
       if (iterations > maxIterations) {
+        // CRITICAL: Always clear the interval first
         if (glitchIntervalRef.current) {
           clearInterval(glitchIntervalRef.current);
           glitchIntervalRef.current = null;
         }
-        // Final state - set the target text
+        // Final state - ensure the target text is set clean and isGlitching is false
         setGlitchText(target);
         setIsGlitching(false);
         return;
       }
       
-      // Generate scrambled text progressively revealing target
+      // Generate glitching text with "settling" effect
       setGlitchText(
         target
           .split("")
           .map((char, index) => {
-            if (index < iterations) return target[index];
+            const stabilityChance = iterations / maxIterations;
+            if (Math.random() < stabilityChance) return target[index];
             if (char === " ") return " ";
             return chars[Math.floor(Math.random() * chars.length)];
           })
           .join("")
       );
     }, speed);
+    
+    // Safety timeout - force cleanup after max animation time with buffer
+    setTimeout(() => {
+      if (glitchIntervalRef.current) {
+        clearInterval(glitchIntervalRef.current);
+        glitchIntervalRef.current = null;
+      }
+      setGlitchText(target);
+      setIsGlitching(false);
+    }, (maxIterations + 3) * speed + 100);
   }, []);
 
   // Random glitch effect on title
@@ -386,46 +608,41 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
     };
   }, [activePower, hoveredElement, triggerGlitch]);
 
-  // Handle power discovery - NOW CHANGES TITLE - FORCE trigger to override cooldown
-  const handlePowerHover = useCallback((powerId: string) => {
+  // Handle power CLICK (not hover) - CHANGES TITLE on click
+  const handlePowerClick = useCallback((powerId: string) => {
+    // Toggle power: if clicking same power, deactivate it
+    if (activePower === powerId) {
+      setActivePower(null);
+      setHoveredElement(null);
+      triggerGlitch("GAME DESIGNER");
+      return;
+    }
+    
     setActivePower(powerId);
     setHoveredElement(`power-${powerId}`);
     setDiscoveredPowers(prev => new Set([...prev, powerId]));
     
     const power = superpowers.find(p => p.id === powerId);
     if (power) {
-      // Force trigger the dialogue change (overrides cooldown for powers)
-      showDialogueWithTracking(power.description, `power-${powerId}`, true);
+      // Show the power dialogue
+      showDialogueWithTracking(power.description, `power-${powerId}`);
       // Glitch to the POWER NAME
       triggerGlitch(power.power, true);
     }
     
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
-  }, [triggerGlitch, showDialogueWithTracking]);
+  }, [activePower, triggerGlitch, showDialogueWithTracking]);
 
-  const handlePowerLeave = useCallback(() => {
-    setActivePower(null);
-    setHoveredElement(null);
-    // Glitch back to GAME DESIGNER
-    triggerGlitch("GAME DESIGNER");
-    
-    idleTimerRef.current = setTimeout(() => {
-      const { text, id } = getRandomDialogue(dialogues.idle, "idle");
-      showDialogueWithTracking(text, id);
-    }, 5000);
-  }, [triggerGlitch, showDialogueWithTracking, getRandomDialogue]);
-
-  // Handle social hover with floating letters - FORCE trigger
-  const handleSocialHover = useCallback((socialId: string, event?: React.MouseEvent) => {
+  // Handle social click with floating letters
+  const handleSocialClick = useCallback((socialId: string, event?: React.MouseEvent | React.TouchEvent) => {
     setHoveredSocial(socialId);
     setHoveredElement(`social-${socialId}`);
-    const message = dialogues.social[socialId as keyof typeof dialogues.social];
+    const message = socialDialogues[socialId];
     if (message) {
-      // Force trigger the dialogue change (overrides cooldown for social)
-      showDialogueWithTracking(message, `social-${socialId}`, true);
+      showDialogueWithTracking(message, `social-${socialId}`);
     }
     // Spawn floating letters
-    if (event) {
+    if (event && 'clientX' in event) {
       spawnFloatingChars(event.clientX, event.clientY);
     }
   }, [showDialogueWithTracking, spawnFloatingChars]);
@@ -435,73 +652,82 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
     setHoveredElement(null);
   }, []);
 
-  // Easter egg hover handlers
-  const handleElementHover = useCallback((elementType: string) => {
+  // Easter egg CLICK handler (works on mobile and desktop)
+  const handleElementClick = useCallback((elementType: string, event?: React.MouseEvent | React.TouchEvent) => {
+    // Stop propagation to prevent background click
+    event?.stopPropagation();
+    
     setHoveredElement(elementType);
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
     
-    let category: string[];
-    let prefix: string;
+    // Map element types to dialogue categories
+    let categoryKey: string;
     
     switch (elementType) {
       case "nickname":
-        category = dialogues.nickname;
-        prefix = "nickname";
+        categoryKey = "nickname";
         break;
       case "title":
-        category = dialogues.title;
-        prefix = "title";
+        categoryKey = "title";
         triggerGlitch("GAME DESIGNER", true);
         break;
       case "japanese":
-        category = dialogues.japaneseText;
-        prefix = "japanese";
+        categoryKey = "japaneseText";
         break;
       case "corner":
-        category = dialogues.cornerDecoration;
-        prefix = "corner";
+        categoryKey = "cornerDecoration";
         break;
       case "logo":
-        category = dialogues.logo;
-        prefix = "logo";
+        categoryKey = "logo";
         break;
       case "discover":
-        category = dialogues.discoverButton;
-        prefix = "discover";
+        categoryKey = "discoverButton";
         break;
       case "counter":
-        category = dialogues.dialogueCollector;
-        prefix = "collector";
+        categoryKey = "dialogueCollector";
         break;
       case "scanlines":
-        category = dialogues.scanlines;
-        prefix = "scanlines";
+        categoryKey = "scanlines";
+        break;
+      case "facts":
+        categoryKey = "facts";
         break;
       case "background":
-        category = dialogues.background;
-        prefix = "background";
-        break;
       default:
-        category = dialogues.background;
-        prefix = "background";
+        categoryKey = "background";
     }
     
-    const { text, id } = getRandomDialogue(category, prefix);
+    const { text, id } = getNextDialogue(categoryKey);
     showDialogueWithTracking(text, id);
-  }, [triggerGlitch, showDialogueWithTracking, getRandomDialogue]);
+  }, [triggerGlitch, showDialogueWithTracking, getNextDialogue]);
 
   const handleElementLeave = useCallback(() => {
     setHoveredElement(null);
   }, []);
 
-  // Initial dialogue cycle - force change without cooldown for auto-rotate
+  // Initial dialogue cycle - auto-rotate intro messages using new system
   useEffect(() => {
+    const introCategory = dialogueCategories.intro;
+    const totalIntro = introCategory.numbered.length + introCategory.random.length;
+    
     const timer = setInterval(() => {
       if (!activePower && !hoveredSocial && !hoveredElement) {
-        dialogueIndexRef.current = (dialogueIndexRef.current + 1) % dialogues.intro.length;
-        const newId = `intro-${dialogueIndexRef.current}`;
-        // Force update without cooldown check for auto-rotation
-        setCurrentDialogue(dialogues.intro[dialogueIndexRef.current]);
+        dialogueIndexRef.current = (dialogueIndexRef.current + 1) % totalIntro;
+        
+        // Get next dialogue from intro category
+        let text: string;
+        let newId: string;
+        
+        if (dialogueIndexRef.current < introCategory.numbered.length) {
+          text = introCategory.numbered[dialogueIndexRef.current];
+          newId = `intro-n-${dialogueIndexRef.current}`;
+        } else {
+          const randomIdx = dialogueIndexRef.current - introCategory.numbered.length;
+          text = introCategory.random[randomIdx];
+          newId = `intro-r-${randomIdx}`;
+        }
+        
+        setCurrentDialogue(text);
         setCurrentDialogueId(newId);
         setShowDialogue(true);
         setDiscoveredDialogues(prev => new Set([...prev, newId]));
@@ -512,7 +738,6 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
       clearInterval(timer);
       if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
       if (glitchIntervalRef.current) clearInterval(glitchIntervalRef.current);
-      if (cooldownTimerRef.current) clearTimeout(cooldownTimerRef.current);
     };
   }, [activePower, hoveredSocial, hoveredElement]);
 
@@ -528,8 +753,7 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
       const timer = setTimeout(() => {
         showDialogueWithTracking(
           "* wow, you found all the powers! you're thorough. i like that.",
-          "milestone-all-powers",
-          true
+          "milestone-all-powers"
         );
       }, 100);
       prevDiscoveredCountRef.current = currentCount;
@@ -542,20 +766,17 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
   useEffect(() => {
     const prevCount = prevDialogueCountRef.current;
     const currentCount = discoveredDialogues.size;
-    const total = allDialogueIds.length;
+    const total = TOTAL_DIALOGUE_COUNT;
     
     if (currentCount > prevCount && currentCount >= total) {
-      // Trigger celebration with slight delay to avoid sync setState in effect
       const celebrationTimer = setTimeout(() => {
         setShowCelebration(true);
         showDialogueWithTracking(
           "* WHOA. you actually found ALL the dialogues?! you're a completionist. i respect that. here's a virtual high five. ✋",
-          "milestone-all-dialogues",
-          true
+          "milestone-all-dialogues"
         );
       }, 100);
       
-      // Hide celebration after 5 seconds
       const hideTimer = setTimeout(() => setShowCelebration(false), 5100);
       
       prevDialogueCountRef.current = currentCount;
@@ -567,17 +788,59 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
     prevDialogueCountRef.current = currentCount;
   }, [discoveredDialogues.size, showDialogueWithTracking]);
 
-  const totalDialogues = allDialogueIds.length;
+  const totalDialogues = TOTAL_DIALOGUE_COUNT;
   const foundDialogues = discoveredDialogues.size;
+  
+  // Check if mobile landscape (should show rotation message)
+  const showLandscapeWarning = isMobile && isLandscape;
 
   return (
     <div 
       ref={containerRef}
       className="relative w-full h-full flex flex-col overflow-hidden"
       style={noInteractionStyles}
-      onClick={() => handleElementHover("background")}
+      onClick={(e) => handleElementClick("background", e)}
       onMouseMove={handleMouseMove}
     >
+      {/* Mobile Landscape Warning Overlay */}
+      <AnimatePresence>
+        {showLandscapeWarning && (
+          <motion.div
+            className="fixed inset-0 z-[100] bg-peacock-blue flex items-center justify-center p-8"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <div className="text-center">
+              <motion.div
+                animate={{ rotate: [0, -90, 0] }}
+                transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
+                className="text-6xl mb-6"
+              >
+                📱
+              </motion.div>
+              <h2 
+                className="text-cream text-xl font-black mb-3"
+                style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
+              >
+                Please Rotate Your Device
+              </h2>
+              <p className="text-cream/70 text-sm max-w-xs">
+                This experience is designed for portrait mode. Please rotate your phone for the best experience.
+              </p>
+              <motion.div 
+                className="mt-6 text-aquamarine/60 text-xs"
+                animate={{ opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                style={{ fontFamily: "var(--font-gen-ei-kiwami)" }}
+              >
+                縦向きにしてください
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
       {/* Mouse trail dots effect - pixelated dots following cursor */}
       <AnimatePresence>
         {mouseTrailDots.map(dot => (
@@ -774,23 +1037,35 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
         />
       </div>
 
-      {/* Main content - CENTERED layout for desktop with proper spacing from hamburger */}
-      <div className={`flex-1 flex ${isMobile && !isLandscape ? "flex-col pt-12" : "flex-row"} items-center justify-center p-4 md:p-6 lg:p-8 gap-4 md:gap-8 lg:gap-12 xl:gap-16 overflow-hidden`}>
+      {/* Main content - CENTERED layout for desktop, COMPACT layout for mobile portrait */}
+      {/* Mobile portrait: stacked layout with power realm + social side by side at bottom */}
+      <div className={`flex-1 flex ${
+        isMobile && !isLandscape 
+          ? "flex-col pt-20 pb-4 px-3 overflow-y-auto" 
+          : "flex-row p-4 md:p-6 lg:p-8"
+      } items-center justify-center gap-3 md:gap-8 lg:gap-12 xl:gap-16 overflow-hidden`}>
         
         {/* Left column - Title and Speech Bubble - add left padding for hamburger menu */}
-        <div className="flex flex-col justify-center items-center md:items-start flex-shrink min-w-0 md:pl-8 lg:pl-4">
-          {/* Title section */}
+        <div className={`flex flex-col justify-center items-center md:items-start flex-shrink min-w-0 md:pl-8 lg:pl-4 ${
+          isMobile && !isLandscape ? "flex-grow-0 w-full" : ""
+        }`}>
+          {/* Title section - FIXED WIDTH to prevent layout shift */}
           <div 
             className="relative cursor-pointer text-center md:text-left"
-            onMouseEnter={() => handleElementHover("title")}
-            onMouseLeave={handleElementLeave}
+            onClick={(e) => handleElementClick("title", e)}
+            style={{
+              minWidth: isMobile && !isLandscape ? "280px" : "auto",
+            }}
           >
             {/* Japanese text with lightning effect */}
             <motion.div
-              className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-cream/60 mb-2 cursor-pointer"
+              className={`text-cream/60 mb-1 cursor-pointer ${
+                isMobile && !isLandscape 
+                  ? "text-lg" 
+                  : "text-lg sm:text-xl md:text-2xl lg:text-3xl mb-2"
+              }`}
               style={{ fontFamily: "var(--font-gen-ei-kiwami)" }}
-              onMouseEnter={(e) => { e.stopPropagation(); handleElementHover("japanese"); }}
-              onMouseLeave={handleElementLeave}
+              onClick={(e) => { e.stopPropagation(); handleElementClick("japanese", e); }}
               animate={{
                 textShadow: activePower || hoveredElement === "japanese" ? [
                   "0 0 10px rgba(250, 219, 104, 0.8)",
@@ -806,16 +1081,20 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
                 : "ゲームデザイナー"}
             </motion.div>
             
-            {/* Main glitching title - CHANGES with power name */}
+            {/* Main glitching title - FIXED MIN-WIDTH to prevent layout shift */}
             <motion.h1
-              className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black tracking-tight whitespace-nowrap ${
-                isGlitching ? "text-blood-orange" : "text-aquamarine"
-              }`}
+              className={`font-black tracking-tight ${
+                isMobile && !isLandscape 
+                  ? "text-4xl" 
+                  : "text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl"
+              } ${isGlitching ? "text-blood-orange" : "text-aquamarine"}`}
               style={{ 
                 fontFamily: "var(--font-fk-grotesk-black)",
                 textShadow: isGlitching 
                   ? "3px 0 #ec563b, -3px 0 #4eb99f, 0 0 30px rgba(236, 86, 59, 0.6)"
                   : "0 4px 20px rgba(78, 185, 159, 0.3)",
+                minWidth: isMobile && !isLandscape ? "100%" : "auto",
+                textAlign: isMobile && !isLandscape ? "center" : "inherit",
               }}
               animate={{
                 x: isGlitching ? [0, -5, 8, -3, 5, 0] : 0,
@@ -838,7 +1117,7 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
           </div>
 
           {/* Persona 5 style speech bubble with nametag - Arrow CENTERED */}
-          <div className="mt-6 relative">
+          <div className={`relative ${isMobile && !isLandscape ? "mt-3" : "mt-6"}`}>
             <AnimatePresence mode="wait">
               {showDialogue && (
                 <SpeechBubble 
@@ -850,55 +1129,209 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
             </AnimatePresence>
           </div>
 
-          {/* Dialogue collector counter */}
+          {/* Dialogue collector counter with medal */}
           <motion.div 
-            className="mt-4 flex items-center gap-2 cursor-pointer"
+            className={`flex items-center gap-2 cursor-pointer ${isMobile && !isLandscape ? "mt-2" : "mt-4"}`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 3 }}
-            onMouseEnter={() => handleElementHover("counter")}
-            onMouseLeave={handleElementLeave}
+            onClick={(e) => handleElementClick("counter", e)}
           >
-            <div className="text-cream/50 text-xs tracking-wider" style={{ fontFamily: "var(--font-fk-grotesk-black)" }}>
+            <div className={`text-cream/50 tracking-wider ${isMobile && !isLandscape ? "text-[10px]" : "text-xs"}`} style={{ fontFamily: "var(--font-fk-grotesk-black)" }}>
               DIALOGUES
             </div>
             <motion.div 
-              className="flex items-center gap-1 px-3 py-1.5 bg-peacock-blue/50 rounded border border-teal/30"
+              className={`flex items-center gap-1 bg-peacock-blue/50 rounded border border-teal/30 ${isMobile && !isLandscape ? "px-2 py-1" : "px-3 py-1.5"}`}
               animate={{ 
                 boxShadow: hoveredElement === "counter" 
                   ? "0 0 15px rgba(250, 219, 104, 0.4)" 
                   : "none" 
               }}
             >
-              <span className="text-gold text-sm font-black" style={{ fontFamily: "var(--font-fk-grotesk-black)" }}>
+              <span className={`text-gold font-black ${isMobile && !isLandscape ? "text-sm" : "text-sm"}`} style={{ fontFamily: "var(--font-fk-grotesk-black)" }}>
                 {foundDialogues}
               </span>
-              <span className="text-cream/40 text-sm">/</span>
-              <span className="text-cream/70 text-sm">{totalDialogues}</span>
+              <span className={`text-cream/40 ${isMobile && !isLandscape ? "text-sm" : "text-sm"}`}>/</span>
+              <span className={`text-cream/70 ${isMobile && !isLandscape ? "text-sm" : "text-sm"}`}>{totalDialogues}</span>
+              {/* Medal - appears after discovering 10+ dialogues */}
+              {hasEarnedMedal && (
+                <motion.span
+                  className="ml-1"
+                  initial={{ scale: 0, rotate: -180 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: "spring", damping: 10, stiffness: 200 }}
+                  title="Explorer Medal - 10+ dialogues discovered!"
+                >
+                  🏅
+                </motion.span>
+              )}
             </motion.div>
+            {/* Fun fact hint */}
+            <motion.button
+              className="ml-2 text-xs text-cream/30 hover:text-gold transition-colors"
+              onClick={(e) => handleElementClick("facts", e)}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              title="Click for fun facts!"
+            >
+              💡
+            </motion.button>
           </motion.div>
         </div>
 
-        {/* Center - Superpower Minimap - ALIGNED */}
-        <div className="flex flex-col items-center justify-center flex-shrink">
-          <motion.p 
-            className="text-cream/50 text-xs mb-3 tracking-widest"
-            style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 2 }}
-          >
-            DESIGN REALM
-          </motion.p>
-          
-          {/* Minimap container */}
-          <div className="relative w-[180px] h-[180px] sm:w-[220px] sm:h-[220px] md:w-[260px] md:h-[260px] lg:w-[300px] lg:h-[300px]">
-            {/* Map background */}
-            <div 
-              className="absolute inset-0 rounded-xl"
-              style={{
-                background: "linear-gradient(135deg, rgba(16, 47, 65, 0.7) 0%, rgba(16, 47, 65, 0.4) 100%)",
-                border: "2px solid rgba(78, 185, 159, 0.4)",
+        {/* Mobile Portrait: Redesigned for accessibility with larger text and clearer layout */}
+        {isMobile && !isLandscape ? (
+          <div className="flex flex-col items-center justify-start gap-4 w-full mt-4 px-4">
+            
+            {/* Power Buttons Grid - Large, accessible touch targets */}
+            <div className="w-full">
+              <motion.p 
+                className="text-cream/60 text-xs mb-3 tracking-widest text-center"
+                style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 2 }}
+              >
+                TAP TO EXPLORE MY DESIGN POWERS
+              </motion.p>
+              
+              {/* 3x2 Grid of Power Buttons */}
+              <div className="grid grid-cols-3 gap-2">
+                {superpowers.map((power, index) => (
+                  <motion.button
+                    key={power.id}
+                    aria-label={`Explore ${power.power} power${discoveredPowers.has(power.id) ? " (discovered)" : ""}`}
+                    className={`relative flex flex-col items-center justify-center p-3 rounded-lg ${
+                      activePower === power.id 
+                        ? "bg-blood-orange text-cream" 
+                        : discoveredPowers.has(power.id)
+                          ? "bg-teal/80 text-cream"
+                          : "bg-peacock-blue/60 text-cream/80"
+                    }`}
+                    style={{
+                      border: activePower === power.id 
+                        ? "2px solid var(--gold)" 
+                        : discoveredPowers.has(power.id)
+                          ? "2px solid var(--aquamarine)"
+                          : "2px solid rgba(78, 185, 159, 0.3)",
+                      boxShadow: activePower === power.id 
+                        ? "0 0 15px rgba(236, 86, 59, 0.5)"
+                        : "0 2px 8px rgba(0, 0, 0, 0.2)",
+                      minHeight: "70px",
+                    }}
+                    onClick={() => handlePowerClick(power.id)}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 + index * 0.1 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <span className="text-2xl mb-1" aria-hidden="true">{power.icon}</span>
+                    <span 
+                      className="text-[9px] font-black tracking-wide"
+                      style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
+                    >
+                      {power.power}
+                    </span>
+                    {/* Discovery indicator */}
+                    {discoveredPowers.has(power.id) && (
+                      <motion.div
+                        className="absolute -top-1 -right-1 w-3 h-3 bg-gold rounded-full"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        style={{ boxShadow: "0 0 6px rgba(250, 219, 104, 0.8)" }}
+                        aria-hidden="true"
+                      />
+                    )}
+                  </motion.button>
+                ))}
+              </div>
+              
+              {/* Progress indicator */}
+              <div className="mt-3 text-center">
+                <span className="text-cream/50 text-xs">Powers discovered: </span>
+                <span className="text-gold text-sm font-black">{discoveredPowers.size}/{superpowers.length}</span>
+              </div>
+            </div>
+
+            {/* Social Links - Horizontal scrollable row */}
+            <div className="w-full">
+              <motion.p 
+                className="text-cream/60 text-xs mb-2 tracking-widest text-center"
+                style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 2.5 }}
+              >
+                CONNECT
+              </motion.p>
+              
+              <div className="flex flex-wrap justify-center gap-2">
+                {socialLinks.map((social, index) => (
+                  <motion.a
+                    key={social.id}
+                    href={social.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-4 py-2.5 bg-peacock-blue/60 rounded-lg"
+                    style={{
+                      border: "1px solid rgba(78, 185, 159, 0.4)",
+                    }}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 2.5 + index * 0.08 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={(e) => handleSocialClick(social.id, e)}
+                  >
+                    <span className="text-lg text-cream">{social.icon}</span>
+                    <span 
+                      className="text-xs font-black text-cream"
+                      style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
+                    >
+                      {social.label}
+                    </span>
+                  </motion.a>
+                ))}
+              </div>
+            </div>
+            
+            {/* About Me Button - More prominent */}
+            <motion.button
+              className="px-6 py-3 bg-blood-orange/90 border-2 border-gold rounded-xl text-cream text-sm font-black tracking-wider"
+              style={{ 
+                fontFamily: "var(--font-fk-grotesk-black)",
+                boxShadow: "0 4px 15px rgba(236, 86, 59, 0.3)",
+              }}
+              onClick={() => setShowAboutMe(true)}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 3 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              ABOUT ME
+            </motion.button>
+          </div>
+        ) : (
+          <>
+            {/* Desktop: Center - Superpower Minimap - ALIGNED */}
+            <div className="flex flex-col items-center justify-center flex-shrink">
+              <motion.p 
+                className="text-cream/50 text-xs mb-3 tracking-widest"
+                style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 2 }}
+              >
+                DESIGN REALM
+              </motion.p>
+              
+              {/* Minimap container */}
+              <div className="relative w-[180px] h-[180px] sm:w-[220px] sm:h-[220px] md:w-[260px] md:h-[260px] lg:w-[300px] lg:h-[300px]">
+                {/* Map background */}
+                <div 
+                  className="absolute inset-0 rounded-xl"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(16, 47, 65, 0.7) 0%, rgba(16, 47, 65, 0.4) 100%)",
+                    border: "2px solid rgba(78, 185, 159, 0.4)",
                 boxShadow: "inset 0 0 40px rgba(0, 0, 0, 0.4), 0 4px 30px rgba(0, 0, 0, 0.3)",
               }}
             />
@@ -941,7 +1374,7 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
                 )}
               </svg>
               
-              {/* Power locations on map */}
+              {/* Power locations on map - NOW CLICK BASED */}
               {superpowers.map((power, index) => (
                 <MapPowerNode
                   key={power.id}
@@ -949,8 +1382,7 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
                   index={index}
                   isActive={activePower === power.id}
                   isDiscovered={discoveredPowers.has(power.id)}
-                  onHover={() => handlePowerHover(power.id)}
-                  onLeave={handlePowerLeave}
+                  onClick={() => handlePowerClick(power.id)}
                 />
               ))}
               
@@ -1025,7 +1457,7 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
             >
               CHANNELS
             </p>
-            <p className="text-cream/50 text-[10px] lg:text-xs">pick a frequency</p>
+            <p className="text-cream/50 text-[10px] lg:text-xs">click to see message</p>
           </motion.div>
           
           <div className="flex flex-col gap-2 lg:gap-2.5">
@@ -1035,8 +1467,7 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
                 social={social}
                 index={index}
                 isHovered={hoveredSocial === social.id}
-                onHover={(e) => handleSocialHover(social.id, e)}
-                onLeave={handleSocialLeave}
+                onClick={(e) => handleSocialClick(social.id, e)}
               />
             ))}
           </div>
@@ -1045,9 +1476,9 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
           <motion.button
             className="mt-3 px-4 py-2.5 bg-peacock-blue/60 border-2 border-aquamarine/60 rounded-lg text-cream text-xs lg:text-sm font-black tracking-wider hover:bg-aquamarine/30 hover:border-aquamarine transition-colors"
             style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
-            onClick={() => setShowAboutMe(true)}
-            onMouseEnter={() => {
-              showDialogueWithTracking("* curious about the person behind the pixels?", "about-me-hover", true);
+            onClick={() => {
+              setShowAboutMe(true);
+              showDialogueWithTracking("* curious about the person behind the pixels?", "about-me-hover");
             }}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -1073,6 +1504,8 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
             </p>
           </motion.div>
         </div>
+          </>
+        )}
       </div>
 
       {/* Interactive decorative corners - easter eggs */}
@@ -1089,8 +1522,7 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
             style={{ transform: `rotate(${corner.rotate}deg)` }}
             animate={{ opacity: [0.3, 0.5, 0.3] }}
             transition={{ duration: 3, repeat: Infinity, delay: i * 0.75 }}
-            onMouseEnter={() => handleElementHover("corner")}
-            onMouseLeave={handleElementLeave}
+            onClick={(e) => handleElementClick("corner", e)}
           >
             <div className="w-full h-[2px] bg-blood-orange/50" />
             <div className="w-[2px] h-full bg-blood-orange/50" />
@@ -1279,16 +1711,16 @@ function SpeechBubble({ text, speakerName }: SpeechBubbleProps) {
 }
 
 // Map power node - location on minimap with monochromatic icons
+// NOW CLICK-BASED for better UX
 interface MapPowerNodeProps {
   power: typeof superpowers[0];
   index: number;
   isActive: boolean;
   isDiscovered: boolean;
-  onHover: () => void;
-  onLeave: () => void;
+  onClick: () => void;
 }
 
-function MapPowerNode({ power, index, isActive, isDiscovered, onHover, onLeave }: MapPowerNodeProps) {
+function MapPowerNode({ power, index, isActive, isDiscovered, onClick }: MapPowerNodeProps) {
   return (
     <motion.button
       className="absolute flex flex-col items-center"
@@ -1298,13 +1730,11 @@ function MapPowerNode({ power, index, isActive, isDiscovered, onHover, onLeave }
         top: `${power.mapPosition.y}%`,
         transform: "translate(-50%, -50%)",
       }}
-      onMouseEnter={onHover}
-      onMouseLeave={onLeave}
-      onTouchStart={onHover}
-      onTouchEnd={onLeave}
+      onClick={onClick}
       initial={{ opacity: 0, scale: 0 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: 0.5 + index * 0.15, ...persona5Spring }}
+      whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.9 }}
     >
       {/* Node circle with monochromatic icon */}
@@ -1392,16 +1822,15 @@ function MapPowerNode({ power, index, isActive, isDiscovered, onHover, onLeave }
   );
 }
 
-// Enhanced social button with monochromatic icons and better visibility
+// Enhanced social button - NOW CLICK-BASED
 interface SocialButtonProps {
   social: typeof socialLinks[0];
   index: number;
   isHovered: boolean;
-  onHover: (e?: React.MouseEvent) => void;
-  onLeave: () => void;
+  onClick: (e?: React.MouseEvent) => void;
 }
 
-function SocialButton({ social, index, isHovered, onHover, onLeave }: SocialButtonProps) {
+function SocialButton({ social, index, isHovered, onClick }: SocialButtonProps) {
   return (
     <motion.a
       href={social.url}
@@ -1420,10 +1849,7 @@ function SocialButton({ social, index, isHovered, onHover, onLeave }: SocialButt
           : "0 2px 10px rgba(0, 0, 0, 0.3)",
         minWidth: "140px",
       }}
-      onMouseEnter={(e) => onHover(e)}
-      onMouseLeave={onLeave}
-      onTouchStart={() => onHover()}
-      onTouchEnd={onLeave}
+      onClick={(e) => onClick(e)}
       initial={{ opacity: 0, x: 20 }}
       animate={{ 
         opacity: 1,
@@ -1433,6 +1859,7 @@ function SocialButton({ social, index, isHovered, onHover, onLeave }: SocialButt
         ...persona5Spring,
         delay: 2.5 + index * 0.1,
       }}
+      whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.95 }}
     >
       {/* Monochromatic Icon */}
@@ -1520,7 +1947,7 @@ function AboutMeModal({ onClose }: AboutMeModalProps) {
       
       {/* Modal */}
       <motion.div
-        className="relative bg-cream rounded-2xl p-6 md:p-8 max-w-md w-full"
+        className="relative bg-cream rounded-2xl p-6 md:p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto"
         style={{
           boxShadow: `
             0 0 0 4px var(--blood-orange),
@@ -1562,23 +1989,24 @@ function AboutMeModal({ onClose }: AboutMeModalProps) {
           ✕
         </motion.button>
         
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
-          {/* Profile placeholder */}
+        {/* Header - restructured for larger avatar */}
+        <div className="flex flex-col sm:flex-row items-center gap-4 mb-6">
+          {/* Profile placeholder - increased size for 480x480 avatar */}
           <div 
-            className="w-20 h-20 rounded-xl bg-peacock-blue/20 flex items-center justify-center"
+            className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 rounded-xl bg-peacock-blue/20 flex items-center justify-center flex-shrink-0 overflow-hidden"
             style={{
-              border: "3px solid var(--teal)",
-              boxShadow: "inset 0 0 20px rgba(0, 0, 0, 0.2)",
+              border: "4px solid var(--teal)",
+              boxShadow: "inset 0 0 30px rgba(0, 0, 0, 0.2), 0 4px 20px rgba(0, 0, 0, 0.15)",
             }}
           >
-            <span className="text-3xl">🎮</span>
+            {/* Avatar placeholder - can be replaced with actual image */}
+            <span className="text-5xl sm:text-6xl">🎮</span>
           </div>
           
-          <div>
+          <div className="text-center sm:text-left">
             <h2 
               id="about-modal-title"
-              className="text-peacock-blue text-2xl font-black"
+              className="text-peacock-blue text-xl sm:text-2xl font-black"
               style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
             >
               Omar Golinelli
