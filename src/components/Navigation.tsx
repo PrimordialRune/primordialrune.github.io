@@ -149,7 +149,7 @@ export default function Navigation({
                     }
                   }
                 }}
-                className={`nav-item relative overflow-hidden ${
+                className={`relative overflow-hidden ${
                   isActive && isOpen
                     ? "bg-blood-orange"
                     : "bg-blood-orange/40 backdrop-blur-sm"
@@ -168,9 +168,9 @@ export default function Navigation({
                 initial={false}
                 transition={{
                   type: "spring",
-                  damping: 25,
-                  stiffness: 250,
-                  mass: 0.8,
+                  damping: 28,
+                  stiffness: 320,
+                  mass: 0.6,
                 }}
                 whileHover={
                   isOpen
@@ -212,7 +212,7 @@ export default function Navigation({
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      transition={{ duration: 0.2 }}
+                      transition={{ duration: 0.15 }}
                       className="absolute inset-0 flex flex-col items-center justify-center p-1.5 md:p-3"
                     >
                       {/* Number Badge */}
@@ -221,9 +221,9 @@ export default function Navigation({
                         animate={{ scale: 1 }}
                         transition={{
                           type: "spring",
-                          damping: 20,
-                          stiffness: 300,
-                          delay: 0.1,
+                          damping: 22,
+                          stiffness: 400,
+                          delay: 0.05,
                         }}
                         className={`mb-0.5 md:mb-1.5 w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 flex items-center justify-center rounded-lg md:rounded-xl ${
                           isActive
@@ -242,7 +242,7 @@ export default function Navigation({
                         <motion.span
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.15 }}
+                          transition={{ delay: 0.08 }}
                           className="text-xs sm:text-sm md:text-base lg:text-lg font-black tracking-wide text-cream"
                           style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
                         >
@@ -251,7 +251,7 @@ export default function Navigation({
                         <motion.span
                           initial={{ opacity: 0 }}
                           animate={{ opacity: isActive ? 1 : 0.7 }}
-                          transition={{ delay: 0.2 }}
+                          transition={{ delay: 0.1 }}
                           className={`text-[8px] sm:text-[10px] tracking-wider ${
                             isActive ? "text-cream/90" : "text-cream/80"
                           }`}
@@ -269,11 +269,11 @@ export default function Navigation({
                           exit={{ scale: 0, opacity: 0 }}
                           transition={{
                             type: "spring",
-                            damping: 15,
-                            stiffness: 300,
-                            delay: 0.15,
+                            damping: 18,
+                            stiffness: 400,
+                            delay: 0.08,
                           }}
-                          className="active-dot absolute top-1.5 md:top-2 right-1.5 md:right-2 w-1.5 h-1.5 md:w-2 md:h-2 bg-gold rounded-full"
+                          className="absolute top-1.5 md:top-2 right-1.5 md:right-2 w-1.5 h-1.5 md:w-2 md:h-2 bg-gold rounded-full"
                           style={{
                             boxShadow: "0 0 10px rgba(250, 219, 104, 0.6)",
                           }}
@@ -291,10 +291,10 @@ export default function Navigation({
         <AnimatePresence>
           {isOpen && (
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              transition={{ delay: 0.3 }}
+              exit={{ opacity: 0, y: 12 }}
+              transition={{ delay: 0.15, duration: 0.15 }}
               className="flex flex-col gap-1.5 py-2 md:py-3"
             >
               <button

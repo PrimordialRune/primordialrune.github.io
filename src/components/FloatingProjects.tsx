@@ -575,7 +575,7 @@ export default function FloatingProjects({
                   >
                     {/* Thumbnail container - like desktop icon */}
                     <motion.div
-                      className={`project-card relative bg-dark-teal/60 backdrop-blur-sm rounded-lg sm:rounded-xl md:rounded-2xl overflow-hidden border-2 sm:border-3 md:border-4 transition-colors ${
+                      className={`relative bg-dark-teal/60 backdrop-blur-sm rounded-lg sm:rounded-xl md:rounded-2xl overflow-hidden border-2 sm:border-3 md:border-4 transition-colors ${
                         isBeingDragged 
                           ? "border-gold" 
                           : "border-teal/40 group-hover:border-aquamarine"

@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Project } from "@/types/project";
 import { getProjectsByCategory, getFeaturedProjects, getAllProjects } from "@/lib/projects";
 import { seededRandom } from "@/lib/utils";
-import { useTheme } from "@/lib/ThemeContext";
+
 
 // Custom hook for responsive detection
 function useResponsive() {
@@ -61,7 +61,7 @@ function DiscoverButton({ onDiscover, onAnimationStart }: { onDiscover: () => vo
     setTimeout(() => {
       onDiscover();
       setIsAnimating(false);
-    }, 800);
+    }, 500);
   };
 
   // Calculate 3D tilt based on mouse position
@@ -83,7 +83,7 @@ function DiscoverButton({ onDiscover, onAnimationStart }: { onDiscover: () => vo
   return (
     <motion.button
       ref={buttonRef}
-      className="discover-btn relative px-4 md:px-6 py-2 md:py-2.5 rounded-lg font-black text-xs md:text-sm"
+      className="relative px-4 md:px-6 py-2 md:py-2.5 rounded-lg font-black text-xs md:text-sm"
       style={{ 
         fontFamily: "var(--font-fk-grotesk-black)",
         transformStyle: "preserve-3d",
@@ -339,8 +339,6 @@ export default function Home() {
   const [isDiscoverMode, setIsDiscoverMode] = useState(false);
   const [showCRTNoise, setShowCRTNoise] = useState(false);
   const { isMobile, isLandscape } = useResponsive();
-  const { theme, toggleTheme, themeLabel } = useTheme();
-
   // Load all projects on mount for discover feature
   useEffect(() => {
     async function loadAllProjects() {
@@ -383,7 +381,7 @@ export default function Home() {
   const handleDiscoverAnimationStart = useCallback(() => {
     setShowCRTNoise(true);
     window.dispatchEvent(new CustomEvent("primordialrune:discover-triggered"));
-    setTimeout(() => setShowCRTNoise(false), 600);
+    setTimeout(() => setShowCRTNoise(false), 400);
   }, []);
 
   const handleDiscover = useCallback(() => {
@@ -397,8 +395,8 @@ export default function Home() {
 
   return (
     <div className="relative min-h-screen bg-background overflow-hidden" onContextMenu={(e) => e.preventDefault()}>
-      {/* Top NES Stripe — hidden in Industrial, neon in Retrowave */}
-      <div className="nes-stripe fixed top-0 left-0 right-0 h-[var(--stripe-height)] bg-blood-orange z-50" style={{ display: "var(--stripe-display)" }} />
+      {/* Top NES Stripe */}
+      <div className="fixed top-0 left-0 right-0 h-[var(--stripe-height)] bg-blood-orange z-50" />
 
       {/* Header */}
       <header className="fixed top-[var(--stripe-height)] left-0 right-0 z-40 flex items-center justify-between px-3 sm:px-4 md:px-6 py-2 md:py-3 bg-background/95 backdrop-blur-sm">
@@ -423,14 +421,14 @@ export default function Home() {
           </svg>
           <div className="flex items-center gap-1 md:gap-2">
             <span
-              className="brand-primary text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-blood-orange italic leading-none"
-              style={{ fontFamily: "var(--font-fk-grotesk-black)", letterSpacing: "var(--heading-tracking)" }}
+              className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-blood-orange italic leading-none"
+              style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
             >
               PRIMORDIAL
             </span>
             <span
-              className="brand-secondary text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-peacock-blue italic leading-none"
-              style={{ fontFamily: "var(--font-fk-grotesk-black)", letterSpacing: "var(--heading-tracking)" }}
+              className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-peacock-blue italic leading-none"
+              style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
             >
               RUNE
             </span>
@@ -451,16 +449,22 @@ export default function Home() {
         <div className="relative w-full h-full">
           {/* CRT Display Panel with Embossing */}
           <div
-            className="crt-panel relative w-full h-full bg-panel-bg overflow-hidden"
+            className="relative w-full h-full bg-panel-bg rounded-xl sm:rounded-2xl md:rounded-3xl overflow-hidden"
             style={{
-              borderRadius: "var(--panel-radius)",
-              boxShadow: "var(--panel-shadow)",
+              boxShadow: `
+                inset 4px 4px 8px rgba(0, 0, 0, 0.2),
+                inset -4px -4px 8px rgba(255, 255, 255, 0.03),
+                0 0 0 4px transparent,
+                0 0 0 6px rgba(0, 0, 0, 0.2),
+                0 0 0 10px rgba(0, 0, 0, 0.1),
+                0 8px 24px rgba(0, 0, 0, 0.3)
+              `,
             }}
           >
             {/* Scanline Effect Overlay - Animated */}
             <div className="absolute inset-0 pointer-events-none z-20">
               <div
-                className="absolute inset-0 opacity-[0.08] scanline-overlay"
+                className="absolute inset-0 opacity-[0.08]"
                 style={{
                   backgroundImage:
                     "repeating-linear-gradient(0deg, transparent, transparent 2px, var(--teal) 2px, var(--teal) 4px)",
@@ -485,18 +489,18 @@ export default function Home() {
               }}
               transition={{
                 type: "spring",
-                damping: 25,
-                stiffness: 250,
-                mass: 0.8,
+                damping: 30,
+                stiffness: 350,
+                mass: 0.6,
               }}
             >
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeCategory}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
                   className="w-full h-full"
                 >
                   {/* Hero Section - Interactive keyword carousel */}
@@ -529,65 +533,19 @@ export default function Home() {
               </AnimatePresence>
             </motion.div>
 
-            {/* Footer Signature — Theme Toggle (Design Mode Switch) */}
-            <motion.button
-              onClick={toggleTheme}
-              className="theme-toggle absolute bottom-4 sm:bottom-6 md:bottom-8 right-4 sm:right-6 md:right-10 z-20 flex flex-col items-end gap-1 cursor-pointer group"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              title={`Switch theme (current: ${themeLabel})`}
-              aria-label={`Current theme: ${themeLabel}. Click to switch.`}
+            {/* Footer Signature */}
+            <div
+              className="absolute bottom-4 sm:bottom-6 md:bottom-8 right-4 sm:right-6 md:right-10 text-aquamarine/40 text-sm md:text-lg tracking-wider z-20"
+              style={{ fontFamily: "var(--font-gen-ei-kiwami)" }}
             >
-              {/* Designer identity indicator */}
-              <motion.div
-                className="flex items-center gap-2 mb-0.5"
-                initial={false}
-                animate={{ opacity: 1 }}
-              >
-                <motion.div
-                  className="w-2 h-2 rounded-full"
-                  animate={{
-                    backgroundColor: theme === "original" ? "#ec563b" : theme === "industrial" ? "#FF4400" : "#FFD700",
-                    boxShadow: theme === "retrowave" ? "0 0 8px #FFD700" : "none",
-                  }}
-                  transition={{ duration: 0.4 }}
-                />
-                <motion.span
-                  key={`designer-${theme}`}
-                  className="text-[8px] md:text-[10px] tracking-[0.25em] text-aquamarine/50 group-hover:text-aquamarine/90 transition-colors uppercase"
-                  style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
-                  initial={{ opacity: 0, x: 8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3, delay: 0.1 }}
-                >
-                  {theme === "original" ? "ORIGINAL" : theme === "industrial" ? "DESIGNER A" : "DESIGNER B"}
-                </motion.span>
-              </motion.div>
-
-              <motion.span
-                className="text-aquamarine/40 text-sm md:text-lg tracking-wider group-hover:text-aquamarine/80 transition-colors"
-                style={{ fontFamily: "var(--font-gen-ei-kiwami)" }}
-              >
-                原初のルーン
-              </motion.span>
-              <motion.span
-                key={themeLabel}
-                className="text-[9px] md:text-[11px] tracking-[0.3em] text-aquamarine/30 group-hover:text-aquamarine/70 transition-colors"
-                style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -4 }}
-                transition={{ duration: 0.3 }}
-              >
-                {themeLabel}
-              </motion.span>
-            </motion.button>
+              原初のルーン
+            </div>
           </div>
         </div>
       </main>
 
-      {/* Bottom NES Stripe — hidden in Industrial, neon in Retrowave */}
-      <div className="nes-stripe fixed bottom-0 left-0 right-0 h-[var(--stripe-height)] bg-blood-orange z-50" style={{ display: "var(--stripe-display)" }} />
+      {/* Bottom NES Stripe */}
+      <div className="fixed bottom-0 left-0 right-0 h-[var(--stripe-height)] bg-blood-orange z-50" />
 
       {/* Project Modal */}
       {selectedProject && (
