@@ -142,3 +142,76 @@ a,
 [role="button"] {
   -webkit-tap-highlight-color: transparent;
 }
+
+/* ==========================================
+   Theme System — Smooth Transitions
+   ========================================== */
+
+/* Smooth transition for theme switching */
+:root,
+:root *:not(svg):not(path):not(line):not(ellipse):not(rect):not(circle) {
+  transition:
+    background-color 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ==========================================
+   Theme A — Industrial Minimalism
+   (Teenage Engineering / Scandinavian)
+   ========================================== */
+:root[data-theme="industrial"] {
+  /* Core palette: high-contrast mono + functional orange */
+  --teal: #999999;
+  --aquamarine: #888888;
+  --dark-teal: #666666;
+  --peacock-blue: #1A1A1A;
+
+  --blood-orange: #FF5500;
+  --gold: #FF5500;
+
+  --cream: #F5F5F0;
+
+  --background: #F5F5F0;
+  --foreground: #1A1A1A;
+  --panel-bg: #E8E8E3;
+  --panel-border: #CCCCCC;
+  --accent: #FF5500;
+  --accent-secondary: #FF5500;
+}
+
+/* ==========================================
+   Theme B — Retro Wave × Modern Minimalism
+   (Synth / Neon / Late 80s-90s Digital)
+   ========================================== */
+:root[data-theme="retrowave"] {
+  /* Core palette: deep dark + neon accents */
+  --teal: #00E5FF;
+  --aquamarine: #7B68EE;
+  --dark-teal: #1A1A35;
+  --peacock-blue: #0D0D1A;
+
+  --blood-orange: #FF2D95;
+  --gold: #FFD700;
+
+  --cream: #E8E0F0;
+
+  --background: #0D0D1A;
+  --foreground: #E8E0F0;
+  --panel-bg: #12122A;
+  --panel-border: #00E5FF;
+  --accent: #FF2D95;
+  --accent-secondary: #FFD700;
+}
+
+/* Industrial theme specific overrides */
+:root[data-theme="industrial"] .scanline-overlay {
+  opacity: 0.02 !important;
+}
+
+/* Retrowave theme: enhanced glow on interactive elements */
+:root[data-theme="retrowave"] button:hover,
+:root[data-theme="retrowave"] a:hover {
+  text-shadow: 0 0 8px currentColor;
+}

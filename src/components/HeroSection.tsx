@@ -1822,7 +1822,7 @@ interface SocialButtonProps {
   social: typeof socialLinks[0];
   index: number;
   isHovered: boolean;
-  onClick: (e?: React.MouseEvent) => void;
+  onClick: (e: React.MouseEvent) => void;
 }
 
 function SocialButton({ social, index, isHovered, onClick }: SocialButtonProps) {
