@@ -189,7 +189,7 @@ export default function ProjectModal({ project, onClose, isDiscoverMode = false 
           onMouseMove={handleMouseMove}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
-          className={`relative w-full max-w-5xl max-h-[95vh] sm:max-h-[90vh] rounded-xl sm:rounded-2xl md:rounded-3xl overflow-hidden ${
+          className={`project-modal relative w-full max-w-5xl max-h-[95vh] sm:max-h-[90vh] rounded-xl sm:rounded-2xl md:rounded-3xl overflow-hidden ${
             isDiscoverMode ? "bg-blood-orange" : "bg-peacock-blue"
           }`}
           style={{

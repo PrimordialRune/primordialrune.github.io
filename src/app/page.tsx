@@ -547,8 +547,8 @@ export default function Home() {
                 <motion.div
                   className="w-2 h-2 rounded-full"
                   animate={{
-                    backgroundColor: theme === "industrial" ? "var(--accent)" : "var(--gold)",
-                    boxShadow: theme === "retrowave" ? "0 0 8px var(--gold)" : "none",
+                    backgroundColor: theme === "industrial" ? "#FF4400" : "#FFD700",
+                    boxShadow: theme === "retrowave" ? "0 0 8px #FFD700" : "none",
                   }}
                   transition={{ duration: 0.4 }}
                 />

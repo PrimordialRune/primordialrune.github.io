@@ -167,7 +167,7 @@ export default function ProjectGrid({
               <motion.button
                 key={project.slug}
                 onClick={() => onProjectClick(project)}
-                className="group relative bg-dark-teal/40 backdrop-blur-sm rounded-xl sm:rounded-2xl overflow-hidden border-2 border-teal/30 hover:border-aquamarine transition-all"
+                className="project-card group relative bg-dark-teal/40 backdrop-blur-sm rounded-xl sm:rounded-2xl overflow-hidden border-2 border-teal/30 hover:border-aquamarine transition-all"
                 variants={{
                   hidden: { opacity: 0, y: 20 },
                   show: { opacity: 1, y: 0 },

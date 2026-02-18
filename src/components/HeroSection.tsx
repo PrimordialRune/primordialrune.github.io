@@ -1096,9 +1096,9 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
               {glitchText}
             </motion.h1>
             
-            {/* Scanline overlay on text */}
+            {/* Scanline overlay on text - hidden via CSS in industrial theme */}
             <motion.div 
-              className="absolute inset-0 pointer-events-none opacity-[0.08]"
+              className="absolute inset-0 pointer-events-none opacity-[0.08] scanline-overlay"
               style={{
                 backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, var(--teal) 2px, var(--teal) 3px)",
                 mixBlendMode: "overlay",

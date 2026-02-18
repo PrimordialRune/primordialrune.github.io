@@ -467,3 +467,91 @@ a,
   pointer-events: none;
   z-index: 1;
 }
+
+/* ==========================================
+   Hero Section — Theme-Specific Overrides
+   ========================================== */
+
+/* Industrial: Hero title — data-label style, tracked */
+:root[data-theme="industrial"] h1 {
+  letter-spacing: 0.08em;
+  text-shadow: none !important;
+}
+
+/* Industrial: Dialogue speech bubble — flat card with border */
+:root[data-theme="industrial"] [role="region"] {
+  filter: none;
+}
+
+/* Industrial: All rounded elements go sharp */
+:root[data-theme="industrial"] [class*="rounded-lg"],
+:root[data-theme="industrial"] [class*="rounded-xl"],
+:root[data-theme="industrial"] [class*="rounded-2xl"] {
+  border-radius: 4px !important;
+}
+
+/* Industrial: Remove all decorative glows and shadows */
+:root[data-theme="industrial"] [style*="text-shadow"],
+:root[data-theme="industrial"] [style*="box-shadow: 0 0"] {
+  text-shadow: none;
+}
+
+/* Retrowave: Hero title — dramatic glow */
+:root[data-theme="retrowave"] h1 {
+  letter-spacing: -0.02em;
+  text-shadow: 0 0 30px rgba(0, 229, 255, 0.4), 0 0 60px rgba(0, 229, 255, 0.15) !important;
+}
+
+/* Retrowave: Social links get neon border glow */
+:root[data-theme="retrowave"] a[href] {
+  border-color: rgba(0, 229, 255, 0.3) !important;
+}
+
+:root[data-theme="retrowave"] a[href]:hover {
+  border-color: rgba(255, 45, 149, 0.6) !important;
+  box-shadow: 0 0 15px rgba(255, 45, 149, 0.2), inset 0 0 15px rgba(255, 45, 149, 0.05);
+}
+
+/* ==========================================
+   ProjectModal — Theme-Specific Overrides
+   ========================================== */
+
+/* Industrial: Modal becomes a flat panel */
+:root[data-theme="industrial"] .project-modal {
+  border-radius: 4px;
+  border: 1px solid var(--panel-border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Retrowave: Modal gets neon frame */
+:root[data-theme="retrowave"] .project-modal {
+  border: 1px solid rgba(0, 229, 255, 0.2);
+  box-shadow: 0 0 40px rgba(0, 229, 255, 0.1), 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+/* ==========================================
+   ProjectGrid — Theme-Specific Overrides
+   ========================================== */
+
+/* Industrial: Grid items become modular blocks */
+:root[data-theme="industrial"] .project-card {
+  border-radius: 2px;
+  border: 1px solid var(--panel-border);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+:root[data-theme="industrial"] .project-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 2px 8px rgba(255, 68, 0, 0.15);
+}
+
+/* Retrowave: Grid items get phosphor glow */
+:root[data-theme="retrowave"] .project-card {
+  border: 1px solid rgba(0, 229, 255, 0.15);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+:root[data-theme="retrowave"] .project-card:hover {
+  border-color: rgba(255, 45, 149, 0.4);
+  box-shadow: 0 0 25px rgba(255, 45, 149, 0.15), 0 8px 32px rgba(0, 0, 0, 0.5);
+}
