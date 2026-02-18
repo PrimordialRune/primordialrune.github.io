@@ -535,7 +535,7 @@ export default function Home() {
               className="theme-toggle absolute bottom-4 sm:bottom-6 md:bottom-8 right-4 sm:right-6 md:right-10 z-20 flex flex-col items-end gap-1 cursor-pointer group"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              title={`Switch to ${theme === "industrial" ? "Retro Wave" : "Industrial"} theme`}
+              title={`Switch theme (current: ${themeLabel})`}
               aria-label={`Current theme: ${themeLabel}. Click to switch.`}
             >
               {/* Designer identity indicator */}
@@ -547,7 +547,7 @@ export default function Home() {
                 <motion.div
                   className="w-2 h-2 rounded-full"
                   animate={{
-                    backgroundColor: theme === "industrial" ? "#FF4400" : "#FFD700",
+                    backgroundColor: theme === "original" ? "#ec563b" : theme === "industrial" ? "#FF4400" : "#FFD700",
                     boxShadow: theme === "retrowave" ? "0 0 8px #FFD700" : "none",
                   }}
                   transition={{ duration: 0.4 }}
@@ -560,7 +560,7 @@ export default function Home() {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: 0.1 }}
                 >
-                  {theme === "industrial" ? "DESIGNER A" : "DESIGNER B"}
+                  {theme === "original" ? "ORIGINAL" : theme === "industrial" ? "DESIGNER A" : "DESIGNER B"}
                 </motion.span>
               </motion.div>
 
