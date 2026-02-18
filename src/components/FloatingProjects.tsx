@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, PanInfo } from "framer-motion";
+import { AnimatePresence, motion, PanInfo } from "framer-motion";
 import { Project } from "@/types/project";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 
@@ -125,6 +125,7 @@ export default function FloatingProjects({
   
   // Generate random seed on mount for position randomization
   const [randomSeed] = useState(() => Math.random() * 1000);
+  const [showMoveHint, setShowMoveHint] = useState(true);
 
   // Update dimensions on resize
   useEffect(() => {
@@ -140,6 +141,12 @@ export default function FloatingProjects({
     updateDimensions();
     window.addEventListener("resize", updateDimensions);
     return () => window.removeEventListener("resize", updateDimensions);
+  }, []);
+
+  useEffect(() => {
+    const hideHint = () => setShowMoveHint(false);
+    window.addEventListener("primordialrune:discover-triggered", hideHint);
+    return () => window.removeEventListener("primordialrune:discover-triggered", hideHint);
   }, []);
 
   // Calculate layout
@@ -306,16 +313,21 @@ export default function FloatingProjects({
       });
     }, 400);
 
+    setShowMoveHint(false);
     setIsDragging(false);
     setDraggedIndex(null);
   }, [getPosition, dimensions, resolveCollisions]);
 
   // Long press handlers
   const handlePointerDown = useCallback((index: number) => {
+    setShowMoveHint(false);
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+    }
     longPressTimerRef.current = setTimeout(() => {
       setDraggedIndex(index);
       setIsDragging(true);
-    }, 300); // 300ms long press
+    }, 220); // 220ms long press to feel responsive on touch devices
   }, []);
 
   const handlePointerUp = useCallback(() => {
@@ -442,6 +454,27 @@ export default function FloatingProjects({
         />
       </div>
 
+      <AnimatePresence>
+        {showMoveHint && (
+          <motion.div
+            className="absolute top-3 left-1/2 -translate-x-1/2 z-30 pointer-events-none"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="px-3 sm:px-4 py-1.5 rounded-full bg-peacock-blue/80 border border-aquamarine/40 backdrop-blur-sm">
+              <p
+                className="text-[10px] sm:text-xs tracking-wider text-cream/90 whitespace-nowrap"
+                style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
+              >
+                HOLD + DRAG PROJECTS IN THE SPACE
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Virtual space container */}
       <div className="absolute inset-0">
         {dimensions.width > 0 && projects.map((project, index) => {
@@ -468,6 +501,7 @@ export default function FloatingProjects({
                 top: position.y,
                 transform: "translate(-50%, -50%)",
                 zIndex: isBeingDragged ? 100 : 1,
+                touchAction: "none",
               }}
               initial={isLanding 
                 ? { opacity: 1, scale: 1, y: -8 }  // Landing: start slightly elevated
@@ -503,6 +537,7 @@ export default function FloatingProjects({
               onPointerDown={() => handlePointerDown(index)}
               onPointerUp={handlePointerUp}
               onPointerLeave={handlePointerUp}
+              onContextMenu={(e) => e.preventDefault()}
               whileHover={!isDragging ? { scale: 1.1, zIndex: 50 } : undefined}
               whileTap={!isDragging ? { scale: 0.95 } : undefined}
             >
@@ -521,7 +556,9 @@ export default function FloatingProjects({
                       onProjectClick(project);
                     }
                   }}
-                  className="group"
+                  className="group no-touch-callout"
+                  type="button"
+                  onContextMenu={(e) => e.preventDefault()}
                 >
                   {/* Icon/Card - 90s desktop/console style */}
                   <motion.div 

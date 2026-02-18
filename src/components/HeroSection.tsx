@@ -218,7 +218,7 @@ const superpowers = [
     powerJp: "非対称",
     icon: "◇",
     description: "* the art of giving each player a unique experience",
-    mapPosition: { x: 20, y: 25 },
+    mapPosition: { x: 18, y: 20 },
   },
   {
     id: "strategy", 
@@ -226,7 +226,7 @@ const superpowers = [
     powerJp: "戦略",
     icon: "◎",
     description: "* turning simple rules into infinite possibilities",
-    mapPosition: { x: 50, y: 25 },
+    mapPosition: { x: 56, y: 30 },
   },
   {
     id: "nostalgia",
@@ -234,7 +234,7 @@ const superpowers = [
     powerJp: "郷愁",
     icon: "▣",
     description: "* pixels that hit different... you know?",
-    mapPosition: { x: 80, y: 25 },
+    mapPosition: { x: 82, y: 18 },
   },
   {
     id: "roleplay",
@@ -242,7 +242,7 @@ const superpowers = [
     powerJp: "役割",
     icon: "★",
     description: "* because numbers going up = serotonin",
-    mapPosition: { x: 20, y: 75 },
+    mapPosition: { x: 26, y: 70 },
   },
   {
     id: "paragame",
@@ -250,7 +250,7 @@ const superpowers = [
     powerJp: "超越",
     icon: "◈",
     description: "* games about games... meta, right?",
-    mapPosition: { x: 50, y: 75 },
+    mapPosition: { x: 48, y: 82 },
   },
   {
     id: "modularity",
@@ -258,7 +258,7 @@ const superpowers = [
     powerJp: "模組",
     icon: "⬡",
     description: "* infinite combinations from finite pieces",
-    mapPosition: { x: 80, y: 75 },
+    mapPosition: { x: 74, y: 66 },
   },
 ];
 
@@ -386,15 +386,6 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
   const [mouseTrailDots, setMouseTrailDots] = useState<Array<{id: number, x: number, y: number}>>([]);
   const [showCelebration, setShowCelebration] = useState(false);
   const [showAboutMe, setShowAboutMe] = useState(false);
-  // Track if user has found enough dialogues to earn medal
-  const [hasEarnedMedal, setHasEarnedMedal] = useState<boolean>(() => {
-    if (typeof window !== "undefined") {
-      const saved = loadFromStorage(STORAGE_KEY_DIALOGUES);
-      return saved.size >= 10; // Medal at 10+ dialogues
-    }
-    return false;
-  });
-  
   const containerRef = useRef<HTMLDivElement>(null);
   const dialogueIndexRef = useRef(0);
   const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -403,16 +394,14 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
   const floatingIdRef = useRef(0);
   const mouseTrailIdRef = useRef(0);
   
+  const hasEarnedMedal = discoveredDialogues.size >= 10;
+
   // Save discovered dialogues to localStorage whenever they change
   useEffect(() => {
     if (discoveredDialogues.size > 1) {
       saveToStorage(STORAGE_KEY_DIALOGUES, discoveredDialogues);
-      // Check for medal
-      if (discoveredDialogues.size >= 10 && !hasEarnedMedal) {
-        setHasEarnedMedal(true);
-      }
     }
-  }, [discoveredDialogues, hasEarnedMedal]);
+  }, [discoveredDialogues]);
   
   // Save discovered powers to localStorage whenever they change
   useEffect(() => {
@@ -801,6 +790,7 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
       style={noInteractionStyles}
       onClick={(e) => handleElementClick("background", e)}
       onMouseMove={handleMouseMove}
+      onContextMenu={(e) => e.preventDefault()}
     >
       {/* Mobile Landscape Warning Overlay */}
       <AnimatePresence>
@@ -1219,7 +1209,7 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
                         : "0 2px 8px rgba(0, 0, 0, 0.2)",
                       minHeight: "70px",
                     }}
-                    onClick={() => handlePowerClick(power.id)}
+                    onClick={(e) => { e.stopPropagation(); handlePowerClick(power.id); }}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 + index * 0.1 }}
@@ -1280,7 +1270,7 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 2.5 + index * 0.08 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={(e) => handleSocialClick(social.id, e)}
+                    onClick={(e) => { e.stopPropagation(); handleSocialClick(social.id, e); }}
                   >
                     <span className="text-lg text-cream">{social.icon}</span>
                     <span 
@@ -1315,7 +1305,7 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
             {/* Desktop: Center - Superpower Minimap - ALIGNED */}
             <div className="flex flex-col items-center justify-center flex-shrink">
               <motion.p 
-                className="text-cream/50 text-xs mb-3 tracking-widest"
+                className="text-cream/65 text-[11px] mb-1 tracking-[0.22em]"
                 style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -1323,32 +1313,37 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
               >
                 DESIGN REALM
               </motion.p>
+              <motion.p
+                className="text-cream/45 text-[10px] mb-3 tracking-wide"
+                style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 2.2 }}
+              >
+                TAP NODES TO REVEAL TRAITS
+              </motion.p>
               
               {/* Minimap container */}
               <div className="relative w-[180px] h-[180px] sm:w-[220px] sm:h-[220px] md:w-[260px] md:h-[260px] lg:w-[300px] lg:h-[300px]">
                 {/* Map background */}
                 <div 
-                  className="absolute inset-0 rounded-xl"
+                  className="absolute inset-0 rounded-2xl"
                   style={{
-                    background: "linear-gradient(135deg, rgba(16, 47, 65, 0.7) 0%, rgba(16, 47, 65, 0.4) 100%)",
-                    border: "2px solid rgba(78, 185, 159, 0.4)",
-                boxShadow: "inset 0 0 40px rgba(0, 0, 0, 0.4), 0 4px 30px rgba(0, 0, 0, 0.3)",
-              }}
-            />
-            
-            {/* Inner content area - all positioned elements go here */}
-            <div className="absolute inset-3 sm:inset-4">
-              {/* Grid lines */}
-              <svg className="absolute inset-0 w-full h-full opacity-25">
-                {/* Horizontal lines */}
-                {[0, 25, 50, 75, 100].map(y => (
-                  <line key={`h-${y}`} x1="0%" y1={`${y}%`} x2="100%" y2={`${y}%`} stroke="var(--teal)" strokeWidth="0.5" strokeDasharray="4 4" />
-                ))}
-                {/* Vertical lines */}
-                {[0, 25, 50, 75, 100].map(x => (
-                  <line key={`v-${x}`} x1={`${x}%`} y1="0%" x2={`${x}%`} y2="100%" stroke="var(--teal)" strokeWidth="0.5" strokeDasharray="4 4" />
-                ))}
-              </svg>
+                    background: "radial-gradient(circle at 40% 30%, rgba(78, 185, 159, 0.18) 0%, rgba(16, 47, 65, 0.85) 42%, rgba(12, 33, 47, 0.95) 100%)",
+                    border: "2px solid rgba(78, 185, 159, 0.55)",
+                    boxShadow: "inset 0 0 45px rgba(0, 0, 0, 0.55), 0 10px 35px rgba(0, 0, 0, 0.45)",
+                  }}
+                />
+
+                {/* Inner content area - all positioned elements go here */}
+                <div className="absolute inset-3 sm:inset-4 rounded-xl overflow-hidden">
+                  {/* Orbital guide lines */}
+                  <svg className="absolute inset-0 w-full h-full opacity-40 pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <ellipse cx="50" cy="50" rx="44" ry="32" fill="none" stroke="rgba(78, 185, 159, 0.38)" strokeWidth="1" strokeDasharray="7 6" />
+                    <ellipse cx="50" cy="50" rx="28" ry="20" fill="none" stroke="rgba(78, 185, 159, 0.25)" strokeWidth="0.9" strokeDasharray="5 5" />
+                    <path d="M8 68 C24 48, 42 56, 58 44 C74 34, 86 42, 94 28" fill="none" stroke="rgba(250, 219, 104, 0.28)" strokeWidth="1" strokeDasharray="5 5" />
+                    <path d="M10 30 C28 20, 43 36, 61 26 C73 19, 84 23, 92 16" fill="none" stroke="rgba(78, 185, 159, 0.2)" strokeWidth="0.8" strokeDasharray="4 6" />
+                  </svg>
               
               {/* Connection lines between discovered powers */}
               <svg className="absolute inset-0 w-full h-full pointer-events-none">
@@ -1362,8 +1357,8 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
                         y1={`${power.mapPosition.y}%`}
                         x2={`${otherPower.mapPosition.x}%`}
                         y2={`${otherPower.mapPosition.y}%`}
-                        stroke={bothDiscovered ? "rgba(250, 219, 104, 0.5)" : "rgba(78, 185, 159, 0.2)"}
-                        strokeWidth={bothDiscovered ? "2" : "1"}
+                        stroke={bothDiscovered ? "rgba(250, 219, 104, 0.62)" : "rgba(78, 185, 159, 0.18)"}
+                        strokeWidth={bothDiscovered ? "2.2" : "1"}
                         strokeDasharray={bothDiscovered ? "none" : "4 4"}
                         initial={{ pathLength: 0, opacity: 0 }}
                         animate={{ pathLength: bothDiscovered ? 1 : 0.5, opacity: 1 }}
@@ -1382,13 +1377,13 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
                   index={index}
                   isActive={activePower === power.id}
                   isDiscovered={discoveredPowers.has(power.id)}
-                  onClick={() => handlePowerClick(power.id)}
+                  onClick={(e) => { e.stopPropagation(); handlePowerClick(power.id); }}
                 />
               ))}
               
               {/* Center emblem */}
               <motion.div
-                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 rounded-lg bg-peacock-blue/70 flex items-center justify-center"
+                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-9 h-9 md:w-11 md:h-11 rounded-lg bg-peacock-blue/70 flex items-center justify-center"
                 style={{
                   border: "2px solid var(--teal)",
                   boxShadow: "0 0 20px rgba(78, 185, 159, 0.4)",
@@ -1467,7 +1462,7 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
                 social={social}
                 index={index}
                 isHovered={hoveredSocial === social.id}
-                onClick={(e) => handleSocialClick(social.id, e)}
+                onClick={(e) => { e.stopPropagation(); handleSocialClick(social.id, e); }}
               />
             ))}
           </div>
@@ -1717,7 +1712,7 @@ interface MapPowerNodeProps {
   index: number;
   isActive: boolean;
   isDiscovered: boolean;
-  onClick: () => void;
+  onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
 function MapPowerNode({ power, index, isActive, isDiscovered, onClick }: MapPowerNodeProps) {
