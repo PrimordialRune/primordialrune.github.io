@@ -6,7 +6,7 @@
 /* --- Fonts --- */
 @font-face {
   font-family: "FKGrotesk";
-  src: url("../public/fonts/FKGrotesk-Black.otf") format("opentype");
+  src: url("../fonts/FKGrotesk-Black.otf") format("opentype");
   font-weight: 900;
   font-style: normal;
   font-display: swap;
@@ -14,7 +14,7 @@
 
 @font-face {
   font-family: "FKGrotesk";
-  src: url("../public/fonts/FKGrotesk-Thin.otf") format("opentype");
+  src: url("../fonts/FKGrotesk-Thin.otf") format("opentype");
   font-weight: 100;
   font-style: normal;
   font-display: swap;
