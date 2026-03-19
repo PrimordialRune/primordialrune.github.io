@@ -404,7 +404,9 @@ export default function Home() {
         <div className="flex items-center gap-2 md:gap-3">
           <svg
             viewBox="0 0 554.72 555"
-            className="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10"
+            className="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 cursor-pointer"
+            onClick={() => window.dispatchEvent(new CustomEvent("primordialrune:logo-clicked"))}
+            aria-label="Logo easter egg"
           >
             <g>
               <path
@@ -421,14 +423,16 @@ export default function Home() {
           </svg>
           <div className="flex items-center gap-1 md:gap-2">
             <span
-              className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-blood-orange italic leading-none"
+              className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-blood-orange italic leading-none cursor-pointer"
               style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
+              onClick={() => window.dispatchEvent(new CustomEvent("primordialrune:nickname-clicked"))}
             >
               PRIMORDIAL
             </span>
             <span
-              className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-peacock-blue italic leading-none"
+              className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-peacock-blue italic leading-none cursor-pointer"
               style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
+              onClick={() => window.dispatchEvent(new CustomEvent("primordialrune:nickname-clicked"))}
             >
               RUNE
             </span>

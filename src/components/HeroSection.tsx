@@ -27,6 +27,9 @@ const bubbleSpring = {
 // Auto-rotate interval for intro dialogues
 const INTRO_ROTATE_INTERVAL_MS = 6000;
 
+// Minimum time a dialogue stays visible before being replaced (keeps text readable)
+const MIN_DIALOGUE_DISPLAY_MS = 2000;
+
 // UX constraint styles
 const noInteractionStyles: React.CSSProperties = {
   userSelect: "none",
@@ -378,12 +381,20 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
     }
     return {};
   });
+  // Ref for immediate access in getNextDialogue (avoids stale closure on rapid clicks)
+  const sequenceProgressRef = useRef<Record<string, number>>(
+    typeof window !== "undefined" ? loadSequenceProgress() : {}
+  );
   
   const [isGlitching, setIsGlitching] = useState(false);
   const [glitchText, setGlitchText] = useState("GAME DESIGNER");
   const [hoveredElement, setHoveredElement] = useState<string | null>(null);
+  // Refs for intro timer (avoids restarting 6s interval on every hover)
+  const activePowerRef = useRef<string | null>(null);
+  const hoveredSocialRef = useRef<string | null>(null);
+  const hoveredElementRef = useRef<string | null>(null);
   const [floatingChars, setFloatingChars] = useState<Array<{id: number, char: string, x: number, y: number, rotation: number}>>([]);
-  const [mouseTrailDots, setMouseTrailDots] = useState<Array<{id: number, x: number, y: number}>>([]);
+  const [mouseTrailDots, setMouseTrailDots] = useState<Array<{id: number, x: number, y: number, createdAt: number}>>([]);
   const [showCelebration, setShowCelebration] = useState(false);
   const [showAboutMe, setShowAboutMe] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -393,8 +404,16 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
   const randomGlitchRef = useRef<NodeJS.Timeout | null>(null);
   const floatingIdRef = useRef(0);
   const mouseTrailIdRef = useRef(0);
+  const lastDialogueTimeRef = useRef(0);
+  const pendingDialogueRef = useRef<{ text: string; id: string } | null>(null);
+  const dialogueCooldownRef = useRef<NodeJS.Timeout | null>(null);
   
   const hasEarnedMedal = discoveredDialogues.size >= 10;
+
+  // Keep refs in sync with state (for stable closures in timers)
+  useEffect(() => { activePowerRef.current = activePower; }, [activePower]);
+  useEffect(() => { hoveredSocialRef.current = hoveredSocial; }, [hoveredSocial]);
+  useEffect(() => { hoveredElementRef.current = hoveredElement; }, [hoveredElement]);
 
   // Save discovered dialogues to localStorage whenever they change
   useEffect(() => {
@@ -417,37 +436,66 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
     }
   }, [sequenceProgress]);
 
-  // Track dialogue discovery - ALWAYS triggers immediately
+  // Track dialogue discovery with minimum read time
+  // Always records discovery. If within cooldown, queues the dialogue — last queued wins.
   const showDialogueWithTracking = useCallback((text: string, id: string) => {
-    setCurrentDialogue(text);
-    setCurrentDialogueId(id);
-    setShowDialogue(true);
+    // Discovery is always tracked immediately (for counter)
     setDiscoveredDialogues(prev => new Set([...prev, id]));
+
+    const now = Date.now();
+    const elapsed = now - lastDialogueTimeRef.current;
+
+    const apply = (t: string, i: string) => {
+      lastDialogueTimeRef.current = Date.now();
+      pendingDialogueRef.current = null;
+      setCurrentDialogue(t);
+      setCurrentDialogueId(i);
+      setShowDialogue(true);
+    };
+
+    if (elapsed >= MIN_DIALOGUE_DISPLAY_MS) {
+      // Enough time has passed — show immediately
+      if (dialogueCooldownRef.current) {
+        clearTimeout(dialogueCooldownRef.current);
+        dialogueCooldownRef.current = null;
+      }
+      apply(text, id);
+    } else {
+      // Within cooldown — queue this dialogue (latest queued wins)
+      pendingDialogueRef.current = { text, id };
+      if (!dialogueCooldownRef.current) {
+        dialogueCooldownRef.current = setTimeout(() => {
+          if (pendingDialogueRef.current) {
+            apply(pendingDialogueRef.current.text, pendingDialogueRef.current.id);
+          }
+          dialogueCooldownRef.current = null;
+        }, MIN_DIALOGUE_DISPLAY_MS - elapsed);
+      }
+    }
   }, []);
 
   // NEW: Get dialogue from category using numbered-first, then random system
+  // Uses sequenceProgressRef for immediate read (no stale closure on rapid clicks)
   const getNextDialogue = useCallback((categoryKey: string): { text: string; id: string } => {
     const category = dialogueCategories[categoryKey];
     if (!category) {
       return { text: "* ...", id: `${categoryKey}-unknown` };
     }
-    
-    const currentIndex = sequenceProgress[categoryKey] || 0;
-    
+
+    const currentIndex = sequenceProgressRef.current[categoryKey] || 0;
+
     // Check if we still have numbered dialogues to show
     if (currentIndex < category.numbered.length) {
       const text = category.numbered[currentIndex];
       const id = `${categoryKey}-n-${currentIndex}`;
-      
-      // Advance sequence for next time
-      setSequenceProgress(prev => ({
-        ...prev,
-        [categoryKey]: currentIndex + 1,
-      }));
-      
+
+      // Advance sequence immediately via ref (no stale read on next call)
+      sequenceProgressRef.current = { ...sequenceProgressRef.current, [categoryKey]: currentIndex + 1 };
+      setSequenceProgress(prev => ({ ...prev, [categoryKey]: currentIndex + 1 }));
+
       return { text, id };
     }
-    
+
     // All numbered exhausted - pick random
     if (category.random.length > 0) {
       const randomIndex = Math.floor(Math.random() * category.random.length);
@@ -455,7 +503,7 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
       const id = `${categoryKey}-r-${randomIndex}`;
       return { text, id };
     }
-    
+
     // Fallback: replay numbered from start
     if (category.numbered.length > 0) {
       const randomIndex = Math.floor(Math.random() * category.numbered.length);
@@ -463,9 +511,9 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
       const id = `${categoryKey}-n-${randomIndex}`;
       return { text, id };
     }
-    
+
     return { text: "* ...", id: `${categoryKey}-empty` };
-  }, [sequenceProgress]);
+  }, []); // No deps — reads from ref for immediate, stale-free access
 
   // Spawn floating characters effect - use relative positioning
   const spawnFloatingChars = useCallback((clientX: number, clientY: number) => {
@@ -493,29 +541,27 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
   }, []);
 
   // Mouse trail effect - creates pixelated dots following cursor
+  // Uses timestamp-based cleanup instead of per-dot setTimeout (avoids dozens of stacked closures)
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (Math.random() > 0.12) return;
+
     const container = containerRef.current;
     if (!container) return;
-    
+
     const rect = container.getBoundingClientRect();
-    const relX = e.clientX - rect.left;
-    const relY = e.clientY - rect.top;
-    
-    // Only spawn occasionally for performance (every ~60ms throttled by animation frame)
-    if (Math.random() > 0.15) return;
-    
+    const now = Date.now();
     const newDot = {
       id: mouseTrailIdRef.current++,
-      x: relX,
-      y: relY,
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+      createdAt: now,
     };
-    
-    setMouseTrailDots(prev => [...prev.slice(-20), newDot]); // Keep max 20 dots
-    
-    // Remove dot after animation
-    setTimeout(() => {
-      setMouseTrailDots(prev => prev.filter(d => d.id !== newDot.id));
-    }, 800);
+
+    setMouseTrailDots(prev => {
+      // Purge dots older than 850ms in the same update — no extra timeouts needed
+      const fresh = prev.filter(d => now - d.createdAt < 850);
+      return [...fresh.slice(-19), newDot];
+    });
   }, []);
 
   // Glitch text effect - Enhanced Cyberpunk style distortion
@@ -695,18 +741,19 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
   }, []);
 
   // Initial dialogue cycle - auto-rotate intro messages using new system
+  // Timer only created once (no hover deps) — refs are used to check hover state inside
   useEffect(() => {
     const introCategory = dialogueCategories.intro;
     const totalIntro = introCategory.numbered.length + introCategory.random.length;
-    
+
     const timer = setInterval(() => {
-      if (!activePower && !hoveredSocial && !hoveredElement) {
+      // Read current hover state from refs (no stale closure, no timer restart on hover)
+      if (!activePowerRef.current && !hoveredSocialRef.current && !hoveredElementRef.current) {
         dialogueIndexRef.current = (dialogueIndexRef.current + 1) % totalIntro;
-        
-        // Get next dialogue from intro category
+
         let text: string;
         let newId: string;
-        
+
         if (dialogueIndexRef.current < introCategory.numbered.length) {
           text = introCategory.numbered[dialogueIndexRef.current];
           newId = `intro-n-${dialogueIndexRef.current}`;
@@ -715,20 +762,20 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
           text = introCategory.random[randomIdx];
           newId = `intro-r-${randomIdx}`;
         }
-        
+
         setCurrentDialogue(text);
         setCurrentDialogueId(newId);
         setShowDialogue(true);
         setDiscoveredDialogues(prev => new Set([...prev, newId]));
       }
     }, INTRO_ROTATE_INTERVAL_MS);
-    
+
     return () => {
       clearInterval(timer);
       if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
       if (glitchIntervalRef.current) clearInterval(glitchIntervalRef.current);
     };
-  }, [activePower, hoveredSocial, hoveredElement]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Discovery milestones
   const prevDiscoveredCountRef = useRef(0);
@@ -776,6 +823,30 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
     }
     prevDialogueCountRef.current = currentCount;
   }, [discoveredDialogues.size, showDialogueWithTracking]);
+
+  // Bridge events from header elements (logo, brand name, discover button) to dialogue system
+  useEffect(() => {
+    const onLogo = () => {
+      const { text, id } = getNextDialogue("logo");
+      showDialogueWithTracking(text, id);
+    };
+    const onNickname = () => {
+      const { text, id } = getNextDialogue("nickname");
+      showDialogueWithTracking(text, id);
+    };
+    const onDiscover = () => {
+      const { text, id } = getNextDialogue("discoverButton");
+      showDialogueWithTracking(text, id);
+    };
+    window.addEventListener("primordialrune:logo-clicked", onLogo);
+    window.addEventListener("primordialrune:nickname-clicked", onNickname);
+    window.addEventListener("primordialrune:discover-triggered", onDiscover);
+    return () => {
+      window.removeEventListener("primordialrune:logo-clicked", onLogo);
+      window.removeEventListener("primordialrune:nickname-clicked", onNickname);
+      window.removeEventListener("primordialrune:discover-triggered", onDiscover);
+    };
+  }, [getNextDialogue, showDialogueWithTracking]);
 
   const totalDialogues = TOTAL_DIALOGUE_COUNT;
   const foundDialogues = discoveredDialogues.size;
@@ -831,25 +902,22 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
         )}
       </AnimatePresence>
       
-      {/* Mouse trail dots effect - pixelated dots following cursor */}
-      <AnimatePresence>
-        {mouseTrailDots.map(dot => (
-          <motion.div
-            key={dot.id}
-            className="absolute w-2 h-2 rounded-sm pointer-events-none z-40"
-            style={{ 
-              left: dot.x, 
-              top: dot.y,
-              background: `rgba(78, 185, 159, ${0.5})`,
-              imageRendering: "pixelated",
-            }}
-            initial={{ opacity: 0.6, scale: 1 }}
-            animate={{ opacity: 0, scale: 0.3 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-          />
-        ))}
-      </AnimatePresence>
+      {/* Mouse trail dots effect - pixelated dots following cursor (no AnimatePresence — avoids 20 exit animations) */}
+      {mouseTrailDots.map(dot => (
+        <motion.div
+          key={dot.id}
+          className="absolute w-2 h-2 rounded-sm pointer-events-none z-40"
+          style={{
+            left: dot.x,
+            top: dot.y,
+            background: "rgba(78, 185, 159, 0.5)",
+            imageRendering: "pixelated",
+          }}
+          initial={{ opacity: 0.6, scale: 1 }}
+          animate={{ opacity: 0, scale: 0.3 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+        />
+      ))}
 
       {/* Celebration effect when all dialogues discovered */}
       <AnimatePresence>
@@ -1035,10 +1103,13 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
           : "flex-row p-4 md:p-6 lg:p-8"
       } items-center justify-center gap-3 md:gap-8 lg:gap-12 xl:gap-16 overflow-hidden`}>
         
-        {/* Left column - Title and Speech Bubble - add left padding for hamburger menu */}
-        <div className={`flex flex-col justify-center items-center md:items-start flex-shrink min-w-0 md:pl-8 lg:pl-4 ${
-          isMobile && !isLandscape ? "flex-grow-0 w-full" : ""
-        }`}>
+        {/* Left column - Title and Speech Bubble */}
+        <div
+          className={`flex flex-col justify-center items-center md:items-start md:pl-8 lg:pl-4 flex-shrink-0 ${
+            isMobile && !isLandscape ? "w-full" : ""
+          }`}
+          style={isMobile && !isLandscape ? undefined : { minWidth: "clamp(220px, 28vw, 420px)" }}
+        >
           {/* Title section - FIXED WIDTH to prevent layout shift */}
           <div 
             className="relative cursor-pointer text-center md:text-left"
@@ -1071,46 +1142,75 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
                 : "ゲームデザイナー"}
             </motion.div>
             
-            {/* Main glitching title - FIXED MIN-WIDTH to prevent layout shift */}
-            <motion.h1
-              className={`font-black tracking-tight ${
-                isMobile && !isLandscape 
-                  ? "text-4xl" 
-                  : "text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl"
-              } ${isGlitching ? "text-blood-orange" : "text-aquamarine"}`}
-              style={{ 
-                fontFamily: "var(--font-fk-grotesk-black)",
-                textShadow: isGlitching 
-                  ? "3px 0 #ec563b, -3px 0 #4eb99f, 0 0 30px rgba(236, 86, 59, 0.6)"
-                  : "0 4px 20px rgba(78, 185, 159, 0.3)",
-                minWidth: isMobile && !isLandscape ? "100%" : "auto",
-                textAlign: isMobile && !isLandscape ? "center" : "inherit",
-              }}
-              animate={{
-                x: isGlitching ? [0, -5, 8, -3, 5, 0] : 0,
-                skewX: isGlitching ? [0, 3, -3, 2, -1, 0] : 0,
-                scaleY: isGlitching ? [1, 1.02, 0.98, 1.01, 1] : 1,
-              }}
-              transition={{ duration: 0.25 }}
-            >
-              {glitchText}
-            </motion.h1>
+            {/* Main glitching title — invisible reference keeps the container at "GAME DESIGNER" width */}
+            <div className="relative">
+              {/* Invisible sizer: always renders the widest text so layout never shifts */}
+              <span
+                aria-hidden="true"
+                className={`block font-black tracking-tight select-none invisible ${
+                  isMobile && !isLandscape
+                    ? "text-4xl"
+                    : "text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl"
+                }`}
+                style={{ fontFamily: "var(--font-fk-grotesk-black)", whiteSpace: "nowrap" }}
+              >
+                GAME DESIGNER
+              </span>
+              {/* Actual animated title — absolutely overlaid */}
+              <motion.h1
+                className={`absolute top-0 left-0 right-0 font-black tracking-tight whitespace-nowrap ${
+                  isMobile && !isLandscape
+                    ? "text-4xl"
+                    : "text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl"
+                } ${isGlitching ? "text-blood-orange" : "text-aquamarine"}`}
+                style={{
+                  fontFamily: "var(--font-fk-grotesk-black)",
+                  textShadow: isGlitching
+                    ? "3px 0 #ec563b, -3px 0 #4eb99f, 0 0 30px rgba(236, 86, 59, 0.6)"
+                    : "0 4px 20px rgba(78, 185, 159, 0.3)",
+                  textAlign: isMobile && !isLandscape ? "center" : "left",
+                }}
+                animate={{
+                  x: isGlitching ? [0, -5, 8, -3, 5, 0] : 0,
+                  skewX: isGlitching ? [0, 3, -3, 2, -1, 0] : 0,
+                  scaleY: isGlitching ? [1, 1.02, 0.98, 1.01, 1] : 1,
+                }}
+                transition={{ duration: 0.25 }}
+              >
+                {glitchText}
+              </motion.h1>
+            </div>
             
             {/* Scanline overlay on text */}
-            <motion.div 
+            <motion.div
               className="absolute inset-0 pointer-events-none opacity-[0.08]"
               style={{
                 backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, var(--teal) 2px, var(--teal) 3px)",
                 mixBlendMode: "overlay",
               }}
             />
+
+            {/* Scanlines easter egg - tiny CRT indicator strip at the bottom of title */}
+            <motion.button
+              className="absolute -bottom-3 left-0 flex items-center gap-1 cursor-pointer z-10"
+              style={{ opacity: 0.18 }}
+              whileHover={{ opacity: 0.55 }}
+              onClick={(e) => { e.stopPropagation(); handleElementClick("scanlines", e); }}
+              title="CRT"
+              aria-label="CRT scanlines easter egg"
+            >
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="w-3 h-[2px] bg-teal" />
+              ))}
+              <span className="text-teal text-[7px] font-bold ml-0.5" style={{ fontFamily: "var(--font-fk-grotesk-black)" }}>CRT</span>
+            </motion.button>
           </div>
 
           {/* Persona 5 style speech bubble with nametag - Arrow CENTERED */}
           <div className={`relative ${isMobile && !isLandscape ? "mt-3" : "mt-6"}`}>
             <AnimatePresence mode="wait">
               {showDialogue && (
-                <SpeechBubble 
+                <SpeechBubble
                   key={currentDialogueId}
                   text={currentDialogue}
                   speakerName="PrimordialRune"
@@ -1461,8 +1561,9 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
                 key={social.id}
                 social={social}
                 index={index}
-                isHovered={hoveredSocial === social.id}
+                isActive={hoveredSocial === social.id}
                 onClick={(e) => { e.stopPropagation(); handleSocialClick(social.id, e); }}
+                onLeave={handleSocialLeave}
               />
             ))}
           </div>
@@ -1717,14 +1818,18 @@ interface MapPowerNodeProps {
 
 function MapPowerNode({ power, index, isActive, isDiscovered, onClick }: MapPowerNodeProps) {
   return (
-    <motion.button
-      className="absolute flex flex-col items-center"
+    // Static wrapper handles CSS positioning — Framer Motion never touches transform here
+    <div
+      className="absolute"
       style={{
-        // Simple percentage positioning within the map container
         left: `${power.mapPosition.x}%`,
         top: `${power.mapPosition.y}%`,
         transform: "translate(-50%, -50%)",
+        zIndex: isActive ? 10 : 1,
       }}
+    >
+    <motion.button
+      className="flex flex-col items-center"
       onClick={onClick}
       initial={{ opacity: 0, scale: 0 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -1814,90 +1919,76 @@ function MapPowerNode({ power, index, isActive, isDiscovered, onClick }: MapPowe
         )}
       </AnimatePresence>
     </motion.button>
+    </div>
   );
 }
 
-// Enhanced social button - NOW CLICK-BASED
+// Enhanced social button - hover shows visual feedback, click shows dialogue
 interface SocialButtonProps {
   social: typeof socialLinks[0];
   index: number;
-  isHovered: boolean;
+  isActive: boolean;   // was clicked — persists as long as mouse stays on it
   onClick: (e: React.MouseEvent) => void;
+  onLeave: () => void;
 }
 
-function SocialButton({ social, index, isHovered, onClick }: SocialButtonProps) {
+function SocialButton({ social, index, isActive, onClick, onLeave }: SocialButtonProps) {
+  const [isHovered, setIsHovered] = useState(false);
+  // Combined visual state: active (clicked) OR hovered
+  const lit = isActive || isHovered;
+
   return (
     <motion.a
       href={social.url}
       target="_blank"
       rel="noopener noreferrer"
-      className={`relative flex items-center gap-2 px-3 py-2 rounded-lg group
-        ${isHovered 
-          ? "bg-blood-orange" 
-          : "bg-peacock-blue/70 hover:bg-peacock-blue/90"
-        }
-      `}
+      className="relative flex items-center gap-2.5 px-3 py-2 rounded-lg overflow-hidden"
       style={{
-        border: isHovered ? "2px solid var(--gold)" : "2px solid rgba(78, 185, 159, 0.5)",
-        boxShadow: isHovered 
-          ? "0 4px 20px rgba(236, 86, 59, 0.5)"
-          : "0 2px 10px rgba(0, 0, 0, 0.3)",
+        background: lit ? "var(--blood-orange)" : "rgba(16, 47, 65, 0.7)",
+        border: lit ? "2px solid var(--gold)" : "2px solid rgba(78, 185, 159, 0.4)",
+        boxShadow: lit
+          ? "0 4px 20px rgba(236, 86, 59, 0.45), 0 0 0 1px rgba(250,219,104,0.2)"
+          : "0 2px 8px rgba(0,0,0,0.25)",
         minWidth: "140px",
+        transition: "background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease",
       }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => { setIsHovered(false); onLeave(); }}
       onClick={(e) => onClick(e)}
       initial={{ opacity: 0, x: 20 }}
-      animate={{ 
-        opacity: 1,
-        x: isHovered ? -4 : 0,
-      }}
-      transition={{
-        ...persona5Spring,
-        delay: 2.5 + index * 0.1,
-      }}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.95 }}
+      animate={{ opacity: 1, x: lit ? -3 : 0 }}
+      transition={{ ...persona5Spring, delay: 2.5 + index * 0.1 }}
+      whileTap={{ scale: 0.96 }}
     >
-      {/* Monochromatic Icon */}
-      <span className="text-base font-bold text-cream">
-        {social.icon}
-      </span>
-      
-      {/* Label and tagline - MORE VISIBLE */}
-      <div className="flex flex-col min-w-0">
-        <span 
-          className="text-xs font-black text-cream"
-          style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
-        >
+      {/* Icon */}
+      <span className="text-base font-bold text-cream flex-shrink-0">{social.icon}</span>
+
+      {/* Label + tagline */}
+      <div className="flex flex-col min-w-0 flex-1">
+        <span className="text-xs font-black text-cream leading-tight" style={{ fontFamily: "var(--font-fk-grotesk-black)" }}>
           {social.label}
         </span>
-        <span 
-          className={`text-[9px] ${isHovered ? "text-cream/80" : "text-cream/70"}`}
-        >
-          {social.tagline}
-        </span>
+        <span className="text-[9px] text-cream/65 leading-tight">{social.tagline}</span>
       </div>
-      
-      {/* Arrow indicator */}
-      <motion.span 
-        className={`ml-auto text-xs ${isHovered ? "text-cream" : "text-cream/80"}`}
-        animate={{ x: isHovered ? 3 : 0 }}
+
+      {/* Arrow */}
+      <span
+        className="ml-auto text-xs text-cream/70 flex-shrink-0"
+        style={{ transform: lit ? "translateX(2px)" : "none", transition: "transform 0.15s ease" }}
       >
         →
-      </motion.span>
-      
-      {/* Shine effect */}
-      <motion.div
-        className="absolute inset-0 rounded-lg overflow-hidden pointer-events-none"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: isHovered ? 1 : 0 }}
-      >
+      </span>
+
+      {/* Shimmer on hover */}
+      {lit && (
         <motion.div
-          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.12) 50%, transparent 60%)" }}
           initial={{ x: "-100%" }}
-          animate={{ x: isHovered ? "100%" : "-100%" }}
-          transition={{ duration: 0.5 }}
+          animate={{ x: "200%" }}
+          transition={{ duration: 0.55, ease: "easeOut" }}
         />
-      </motion.div>
+      )}
     </motion.a>
   );
 }
