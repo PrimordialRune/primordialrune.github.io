@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Project } from "@/types/project";
 import { getProjectsByCategory, getFeaturedProjects, getAllProjects } from "@/lib/projects";
 import { seededRandom } from "@/lib/utils";
-import { useTheme } from "@/lib/ThemeContext";
+
 
 // Custom hook for responsive detection
 function useResponsive() {
@@ -61,7 +61,7 @@ function DiscoverButton({ onDiscover, onAnimationStart }: { onDiscover: () => vo
     setTimeout(() => {
       onDiscover();
       setIsAnimating(false);
-    }, 800);
+    }, 500);
   };
 
   // Calculate 3D tilt based on mouse position
@@ -339,8 +339,6 @@ export default function Home() {
   const [isDiscoverMode, setIsDiscoverMode] = useState(false);
   const [showCRTNoise, setShowCRTNoise] = useState(false);
   const { isMobile, isLandscape } = useResponsive();
-  const { theme, toggleTheme, themeLabel } = useTheme();
-
   // Load all projects on mount for discover feature
   useEffect(() => {
     async function loadAllProjects() {
@@ -383,7 +381,7 @@ export default function Home() {
   const handleDiscoverAnimationStart = useCallback(() => {
     setShowCRTNoise(true);
     window.dispatchEvent(new CustomEvent("primordialrune:discover-triggered"));
-    setTimeout(() => setShowCRTNoise(false), 600);
+    setTimeout(() => setShowCRTNoise(false), 400);
   }, []);
 
   const handleDiscover = useCallback(() => {
@@ -466,7 +464,7 @@ export default function Home() {
             {/* Scanline Effect Overlay - Animated */}
             <div className="absolute inset-0 pointer-events-none z-20">
               <div
-                className="absolute inset-0 opacity-[0.08] scanline-overlay"
+                className="absolute inset-0 opacity-[0.08]"
                 style={{
                   backgroundImage:
                     "repeating-linear-gradient(0deg, transparent, transparent 2px, var(--teal) 2px, var(--teal) 4px)",
@@ -491,18 +489,18 @@ export default function Home() {
               }}
               transition={{
                 type: "spring",
-                damping: 25,
-                stiffness: 250,
-                mass: 0.8,
+                damping: 30,
+                stiffness: 350,
+                mass: 0.6,
               }}
             >
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeCategory}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
                   className="w-full h-full"
                 >
                   {/* Hero Section - Interactive keyword carousel */}
@@ -535,33 +533,13 @@ export default function Home() {
               </AnimatePresence>
             </motion.div>
 
-            {/* Footer Signature — Theme Toggle */}
-            <motion.button
-              onClick={toggleTheme}
-              className="absolute bottom-4 sm:bottom-6 md:bottom-8 right-4 sm:right-6 md:right-10 z-20 flex flex-col items-end gap-1 cursor-pointer group"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              title={`Switch to ${theme === "industrial" ? "Retro Wave" : "Industrial"} theme`}
-              aria-label={`Current theme: ${themeLabel}. Click to switch.`}
+            {/* Footer Signature */}
+            <div
+              className="absolute bottom-4 sm:bottom-6 md:bottom-8 right-4 sm:right-6 md:right-10 text-aquamarine/40 text-sm md:text-lg tracking-wider z-20"
+              style={{ fontFamily: "var(--font-gen-ei-kiwami)" }}
             >
-              <motion.span
-                className="text-aquamarine/40 text-sm md:text-lg tracking-wider group-hover:text-aquamarine/80 transition-colors"
-                style={{ fontFamily: "var(--font-gen-ei-kiwami)" }}
-              >
-                原初のルーン
-              </motion.span>
-              <motion.span
-                key={themeLabel}
-                className="text-[9px] md:text-[11px] tracking-[0.3em] text-aquamarine/30 group-hover:text-aquamarine/70 transition-colors"
-                style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -4 }}
-                transition={{ duration: 0.3 }}
-              >
-                {themeLabel}
-              </motion.span>
-            </motion.button>
+              原初のルーン
+            </div>
           </div>
         </div>
       </main>
