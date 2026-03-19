@@ -107,9 +107,6 @@ export default function ProjectModal({ project, onClose, isDiscoverMode = false 
 
   if (!project) return null;
 
-  // Color scheme based on discover mode
-  const borderColor = isDiscoverMode ? "var(--blood-orange)" : "var(--teal)";
-
   const nextImage = () => {
     setCurrentImageIndex((prev) =>
       prev === project.images.length - 1 ? 0 : prev + 1

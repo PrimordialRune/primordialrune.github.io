@@ -184,8 +184,8 @@ export default function Navigation({
                   <motion.div
                     key={`scanline-${item.id}`}
                     animate={{
-                      opacity: [0.7, 1, 0.7],
-                      scaleX: [1, 1.05, 1],
+                      opacity: item.id === activeId ? [0.85, 1, 0.85] : [0.5, 0.7, 0.5],
+                      scaleX: [1, 1.04, 1],
                     }}
                     transition={{
                       opacity: {
@@ -201,7 +201,9 @@ export default function Navigation({
                         ease: "easeInOut",
                       },
                     }}
-                    className="absolute inset-0 bg-blood-orange rounded-full"
+                    className={`absolute inset-0 rounded-full ${
+                      item.id === activeId ? "bg-blood-orange" : "bg-blood-orange/60"
+                    }`}
                   />
                 )}
 

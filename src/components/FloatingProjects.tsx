@@ -388,26 +388,24 @@ export default function FloatingProjects({
         </svg>
         
         {/* Floating particles - spread across screen */}
-        {[...Array(15)].map((_, i) => (
+        {[...Array(8)].map((_, i) => (
           <motion.div
             key={`floating-particle-${i}`}
             className={`absolute rounded-full ${i % 3 === 0 ? "bg-aquamarine/20" : i % 3 === 1 ? "bg-blood-orange/15" : "bg-gold/15"}`}
             style={{
               width: 2 + (i % 3) * 2,
               height: 2 + (i % 3) * 2,
-              left: `${5 + (i * 6)}%`,
-              top: `${10 + ((i * 17) % 70)}%`,
+              left: `${8 + (i * 11)}%`,
+              top: `${12 + ((i * 23) % 70)}%`,
             }}
             animate={{
-              y: [0, -20, 0],
-              x: [0, (i % 2 === 0 ? 8 : -8), 0],
-              opacity: [0.15, 0.4, 0.15],
-              scale: [1, 1.15, 1],
+              y: [0, -18, 0],
+              opacity: [0.12, 0.35, 0.12],
             }}
             transition={{
-              duration: 5 + (i % 5),
+              duration: 6 + (i % 4),
               repeat: Infinity,
-              delay: i * 0.3,
+              delay: i * 0.5,
               ease: "easeInOut",
             }}
           />

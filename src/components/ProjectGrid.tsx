@@ -13,7 +13,7 @@ interface ProjectGridProps {
 const ITEMS_PER_PAGE = 6;
 
 // Height that matches the hamburger menu height (for collision prevention)
-const TITLE_SECTION_HEIGHT = "clamp(120px, 6vh, 60px)";
+const TITLE_SECTION_HEIGHT = "clamp(40px, 6vh, 80px)";
 
 export default function ProjectGrid({
   projects,
@@ -79,26 +79,24 @@ export default function ProjectGrid({
         </svg>
         
         {/* Floating particles - spread across screen */}
-        {[...Array(12)].map((_, i) => (
+        {[...Array(8)].map((_, i) => (
           <motion.div
             key={`archive-particle-${i}`}
             className={`absolute rounded-full ${i % 3 === 0 ? "bg-aquamarine/20" : i % 3 === 1 ? "bg-blood-orange/15" : "bg-gold/15"}`}
             style={{
               width: 2 + (i % 3) * 2,
               height: 2 + (i % 3) * 2,
-              left: `${8 + (i * 7.5)}%`,
-              top: `${15 + ((i * 17) % 65)}%`,
+              left: `${10 + (i * 11)}%`,
+              top: `${18 + ((i * 19) % 60)}%`,
             }}
             animate={{
-              y: [0, -15, 0],
-              x: [0, (i % 2 === 0 ? 6 : -6), 0],
-              opacity: [0.12, 0.35, 0.12],
-              scale: [1, 1.1, 1],
+              y: [0, -14, 0],
+              opacity: [0.1, 0.3, 0.1],
             }}
             transition={{
-              duration: 6 + (i % 4),
+              duration: 7 + (i % 3),
               repeat: Infinity,
-              delay: i * 0.25,
+              delay: i * 0.5,
               ease: "easeInOut",
             }}
           />

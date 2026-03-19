@@ -736,10 +736,6 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
     showDialogueWithTracking(text, id);
   }, [triggerGlitch, showDialogueWithTracking, getNextDialogue]);
 
-  const handleElementLeave = useCallback(() => {
-    setHoveredElement(null);
-  }, []);
-
   // Initial dialogue cycle - auto-rotate intro messages using new system
   // Timer only created once (no hover deps) — refs are used to check hover state inside
   useEffect(() => {
@@ -772,10 +768,13 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
 
     return () => {
       clearInterval(timer);
-      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
-      if (glitchIntervalRef.current) clearInterval(glitchIntervalRef.current);
+      // Capture refs at cleanup time to avoid stale ref warning
+      const idleTimer = idleTimerRef.current;
+      const glitchInterval = glitchIntervalRef.current;
+      if (idleTimer) clearTimeout(idleTimer);
+      if (glitchInterval) clearInterval(glitchInterval);
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   // Discovery milestones
   const prevDiscoveredCountRef = useRef(0);
@@ -996,55 +995,50 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
           <rect width="100" height="100" fill="url(#bgGrid)" />
         </svg>
         
-        {/* Floating particles - spread across screen */}
-        {[...Array(20)].map((_, i) => (
+        {/* Floating particles - reduced count for performance */}
+        {[...Array(9)].map((_, i) => (
           <motion.div
             key={`particle-${i}`}
-            className={`absolute rounded-full ${i % 3 === 0 ? "bg-aquamarine/30" : i % 3 === 1 ? "bg-blood-orange/20" : "bg-gold/20"}`}
+            className={`absolute rounded-full ${i % 3 === 0 ? "bg-aquamarine/25" : i % 3 === 1 ? "bg-blood-orange/15" : "bg-gold/15"}`}
             style={{
               width: 2 + (i % 3) * 2,
               height: 2 + (i % 3) * 2,
-              left: `${5 + (i * 4.5)}%`,
-              top: `${10 + ((i * 17) % 70)}%`,
+              left: `${8 + (i * 9.5)}%`,
+              top: `${15 + ((i * 23) % 65)}%`,
             }}
             animate={{
-              y: [0, -30, 0],
-              x: [0, (i % 2 === 0 ? 10 : -10), 0],
-              opacity: [0.2, 0.6, 0.2],
-              scale: [1, 1.2, 1],
+              y: [0, -20, 0],
+              opacity: [0.15, 0.45, 0.15],
             }}
             transition={{
-              duration: 4 + (i % 5),
+              duration: 5 + (i % 4),
               repeat: Infinity,
-              delay: i * 0.2,
+              delay: i * 0.5,
               ease: "easeInOut",
             }}
           />
         ))}
         
-        {/* Occasional shooting stars */}
-        {[...Array(3)].map((_, i) => (
-          <motion.div
-            key={`star-${i}`}
-            className="absolute w-1 h-1 bg-gold rounded-full"
-            style={{
-              top: `${10 + i * 25}%`,
-              left: "-5%",
-              boxShadow: "0 0 6px rgba(250, 219, 104, 0.8), -10px 0 20px rgba(250, 219, 104, 0.4)",
-            }}
-            animate={{
-              x: ["0vw", "110vw"],
-              opacity: [0, 1, 1, 0],
-            }}
-            transition={{
-              duration: 2 + i * 0.5,
-              repeat: Infinity,
-              repeatDelay: 8 + i * 4,
-              delay: i * 5,
-              ease: "easeOut",
-            }}
-          />
-        ))}
+        {/* Shooting star - occasional, subtle */}
+        <motion.div
+          className="absolute w-1 h-1 bg-gold rounded-full"
+          style={{
+            top: "22%",
+            left: "-2%",
+            boxShadow: "0 0 4px rgba(250, 219, 104, 0.7), -8px 0 14px rgba(250, 219, 104, 0.3)",
+          }}
+          animate={{
+            x: ["0vw", "108vw"],
+            opacity: [0, 1, 1, 0],
+          }}
+          transition={{
+            duration: 2.5,
+            repeat: Infinity,
+            repeatDelay: 18,
+            delay: 3,
+            ease: "easeOut",
+          }}
+        />
         
         {/* Random glitch lines */}
         <motion.div
@@ -1190,24 +1184,32 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
               }}
             />
 
-            {/* Scanlines easter egg - tiny CRT indicator strip at the bottom of title */}
+            {/* Scanlines easter egg — inline on mobile, absolute on desktop */}
             <motion.button
-              className="absolute -bottom-3 left-0 flex items-center gap-1 cursor-pointer z-10"
-              style={{ opacity: 0.18 }}
-              whileHover={{ opacity: 0.55 }}
+              className={`flex items-center gap-[3px] cursor-pointer ${
+                isMobile && !isLandscape
+                  ? "mt-1.5 relative"
+                  : "absolute -bottom-4 left-0"
+              }`}
+              style={{ opacity: 0.22 }}
+              whileHover={{ opacity: 0.6 }}
+              whileTap={{ scale: 0.95 }}
               onClick={(e) => { e.stopPropagation(); handleElementClick("scanlines", e); }}
               title="CRT"
               aria-label="CRT scanlines easter egg"
             >
               {[...Array(8)].map((_, i) => (
-                <div key={i} className="w-3 h-[2px] bg-teal" />
+                <div key={i} className="w-3 h-[2px] bg-teal rounded-full" />
               ))}
-              <span className="text-teal text-[7px] font-bold ml-0.5" style={{ fontFamily: "var(--font-fk-grotesk-black)" }}>CRT</span>
+              <span className="text-teal text-[7px] font-bold ml-0.5 tracking-widest" style={{ fontFamily: "var(--font-fk-grotesk-black)" }}>CRT</span>
             </motion.button>
           </div>
 
-          {/* Persona 5 style speech bubble with nametag - Arrow CENTERED */}
-          <div className={`relative ${isMobile && !isLandscape ? "mt-3" : "mt-6"}`}>
+          {/* Persona 5 style speech bubble — min-height prevents layout jumps between dialogues */}
+          <div
+            className={`relative ${isMobile && !isLandscape ? "mt-3" : "mt-6"}`}
+            style={{ minHeight: isMobile && !isLandscape ? "110px" : "130px" }}
+          >
             <AnimatePresence mode="wait">
               {showDialogue && (
                 <SpeechBubble
@@ -1371,9 +1373,10 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
                     transition={{ delay: 2.5 + index * 0.08 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={(e) => { e.stopPropagation(); handleSocialClick(social.id, e); }}
+                    onMouseLeave={() => handleSocialLeave()}
                   >
                     <span className="text-lg text-cream">{social.icon}</span>
-                    <span 
+                    <span
                       className="text-xs font-black text-cream"
                       style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
                     >
@@ -1424,7 +1427,7 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
               </motion.p>
               
               {/* Minimap container */}
-              <div className="relative w-[180px] h-[180px] sm:w-[220px] sm:h-[220px] md:w-[260px] md:h-[260px] lg:w-[300px] lg:h-[300px]">
+              <div className="relative w-[200px] h-[200px] sm:w-[230px] sm:h-[230px] md:w-[270px] md:h-[270px] lg:w-[320px] lg:h-[320px]">
                 {/* Map background */}
                 <div 
                   className="absolute inset-0 rounded-2xl"
@@ -1435,8 +1438,8 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
                   }}
                 />
 
-                {/* Inner content area - all positioned elements go here */}
-                <div className="absolute inset-3 sm:inset-4 rounded-xl overflow-hidden">
+                {/* Inner content area - overflow-visible so node labels don't clip */}
+                <div className="absolute inset-3 sm:inset-4 rounded-xl overflow-visible">
                   {/* Orbital guide lines */}
                   <svg className="absolute inset-0 w-full h-full opacity-40 pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
                     <ellipse cx="50" cy="50" rx="44" ry="32" fill="none" stroke="rgba(78, 185, 159, 0.38)" strokeWidth="1" strokeDasharray="7 6" />
@@ -1540,19 +1543,19 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
 
         {/* Right column - Social section - MORE VISIBLE + ABOUT ME */}
         <div className="flex flex-col justify-center items-center gap-3 flex-shrink min-w-[150px] lg:min-w-[180px] xl:min-w-[200px]">
-          <motion.div 
+          <motion.div
             className="text-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 2.5 }}
           >
-            <p 
+            <p
               className="text-cream/80 text-xs lg:text-sm tracking-widest mb-1"
               style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
             >
               CHANNELS
             </p>
-            <p className="text-cream/50 text-[10px] lg:text-xs">click to see message</p>
+            <p className="text-cream/40 text-[9px] tracking-wider">hover · click to connect</p>
           </motion.div>
           
           <div className="flex flex-col gap-2 lg:gap-2.5">
@@ -1604,24 +1607,32 @@ export default function HeroSection({ isMobile = false, isLandscape = false }: H
         )}
       </div>
 
-      {/* Interactive decorative corners - easter eggs */}
+      {/* Interactive decorative corners - easter eggs (44px min touch target) */}
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
         {[
-          { pos: "top-4 left-4", rotate: 0 },
-          { pos: "top-4 right-4", rotate: 90 },
-          { pos: "bottom-4 right-4", rotate: 180 },
-          { pos: "bottom-4 left-4", rotate: 270 },
+          { pos: "top-2 left-2 sm:top-4 sm:left-4", rotate: 0 },
+          { pos: "top-2 right-2 sm:top-4 sm:right-4", rotate: 90 },
+          { pos: "bottom-2 right-2 sm:bottom-4 sm:right-4", rotate: 180 },
+          { pos: "bottom-2 left-2 sm:bottom-4 sm:left-4", rotate: 270 },
         ].map((corner, i) => (
           <motion.div
             key={`corner-${i}`}
-            className={`absolute ${corner.pos} w-8 h-8 pointer-events-auto cursor-pointer`}
-            style={{ transform: `rotate(${corner.rotate}deg)` }}
-            animate={{ opacity: [0.3, 0.5, 0.3] }}
+            className={`absolute ${corner.pos} pointer-events-auto cursor-pointer flex items-start`}
+            style={{
+              transform: `rotate(${corner.rotate}deg)`,
+              width: "clamp(44px, 2.5rem, 44px)",
+              height: "clamp(44px, 2.5rem, 44px)",
+              padding: "8px",
+            }}
+            animate={{ opacity: [0.35, 0.55, 0.35] }}
             transition={{ duration: 3, repeat: Infinity, delay: i * 0.75 }}
             onClick={(e) => handleElementClick("corner", e)}
           >
-            <div className="w-full h-[2px] bg-blood-orange/50" />
-            <div className="w-[2px] h-full bg-blood-orange/50" />
+            {/* The visible bracket shape sits in the top-left of the touch target */}
+            <div className="relative w-6 h-6">
+              <div className="absolute top-0 left-0 w-full h-[2px] bg-blood-orange/60" />
+              <div className="absolute top-0 left-0 w-[2px] h-full bg-blood-orange/60" />
+            </div>
           </motion.div>
         ))}
       </div>

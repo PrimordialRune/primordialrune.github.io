@@ -404,7 +404,7 @@ export default function Home() {
         <div className="flex items-center gap-2 md:gap-3">
           <svg
             viewBox="0 0 554.72 555"
-            className="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 cursor-pointer"
+            className="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 cursor-pointer transition-opacity hover:opacity-75 active:opacity-50"
             onClick={() => window.dispatchEvent(new CustomEvent("primordialrune:logo-clicked"))}
             aria-label="Logo easter egg"
           >
@@ -423,14 +423,14 @@ export default function Home() {
           </svg>
           <div className="flex items-center gap-1 md:gap-2">
             <span
-              className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-blood-orange italic leading-none cursor-pointer"
+              className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-blood-orange italic leading-none cursor-pointer transition-opacity hover:opacity-75 active:opacity-50 select-none"
               style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
               onClick={() => window.dispatchEvent(new CustomEvent("primordialrune:nickname-clicked"))}
             >
               PRIMORDIAL
             </span>
             <span
-              className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-peacock-blue italic leading-none cursor-pointer"
+              className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-peacock-blue italic leading-none cursor-pointer transition-opacity hover:opacity-75 active:opacity-50 select-none"
               style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
               onClick={() => window.dispatchEvent(new CustomEvent("primordialrune:nickname-clicked"))}
             >
@@ -552,9 +552,11 @@ export default function Home() {
       <div className="fixed bottom-0 left-0 right-0 h-[var(--stripe-height)] bg-blood-orange z-50" />
 
       {/* Project Modal */}
-      {selectedProject && (
-        <ProjectModal project={selectedProject} onClose={closeModal} isDiscoverMode={isDiscoverMode} />
-      )}
+      <AnimatePresence>
+        {selectedProject && (
+          <ProjectModal key={selectedProject.slug} project={selectedProject} onClose={closeModal} isDiscoverMode={isDiscoverMode} />
+        )}
+      </AnimatePresence>
 
       {/* CSS Animation for Scanlines */}
       <style jsx>{`
