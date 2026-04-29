@@ -131,7 +131,22 @@ export default function Navigation({
         }}
       >
         {/* Navigation Container - Morphs from scanlines to full nav */}
-        <div className="flex flex-col gap-1.5 md:gap-2 flex-1 overflow-hidden">
+        <div className="relative flex flex-col gap-1.5 md:gap-2 flex-1 overflow-hidden">
+          {/* Full-area hit target when closed — makes gaps between scanlines clickable */}
+          {!isOpen && (
+            <button
+              className={`absolute inset-0 z-10 ${useOverlayMode ? "pointer-events-auto" : ""}`}
+              onClick={() => toggleNav(true)}
+              aria-label="Open navigation"
+              tabIndex={-1}
+              style={{
+                background: "transparent",
+                border: "none",
+                cursor: "pointer",
+                WebkitTapHighlightColor: "transparent",
+              }}
+            />
+          )}
           {navItems.map((item, index) => {
             const isActive = item.id === activeId;
 

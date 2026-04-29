@@ -264,13 +264,14 @@ export default function FloatingProjects({
   }, [projects, layout.cardWidth, dimensions, getInitialPosition, checkCollision]);
 
   // Handle drag end - save new position and resolve collisions
-  const handleDragEnd = useCallback((slug: string, info: PanInfo, index: number) => {
-    // Get the current position (either saved or initial)
-    const currentPos = getPosition(index, slug);
-    // Use info.point for absolute position when available, fallback to offset calculation
-    // info.offset gives us how far the element moved from its original position during drag
-    const newX = currentPos.x + info.offset.x;
-    const newY = currentPos.y + info.offset.y;
+  const handleDragEnd = useCallback((slug: string, info: PanInfo) => {
+    // Use the absolute pointer position converted to container-local coordinates.
+    // Using info.offset + currentPos can drift due to the floating animation transform
+    // being applied on an inner element — info.point is always accurate.
+    if (!containerRef.current) return;
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const newX = info.point.x - containerRect.left;
+    const newY = info.point.y - containerRect.top;
 
     // Clamp position to container bounds with proper padding
     const padding = 60;
@@ -316,7 +317,7 @@ export default function FloatingProjects({
     setShowMoveHint(false);
     setIsDragging(false);
     setDraggedIndex(null);
-  }, [getPosition, dimensions, resolveCollisions]);
+  }, [dimensions, resolveCollisions]);
 
   // Long press handlers
   const handlePointerDown = useCallback((index: number) => {
@@ -387,9 +388,9 @@ export default function FloatingProjects({
           <rect width="100" height="100" fill="url(#floatingGrid)" />
         </svg>
         
-        {/* Floating particles - spread across screen */}
+        {/* Floating particles — CSS-animated to stay off the JS thread */}
         {[...Array(8)].map((_, i) => (
-          <motion.div
+          <div
             key={`floating-particle-${i}`}
             className={`absolute rounded-full ${i % 3 === 0 ? "bg-aquamarine/20" : i % 3 === 1 ? "bg-blood-orange/15" : "bg-gold/15"}`}
             style={{
@@ -397,60 +398,51 @@ export default function FloatingProjects({
               height: 2 + (i % 3) * 2,
               left: `${8 + (i * 11)}%`,
               top: `${12 + ((i * 23) % 70)}%`,
-            }}
-            animate={{
-              y: [0, -18, 0],
-              opacity: [0.12, 0.35, 0.12],
-            }}
-            transition={{
-              duration: 6 + (i % 4),
-              repeat: Infinity,
-              delay: i * 0.5,
-              ease: "easeInOut",
+              animation: `fp-float ${6 + (i % 4)}s ease-in-out ${i * 0.5}s infinite`,
             }}
           />
         ))}
-        
-        {/* Ambient glow orbs */}
-        <motion.div
+
+        {/* Ambient glow orbs — CSS-animated */}
+        <div
           className="absolute w-32 h-32 rounded-full"
           style={{
             background: "radial-gradient(circle, rgba(78, 185, 159, 0.06) 0%, transparent 70%)",
             top: "15%",
             right: "15%",
+            animation: "fp-orb1 10s ease-in-out infinite",
           }}
-          animate={{
-            scale: [1, 1.15, 1],
-            opacity: [0.4, 0.6, 0.4],
-          }}
-          transition={{ duration: 10, repeat: Infinity }}
         />
-        <motion.div
+        <div
           className="absolute w-24 h-24 rounded-full"
           style={{
             background: "radial-gradient(circle, rgba(236, 86, 59, 0.04) 0%, transparent 70%)",
             bottom: "25%",
             left: "20%",
+            animation: "fp-orb2 12s ease-in-out 3s infinite",
           }}
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.3, 0.5, 0.3],
-          }}
-          transition={{ duration: 12, repeat: Infinity, delay: 3 }}
         />
       </div>
       
       {/* Slow-moving scanline overlay for retro CRT effect */}
       <div className="absolute inset-0 pointer-events-none z-10">
         <div
-          className="absolute inset-0 opacity-[0.06]"
+          className="absolute inset-0 opacity-[0.05]"
           style={{
             backgroundImage:
-              "repeating-linear-gradient(0deg, transparent, transparent 3px, var(--teal) 3px, var(--teal) 5px)",
+              "repeating-linear-gradient(0deg, transparent, transparent 2px, var(--teal) 2px, var(--teal) 4px)",
             animation: "floatingScanlines 20s linear infinite",
           }}
         />
       </div>
+
+      {/* CRT vignette — peripheral darkening toward corners */}
+      <div
+        className="absolute inset-0 pointer-events-none z-10"
+        style={{
+          background: "radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.38) 100%)",
+        }}
+      />
 
       <AnimatePresence>
         {showMoveHint && (
@@ -500,6 +492,7 @@ export default function FloatingProjects({
                 transform: "translate(-50%, -50%)",
                 zIndex: isBeingDragged ? 100 : 1,
                 touchAction: "none",
+                willChange: isBeingDragged ? "transform" : "auto",
               }}
               initial={isLanding 
                 ? { opacity: 1, scale: 1, y: -8 }  // Landing: start slightly elevated
@@ -531,7 +524,7 @@ export default function FloatingProjects({
               dragConstraints={containerRef}
               dragElastic={0.1}
               dragMomentum={false}
-              onDragEnd={(_, info) => handleDragEnd(project.slug, info, index)}
+              onDragEnd={(_, info) => handleDragEnd(project.slug, info)}
               onPointerDown={() => handlePointerDown(index)}
               onPointerUp={handlePointerUp}
               onPointerLeave={handlePointerUp}
@@ -701,15 +694,23 @@ export default function FloatingProjects({
         })}
       </div>
 
-      {/* CSS Animation for Floating Scanlines */}
+      {/* CSS Animations */}
       <style jsx>{`
         @keyframes floatingScanlines {
-          0% {
-            transform: translateY(0);
-          }
-          100% {
-            transform: translateY(8px);
-          }
+          0% { transform: translateY(0); }
+          100% { transform: translateY(8px); }
+        }
+        @keyframes fp-float {
+          0%, 100% { transform: translateY(0); opacity: 0.12; }
+          50% { transform: translateY(-18px); opacity: 0.35; }
+        }
+        @keyframes fp-orb1 {
+          0%, 100% { transform: scale(1); opacity: 0.4; }
+          50% { transform: scale(1.15); opacity: 0.6; }
+        }
+        @keyframes fp-orb2 {
+          0%, 100% { transform: scale(1); opacity: 0.3; }
+          50% { transform: scale(1.2); opacity: 0.5; }
         }
       `}</style>
     </div>
