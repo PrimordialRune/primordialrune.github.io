@@ -7,7 +7,6 @@ import { useState, useMemo } from "react";
 interface ProjectGridProps {
   projects: Project[];
   onProjectClick: (project: Project) => void;
-  navOpen?: boolean;
 }
 
 const ITEMS_PER_PAGE = 6;
@@ -18,7 +17,6 @@ const TITLE_SECTION_HEIGHT = "clamp(40px, 6vh, 80px)";
 export default function ProjectGrid({
   projects,
   onProjectClick,
-  navOpen = false,
 }: ProjectGridProps) {
   const [currentPage, setCurrentPage] = useState(0);
 
@@ -54,19 +52,8 @@ export default function ProjectGrid({
   }
 
   return (
-    <motion.div 
-      className="w-full h-full flex flex-col relative overflow-hidden"
-      animate={{
-        paddingLeft: navOpen ? "clamp(3rem, 5vw, 4rem)" : "clamp(1rem, 2vw, 2rem)",
-      }}
-      transition={{
-        type: "spring",
-        damping: 25,
-        stiffness: 250,
-        mass: 0.8,
-      }}
-    >
-      {/* Background decorative elements - matching HeroSection */}
+    <div className="w-full h-full flex flex-col relative overflow-hidden">
+      {/* Background decorative elements */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         {/* Grid pattern */}
         <svg className="absolute inset-0 w-full h-full opacity-[0.02]" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -77,10 +64,10 @@ export default function ProjectGrid({
           </defs>
           <rect width="100" height="100" fill="url(#archiveGrid)" />
         </svg>
-        
-        {/* Floating particles - spread across screen */}
+
+        {/* Floating particles — CSS-animated */}
         {[...Array(8)].map((_, i) => (
-          <motion.div
+          <div
             key={`archive-particle-${i}`}
             className={`absolute rounded-full ${i % 3 === 0 ? "bg-aquamarine/20" : i % 3 === 1 ? "bg-blood-orange/15" : "bg-gold/15"}`}
             style={{
@@ -88,33 +75,20 @@ export default function ProjectGrid({
               height: 2 + (i % 3) * 2,
               left: `${10 + (i * 11)}%`,
               top: `${18 + ((i * 19) % 60)}%`,
-            }}
-            animate={{
-              y: [0, -14, 0],
-              opacity: [0.1, 0.3, 0.1],
-            }}
-            transition={{
-              duration: 7 + (i % 3),
-              repeat: Infinity,
-              delay: i * 0.5,
-              ease: "easeInOut",
+              animation: `pg-float ${7 + (i % 3)}s ease-in-out ${i * 0.5}s infinite`,
             }}
           />
         ))}
-        
-        {/* Ambient glow orb */}
-        <motion.div
+
+        {/* Ambient glow orb — CSS-animated */}
+        <div
           className="absolute w-28 h-28 rounded-full"
           style={{
             background: "radial-gradient(circle, rgba(78, 185, 159, 0.05) 0%, transparent 70%)",
             top: "20%",
             right: "10%",
+            animation: "pg-orb 9s ease-in-out infinite",
           }}
-          animate={{
-            scale: [1, 1.12, 1],
-            opacity: [0.3, 0.5, 0.3],
-          }}
-          transition={{ duration: 9, repeat: Infinity }}
         />
       </div>
       
@@ -349,6 +323,17 @@ export default function ProjectGrid({
           </span>
         </div>
       )}
-    </motion.div>
+
+      <style jsx>{`
+        @keyframes pg-float {
+          0%, 100% { transform: translateY(0); opacity: 0.1; }
+          50% { transform: translateY(-14px); opacity: 0.3; }
+        }
+        @keyframes pg-orb {
+          0%, 100% { transform: scale(1); opacity: 0.3; }
+          50% { transform: scale(1.12); opacity: 0.5; }
+        }
+      `}</style>
+    </div>
   );
 }

@@ -29,6 +29,9 @@
   --content-padding: clamp(0.5rem, 2vw, 1.5rem);
   --nav-left-offset: clamp(0.5rem, 2vw, 2.5rem);
 
+  /* Nav open width — single source of truth used by Navigation + page content shift */
+  --nav-open-width: min(340px, 22vw);
+
 }
 
 @theme inline {

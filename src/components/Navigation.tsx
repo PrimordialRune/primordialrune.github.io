@@ -88,7 +88,7 @@ export default function Navigation({
     if (isMobile) {
       return isLandscape ? "min(260px, 35vw)" : "min(240px, 65vw)";
     }
-    return "min(340px, 22vw)";
+    return "var(--nav-open-width)";  // single source via globals.css
   };
 
   const navWidth = getNavWidth();

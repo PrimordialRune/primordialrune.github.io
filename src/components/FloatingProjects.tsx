@@ -127,20 +127,20 @@ export default function FloatingProjects({
   const [randomSeed] = useState(() => Math.random() * 1000);
   const [showMoveHint, setShowMoveHint] = useState(true);
 
-  // Update dimensions on resize
+  // Update dimensions whenever the container resizes — covers both window resize
+  // and layout shifts caused by the nav opening/closing (padding changes).
   useEffect(() => {
-    const updateDimensions = () => {
+    if (!containerRef.current) return;
+    const ro = new ResizeObserver(() => {
       if (containerRef.current) {
         setDimensions({
           width: containerRef.current.clientWidth,
           height: containerRef.current.clientHeight,
         });
       }
-    };
-
-    updateDimensions();
-    window.addEventListener("resize", updateDimensions);
-    return () => window.removeEventListener("resize", updateDimensions);
+    });
+    ro.observe(containerRef.current);
+    return () => ro.disconnect();
   }, []);
 
   useEffect(() => {

@@ -489,7 +489,10 @@ export default function Home() {
             <motion.div
               className="relative z-10 w-full h-full"
               animate={{
-                paddingLeft: !isMobile && navOpen ? "min(360px, 26vw)" : "clamp(1rem, 3vw, 3rem)",
+                // nav width + its left inset (lg:left-6 = 1.5rem) + breathing room (1rem)
+                paddingLeft: !isMobile && navOpen
+                  ? "calc(var(--nav-open-width) + 2.5rem)"
+                  : "clamp(1rem, 3vw, 3rem)",
               }}
               transition={{
                 type: "spring",
@@ -520,7 +523,6 @@ export default function Home() {
                     <ProjectGrid
                       projects={projects}
                       onProjectClick={handleProjectClick}
-                      navOpen={navOpen}
                     />
                   )}
 
