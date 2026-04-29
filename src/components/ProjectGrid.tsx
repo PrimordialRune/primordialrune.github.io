@@ -94,7 +94,7 @@ export default function ProjectGrid({
       
       {/* Archive Title Section - matches hamburger menu height to prevent overlap */}
       <div
-        className="flex-shrink-0 flex items-center px-2 sm:px-4 pt-4 sm:pt-6 relative z-10"
+        className="flex-shrink-0 flex items-center px-2 sm:px-4 pt-24 lg:pt-6 relative z-10"
         style={{
           minHeight: TITLE_SECTION_HEIGHT,
         }}

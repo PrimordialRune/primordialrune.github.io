@@ -131,7 +131,7 @@ export default function Navigation({
         }}
       >
         {/* Navigation Container - Morphs from scanlines to full nav */}
-        <div className="relative flex flex-col gap-1.5 md:gap-2 flex-1 overflow-hidden">
+        <div className={`relative flex flex-col gap-1.5 md:gap-2 flex-1 ${isOpen ? "overflow-visible" : "overflow-hidden"}`}>
           {/* Full-area hit target when closed — makes gaps between scanlines clickable */}
           {!isOpen && (
             <button
@@ -176,8 +176,8 @@ export default function Navigation({
                   flex: isOpen ? (isActive ? "2" : "1") : "0 0 clamp(8px, 1.5vh, 12px)",
                   boxShadow: isOpen
                     ? isActive
-                      ? "0 6px 20px rgba(236, 86, 59, 0.4)"
-                      : "0 3px 10px rgba(0, 0, 0, 0.2)"
+                      ? "inset 3px 0 0 var(--gold), 0 6px 22px rgba(236, 86, 59, 0.45), 0 0 18px rgba(250, 219, 104, 0.14)"
+                      : "inset 1px 0 0 rgba(78, 185, 159, 0.22), 0 3px 10px rgba(0, 0, 0, 0.2)"
                     : "0 2px 6px rgba(236, 86, 59, 0.3)",
                 }}
                 initial={false}
@@ -189,11 +189,33 @@ export default function Navigation({
                 }}
                 whileHover={
                   isOpen
-                    ? { scale: isActive ? 1 : 1.02 }
+                    ? isActive
+                      ? { scale: 1 }
+                      : { scale: 1.02, x: 4 }
                     : { scaleX: 1.05, opacity: 1 }
                 }
                 whileTap={{ scale: 0.98 }}
               >
+                {/* Internal scanline texture when open */}
+                {isOpen && (
+                  <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                      backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 5px, rgba(0,0,0,0.07) 5px, rgba(0,0,0,0.07) 6px)",
+                    }}
+                  />
+                )}
+
+                {/* Diagonal gold accent area — active items only */}
+                {isOpen && isActive && (
+                  <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                      background: "linear-gradient(108deg, transparent 52%, rgba(250,219,104,0.10) 52%, rgba(250,219,104,0.04) 100%)",
+                    }}
+                  />
+                )}
+
                 {/* Scanline State (Closed) - Animation only when closed */}
                 {!isOpen && (
                   <motion.div
@@ -230,47 +252,79 @@ export default function Navigation({
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.15 }}
-                      className="absolute inset-0 flex flex-col items-center justify-center p-1.5 md:p-3"
+                      className="absolute inset-0 flex flex-col justify-between p-2 sm:p-2.5 md:p-3"
                     >
-                      {/* Number Badge */}
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{
-                          type: "spring",
-                          damping: 22,
-                          stiffness: 400,
-                          delay: 0.05,
-                        }}
-                        className={`mb-0.5 md:mb-1.5 w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 flex items-center justify-center rounded-lg md:rounded-xl ${
-                          isActive
-                            ? "bg-peacock-blue text-cream"
-                            : "bg-peacock-blue/40 text-cream/80"
-                        } text-sm sm:text-base md:text-lg lg:text-xl font-black border-2 ${
-                          isActive ? "border-peacock-blue" : "border-teal/0"
-                        }`}
-                        style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
-                      >
-                        {item.number}
-                      </motion.div>
+                      {/* Number watermark — active items only */}
+                      {isActive && (
+                        <div
+                          className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 pointer-events-none select-none"
+                          style={{
+                            fontFamily: "var(--font-fk-grotesk-black)",
+                            fontSize: "clamp(3.5rem, 7vw, 6rem)",
+                            fontWeight: 900,
+                            color: "rgba(0,0,0,0.18)",
+                            lineHeight: 1,
+                            letterSpacing: "-0.04em",
+                          }}
+                        >
+                          {item.number}
+                        </div>
+                      )}
 
-                      {/* Label */}
-                      <div className="flex flex-col items-center gap-0">
+                      {/* Top row: compact number badge (left) + indicator dot (right) */}
+                      <div className="flex items-start justify-between">
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ type: "spring", damping: 22, stiffness: 400, delay: 0.05 }}
+                          className={`flex items-center justify-center text-xs sm:text-sm font-black px-2 sm:px-2.5 py-0.5 ${
+                            isActive
+                              ? "bg-gold text-peacock-blue"
+                              : "bg-peacock-blue/40 text-cream/90 rounded"
+                          }`}
+                          style={{
+                            fontFamily: "var(--font-fk-grotesk-black)",
+                            ...(isActive ? {
+                              clipPath: "polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)",
+                              boxShadow: "0 0 10px rgba(250, 219, 104, 0.5)",
+                            } : {}),
+                          }}
+                        >
+                          {item.number}
+                        </motion.div>
+
+                        {/* Indicator dot — top-right, active only */}
+                        {isActive && (
+                          <motion.div
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0, opacity: 0 }}
+                            transition={{ type: "spring", damping: 18, stiffness: 400, delay: 0.08 }}
+                            className="w-1.5 h-1.5 md:w-2 md:h-2 bg-gold rounded-full mt-0.5"
+                            style={{ boxShadow: "0 0 8px rgba(250, 219, 104, 0.7)" }}
+                          />
+                        )}
+                      </div>
+
+                      {/* Bottom section: label + japanese, left-aligned */}
+                      <div className="flex flex-col items-start gap-0.5 pl-1">
                         <motion.span
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
+                          initial={{ opacity: 0, x: -6 }}
+                          animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.08 }}
-                          className="text-xs sm:text-sm md:text-base lg:text-lg font-black tracking-wide text-cream"
+                          className={`text-sm sm:text-base md:text-lg lg:text-xl font-black tracking-wide leading-none ${
+                            isActive ? "text-cream" : "text-cream/92"
+                          }`}
                           style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
                         >
                           {item.label}
                         </motion.span>
                         <motion.span
                           initial={{ opacity: 0 }}
-                          animate={{ opacity: isActive ? 1 : 0.7 }}
+                          animate={{ opacity: isActive ? 1 : 0.55 }}
                           transition={{ delay: 0.1 }}
-                          className={`text-[8px] sm:text-[10px] tracking-wider ${
-                            isActive ? "text-cream/90" : "text-cream/80"
+                          className={`text-[8px] sm:text-[9px] md:text-[10px] tracking-wider ${
+                            isActive ? "text-gold/75" : "text-cream/70"
                           }`}
                           style={{ fontFamily: "var(--font-gen-ei-kiwami)" }}
                         >
@@ -278,22 +332,31 @@ export default function Navigation({
                         </motion.span>
                       </div>
 
-                      {/* Active Indicator */}
+                      {/* Left accent bar */}
                       {isActive && (
                         <motion.div
-                          initial={{ scale: 0, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          exit={{ scale: 0, opacity: 0 }}
-                          transition={{
-                            type: "spring",
-                            damping: 18,
-                            stiffness: 400,
-                            delay: 0.08,
-                          }}
-                          className="absolute top-1.5 md:top-2 right-1.5 md:right-2 w-1.5 h-1.5 md:w-2 md:h-2 bg-gold rounded-full"
+                          className="absolute top-0 bottom-0 left-0 w-[3px]"
                           style={{
-                            boxShadow: "0 0 10px rgba(250, 219, 104, 0.6)",
+                            background: "linear-gradient(180deg, transparent 0%, var(--gold) 18%, var(--gold) 82%, transparent 100%)",
                           }}
+                          initial={{ scaleY: 0 }}
+                          animate={{ scaleY: 1 }}
+                          exit={{ scaleY: 0 }}
+                          transition={{ duration: 0.22, ease: "easeOut", delay: 0.06 }}
+                        />
+                      )}
+
+                      {/* Bottom underline */}
+                      {isActive && (
+                        <motion.div
+                          className="absolute bottom-0 left-3 right-3 h-[2px]"
+                          style={{
+                            background: "linear-gradient(90deg, transparent 0%, var(--gold) 20%, var(--gold) 80%, transparent 100%)",
+                          }}
+                          initial={{ scaleX: 0 }}
+                          animate={{ scaleX: 1 }}
+                          exit={{ scaleX: 0 }}
+                          transition={{ duration: 0.28, ease: "easeOut", delay: 0.1 }}
                         />
                       )}
                     </motion.div>
