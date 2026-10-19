@@ -95,6 +95,7 @@ export default function SaveSelect({ onContinue, onNewGame, onCorrupt }: SaveSel
   // Arrow keys move the cursor; Enter picks it when no button would handle it
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (e.defaultPrevented) return; // handled by the open nav
       const focusIsFree = !document.activeElement || document.activeElement === document.body;
       const inRows = buttonRefs.current.some((b) => b === document.activeElement);
       if (e.key === "ArrowDown" || e.key === "ArrowUp") {

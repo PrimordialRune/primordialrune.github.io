@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useSyncExternalStore } from "react";
-import StripeNav from "@/components/StripeNav";
+import Navigation from "@/components/Navigation";
 import CRTScreen from "@/components/CRTScreen";
 import PowerOn from "@/components/PowerOn";
 import SaveSelect from "@/components/SaveSelect";
@@ -20,6 +20,23 @@ import { useGamepadKeys } from "@/lib/useGamepadKeys";
 const PLAY_TICK_SECONDS = 15;
 const VOID_PEEK_MS = 2600;
 const noSubscribe = () => () => {};
+
+function useResponsive() {
+  const [isMobile, setIsMobile] = useState(false);
+  const [isLandscape, setIsLandscape] = useState(false);
+
+  useEffect(() => {
+    const checkResponsive = () => {
+      setIsMobile(window.innerWidth < 1024);
+      setIsLandscape(window.innerWidth > window.innerHeight);
+    };
+    checkResponsive();
+    window.addEventListener("resize", checkResponsive);
+    return () => window.removeEventListener("resize", checkResponsive);
+  }, []);
+
+  return { isMobile, isLandscape };
+}
 
 function Logo() {
   return (
@@ -52,6 +69,8 @@ export default function Home() {
   const [allProjects, setAllProjects] = useState<Project[]>([]);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isDiscoverMode, setIsDiscoverMode] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
+  const { isMobile, isLandscape } = useResponsive();
   useGamepadKeys();
 
   useEffect(() => {
@@ -95,7 +114,7 @@ export default function Home() {
   // Section shortcuts: 1-5, PageUp/PageDown (gamepad LB/RB), Home (gamepad Start)
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (selectedProject || !powered || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.defaultPrevented || selectedProject || !powered || e.metaKey || e.ctrlKey || e.altKey) return;
       const digit = Number(e.key);
       if (digit >= 1 && digit <= sections.length) goTo(sections[digit - 1].id);
       else if (e.key === "PageDown") step(1);
@@ -212,11 +231,21 @@ export default function Home() {
         </div>
       </header>
 
-      <StripeNav activeId={activeCategory} onSelect={goTo} />
-
       <main className="console-screen">
         <CRTScreen>
-          {renderScreen()}
+          {powered && !voidPeek && (
+            <Navigation
+              activeId={activeCategory}
+              onOpenChange={setNavOpen}
+              onCategoryChange={goTo}
+              isMobile={isMobile}
+              isLandscape={isLandscape}
+            />
+          )}
+          {/* Content shifts beside the open nav on desktop; on mobile the nav overlays it */}
+          <div className="screen-shift" data-shifted={!isMobile && navOpen}>
+            {renderScreen()}
+          </div>
           {powered && !voidPeek && (
             <div className="screen-signature" aria-hidden="true">
               原初のルーン

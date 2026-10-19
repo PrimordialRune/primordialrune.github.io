@@ -24,6 +24,8 @@
 
   /* Layout */
   --stripe-height: 3px;
+  /* Nav open width — single source of truth used by Navigation + page content shift */
+  --nav-open-width: min(340px, 22vw);
   --tube-glass: #0b1418;
 }
 
@@ -143,24 +145,19 @@ a,
 
 /* ==========================================
    Console: the page is a TV on a cream console.
-   Landscape: header on top, NES-stripe rail on the left, tube on the right.
-   Portrait: header, tube, stripe tab bar at the bottom.
-   Short landscape (phones at 19.5:9): header folds into the rail.
+   Header on top, the tube fills the rest. The scanline nav lives inside the tube.
    ========================================== */
 
 .console {
-  --rail-w: clamp(150px, 15vw, 230px);
-  --gutter: clamp(10px, 1.6vw, 24px);
-  --spring: cubic-bezier(0.3, 1.4, 0.5, 1);
+  --gutter: clamp(8px, 1.6vw, 24px);
   position: fixed;
   inset: 0;
   display: grid;
-  grid-template-columns: var(--rail-w) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto minmax(0, 1fr);
   grid-template-areas:
-    "head head"
-    "nav screen";
-  column-gap: var(--gutter);
+    "head"
+    "screen";
   padding:
     calc(var(--stripe-height) + env(safe-area-inset-top, 0px))
     max(var(--gutter), env(safe-area-inset-right, 0px))
@@ -225,109 +222,6 @@ a,
 
 .console-actions { display: flex; flex: none; }
 
-/* ---------- NES stripe nav ---------- */
-
-.stripe-nav {
-  grid-area: nav;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: clamp(6px, 1.4vh, 14px);
-  min-height: 0;
-  transition: opacity 0.3s;
-}
-
-.stripe-btn {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 28px;
-  padding: 0;
-  border: 0;
-  background: none;
-  cursor: pointer;
-  border-radius: 12px;
-  outline: none;
-}
-
-.stripe-num {
-  flex: none;
-  width: 2.2em;
-  font-family: var(--font-8bit-darling);
-  font-size: clamp(11px, 0.9vw, 14px);
-  color: rgba(16, 47, 65, 0.55);
-  transition: color 0.2s;
-}
-
-/* Inactive sections are bare stripes, tapering like the NES front panel */
-.stripe-bar {
-  position: relative;
-  display: flex;
-  align-items: center;
-  flex: 1;
-  height: 12px;
-  max-width: calc(100% - var(--stripe-i) * 7%);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--blood-orange) 40%, transparent);
-  overflow: hidden;
-  transition: background-color 0.2s, box-shadow 0.25s;
-}
-
-.stripe-btn:hover .stripe-bar { background: color-mix(in srgb, var(--blood-orange) 70%, transparent); }
-.stripe-btn:hover .stripe-num { color: var(--blood-orange); }
-
-.stripe-btn:focus-visible .stripe-bar {
-  box-shadow: 0 0 0 3px var(--cream), 0 0 0 5px var(--blood-orange), 0 0 16px rgba(236, 86, 59, 0.6);
-}
-
-/* The active section widens into a cartridge: label, gold power dot, grip ridges */
-.stripe-btn[data-active="true"] .stripe-num { color: var(--peacock-blue); }
-.stripe-btn[data-active="true"] .stripe-bar {
-  height: clamp(54px, 9vh, 84px);
-  max-width: 100%;
-  border-radius: 14px;
-  background:
-    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.18) 0 2px, transparent 2px 6px) right 10px center / 22px 60% no-repeat,
-    var(--blood-orange);
-  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.15), 0 4px 10px rgba(16, 47, 65, 0.25);
-}
-.stripe-btn[data-active="true"] .stripe-bar::after {
-  content: "";
-  position: absolute;
-  top: 9px;
-  right: 40px;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--gold);
-  box-shadow: 0 0 12px rgba(250, 219, 104, 0.6);
-}
-
-.stripe-label {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  padding-left: clamp(10px, 1.2vw, 16px);
-  padding-right: 52px;
-  color: var(--cream);
-  line-height: 1.05;
-  white-space: nowrap;
-}
-.stripe-label b {
-  font-family: var(--font-fk-grotesk-black);
-  font-size: clamp(15px, 1.4vw, 22px);
-  letter-spacing: 0.02em;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.stripe-label small {
-  font-family: var(--font-gen-ei-kiwami);
-  font-size: clamp(10px, 0.85vw, 13px);
-  color: color-mix(in srgb, var(--cream) 90%, transparent);
-  letter-spacing: 0.08em;
-  margin-top: 3px;
-}
-
 /* ---------- The tube ---------- */
 
 .console-screen {
@@ -353,6 +247,7 @@ a,
   background: var(--tube-glass);
   border-radius: clamp(14px, 2.2vw, 28px) / clamp(16px, 2.8vw, 34px);
   container-type: size;
+  contain: layout; /* containing block for the nav's fixed backdrop */
   isolation: isolate;
 }
 
@@ -468,11 +363,24 @@ a,
 @keyframes crtFlash { 0% { opacity: 0.75; } 100% { opacity: 0; } }
 @keyframes blink { 50% { opacity: 0; } }
 
-.screen-section {
+.screen-shift {
   position: absolute;
   inset: 0;
-  padding: clamp(10px, 2cqmin, 28px);
+  z-index: 0; /* own stacking context, so screen content stays under the nav */
+  display: flex;
   background: var(--peacock-blue);
+  /* CSS, not Framer: Framer can't interpolate a calc() with a var() back to 0 */
+  transition: padding-left 0.4s cubic-bezier(0.3, 1.25, 0.5, 1);
+}
+/* nav width + its left inset (lg:left-6 = 1.5rem) + breathing room (1rem) */
+.screen-shift[data-shifted="true"] { padding-left: calc(var(--nav-open-width) + 2.5rem); }
+
+.screen-section {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: clamp(10px, 2cqmin, 28px);
 }
 
 .screen-signature {
@@ -698,7 +606,6 @@ a,
 }
 .console[data-void="true"] { background: #000; }
 .console[data-void="true"] .console-header,
-.console[data-void="true"] .stripe-nav,
 .console[data-void="true"] .nes-stripe,
 .console[data-void="true"] .crt-fx,
 .console[data-void="true"] .crt-osd {
@@ -710,80 +617,24 @@ a,
   box-shadow: none;
 }
 
-/* ---------- Portrait: stripes become a bottom tab bar ---------- */
-
-@media (orientation: portrait) {
-  .console {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto minmax(0, 1fr) auto;
-    grid-template-areas:
-      "head"
-      "screen"
-      "nav";
-    padding-bottom: calc(var(--stripe-height) + 8px + env(safe-area-inset-bottom, 0px));
-  }
-  .stripe-nav {
-    flex-direction: row;
-    align-items: flex-end;
-    gap: 6px;
-    padding-top: clamp(10px, 2vh, 16px);
-  }
-  .stripe-btn {
-    flex: 1 1 0;
-    min-width: 0;
-    flex-direction: column-reverse;
-    align-items: stretch;
-    gap: 4px;
-    min-height: 44px;
-    justify-content: flex-start;
-  }
-  .stripe-btn[data-active="true"] { flex-grow: 2.8; }
-  .stripe-num { width: auto; text-align: center; font-size: 11px; }
-  .stripe-bar { flex: none; max-width: none; }
-  .stripe-btn[data-active="true"] .stripe-bar { height: 46px; }
-  .stripe-btn[data-active="true"] .stripe-bar::after { top: 7px; right: 30px; width: 6px; height: 6px; }
-  .stripe-btn[data-active="true"] .stripe-bar {
-    background:
-      repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.18) 0 2px, transparent 2px 6px) right 6px center / 16px 55% no-repeat,
-      var(--blood-orange);
-  }
-  .stripe-label { padding-left: 10px; padding-right: 36px; }
-  .stripe-label b { font-size: clamp(12px, 3.6vw, 16px); }
-  .stripe-label small { font-size: 9px; }
-}
-
-@media (orientation: portrait) and (max-width: 420px) {
+@media (max-width: 420px) {
   .console-name { font-size: clamp(16px, 5.4vw, 22px); }
 }
 
-/* ---------- Short landscape (phones on their side): header folds into the rail ---------- */
-
 @media (orientation: landscape) and (max-height: 520px) {
-  .console {
-    --rail-w: clamp(118px, 17vw, 170px);
-    grid-template-rows: auto minmax(0, 1fr);
-    grid-template-areas:
-      "head screen"
-      "nav screen";
-    padding-top: calc(var(--stripe-height) + 8px + env(safe-area-inset-top, 0px));
-    padding-bottom: calc(var(--stripe-height) + 8px + env(safe-area-inset-bottom, 0px));
-  }
-  .console-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-    padding-block: 0;
-  }
-  .console-name { display: none; }
-  .console-logo { width: 30px; }
-  .stripe-nav { gap: 4px; }
-  .stripe-btn { min-height: 24px; }
-  .stripe-btn[data-active="true"] .stripe-bar { height: clamp(36px, 13vh, 52px); }
-  .stripe-label b { font-size: 13px; }
-  .stripe-label small { display: none; }
+  .console-header { padding-block: 4px; }
+  .console-logo { width: 26px; }
+  .console-name { font-size: 18px; }
+}
+
+/* Open nav on short landscape screens (phones at 19.5:9): label only */
+@media (orientation: landscape) and (max-height: 520px) {
+  .nav-badge,
+  .nav-jp { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .screen-shift { transition: none; }
   .crt-content,
   .power-hint,
   .corrupt-stack,

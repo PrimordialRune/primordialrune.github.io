@@ -25,7 +25,7 @@ npm run lint     # Run ESLint
   - `projects/[slug]/page.tsx` - Case study pages with MDX content
 - **src/components/** - Reusable React components
   - `CRTScreen.tsx` - Full-viewport tube: clean Trinitron at rest, VHS burst on events (`triggerBurst` in `lib/crt.ts`)
-  - `StripeNav.tsx` - NES-stripe nav: left rail in landscape, bottom tab bar in portrait; active stripe is a cartridge label
+  - `Navigation.tsx` - Morphing scanline nav, rendered inside the tube (controlled by `activeId`; keys handled in capture phase)
   - `PowerOn.tsx` / `SaveSelect.tsx` - Standby + CRT switch-on, then the save select (CONTINUE, corrupted file, NEW GAME)
   - `DiscoverButton.tsx` - Random-project button
   - `HeroSection.tsx` - Old hero, no longer rendered; kept as source for the narrator work
