@@ -24,7 +24,11 @@ npm run lint     # Run ESLint
   - `globals.css` - Global styles with Tailwind CSS imports and scrollbar hiding
   - `projects/[slug]/page.tsx` - Case study pages with MDX content
 - **src/components/** - Reusable React components
-  - `Navigation.tsx` - Morphing nav with keyboard support
+  - `CRTScreen.tsx` - Full-viewport tube: clean Trinitron at rest, VHS burst on events (`triggerBurst` in `lib/crt.ts`)
+  - `StripeNav.tsx` - NES-stripe nav: left rail in landscape, bottom tab bar in portrait; active stripe is a cartridge label
+  - `PowerOn.tsx` / `SaveSelect.tsx` - Standby + CRT switch-on, then the save select (CONTINUE, corrupted file, NEW GAME)
+  - `DiscoverButton.tsx` - Random-project button
+  - `HeroSection.tsx` - Old hero, no longer rendered; kept as source for the narrator work
   - `FloatingProjects.tsx` - Physics-based draggable project cards
   - `ProjectModal.tsx` - Modal with 3D tilt and Discover mode
   - `ProjectGrid.tsx` - Paginated grid for Archives category
@@ -32,6 +36,9 @@ npm run lint     # Run ESLint
 - **src/lib/** - Utilities and data
   - `projects.ts` - Project data and helper functions
   - `utils.ts` - Seeded random utility for deterministic layouts
+  - `sections.ts` - The five sections (single source for nav and channel numbers)
+  - `save.ts` - Save file (localStorage) and power state (sessionStorage), all guarded
+  - `useGamepadKeys.ts` - Gamepad buttons replayed as keyboard keys
 - **src/types/** - TypeScript interfaces
   - `project.ts` - Project and ProjectMetadata interfaces
 - **content/projects/** - MDX files for case study content
