@@ -51,14 +51,14 @@ export function GbShellArt() {
       {/* power switch on the top face, above the shell edge */}
       <rect x="24" y="-9" width="50" height="9" rx="3" fill="#7d766a" />
       <rect data-p="knob" x="27" y="-11" width="16" height="10" rx="2.5" fill="#cdc6b9" stroke="#7d766a" strokeWidth="1" />
-      <text x="88" y="-3" style={FONT_BLACK} fontSize="6" fill="#7d766a" letterSpacing=".6">
-        OFF · ON
-      </text>
 
       <path d={body} fill={`url(#${id}s)`} stroke="#7d766a" strokeWidth="1.6" />
       {/* seam under the top face */}
       <path d="M2 16 H298" stroke="#a69f92" strokeWidth="1.2" />
       <path d="M2 17.6 H298" stroke="#f1ede5" strokeWidth=".8" opacity=".7" />
+      <text x="26" y="11.5" style={FONT_BLACK} fontSize="6.5" fill="#7d766a" letterSpacing=".8">
+        OFF · ON
+      </text>
 
       {/* screen bezel, the game's stripes, the power LED */}
       <path d={bezel} fill={`url(#${id}b)`} />
@@ -78,7 +78,6 @@ export function GbShellArt() {
 
       {/* d-pad in its dish */}
       <circle cx="74" cy="342" r="42" fill="#c6bfb2" />
-      <circle cx="74" cy="342" r="42" fill="none" stroke="#efebe3" strokeWidth="1.2" strokeDasharray="60 400" strokeDashoffset="-150" />
       <path d="M63 309 h22 v22 h22 v22 h-22 v22 h-22 v-22 h-22 v-22 h22 Z" fill="#2a2530" />
       <path d="M64 310 h20 M42 332 h20" stroke="#5a5260" strokeWidth="1.6" strokeLinecap="round" />
       <circle cx="74" cy="342" r="6" fill="#221e27" />
@@ -191,7 +190,7 @@ export function GbaShellArt() {
         <circle cx="175" cy="246.8" r="1.4" fill="#ffffff" opacity=".8" />
       </g>
       <path d="M190 248 H286" stroke="#e6cdec" strokeWidth="1" opacity=".25" />
-      <path d="M158 44 H442 V266 H158 Z M176 62 V230 H424 V62 Z" fillRule="evenodd" fill={`url(#${id}glass)`} />
+      <path d="M176 44 H424 a18 18 0 0 1 18 18 V248 a18 18 0 0 1 -18 18 H176 a18 18 0 0 1 -18 -18 V62 a18 18 0 0 1 18 -18Z M176 62 V230 H424 V62 Z" fillRule="evenodd" fill={`url(#${id}glass)`} />
 
       {/* d-pad */}
       <circle cx="86" cy="150" r="44" fill="#3d3669" />

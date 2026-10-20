@@ -121,6 +121,9 @@ export function DiscScene() {
           <circle r="70" fill="#fff" />
           <circle r="7.5" fill="#000" />
         </mask>
+        <clipPath id={`${id}under`}>
+          <rect x="0" y="16" width="640" height="460" />
+        </clipPath>
         <path id={`${id}arc`} d="M-50 0 A50 50 0 0 0 50 0" />
         <GrainFilter id={`${id}n`} opacity={0.16} scale={1.6} />
         <ShadowFilter id={`${id}sh0`} lift={0} />
@@ -128,6 +131,7 @@ export function DiscScene() {
       </defs>
 
       {/* the tray, under the deck; starts closed (moved up by the timeline) */}
+      <g clipPath={`url(#${id}under)`}>
       <g data-p="tray">
         <rect x="360" y="40" width="170" height="340" rx="6" fill={`url(#${id}tray)`} stroke="#121218" strokeWidth="1.2" />
         <circle cx={TRAY_SEAT.x} cy={TRAY_SEAT.y} r="74" fill="#14141c" />
@@ -137,6 +141,7 @@ export function DiscScene() {
         <rect x="360" y="366" width="170" height="14" rx="4" fill="#2e2e38" />
         <path d="M364 367.4 H526" stroke="#fff" strokeOpacity=".22" strokeWidth="1.2" />
         <path d="M440 374 L445 369 L450 374Z M440 376.4 H450" fill="#c3ccd1" stroke="#c3ccd1" strokeWidth=".8" opacity=".6" />
+      </g>
       </g>
 
       {/* the jewel case base: black tray and the rosette that holds the disc */}
@@ -168,6 +173,7 @@ export function DiscScene() {
           <circle r="22" fill="#fff" fillOpacity=".07" stroke="#fff" strokeOpacity=".35" strokeWidth="1" />
           <circle r="15" fill="#c3ccd1" fillOpacity=".4" />
           <g data-p="wedge">
+            <circle r="67" fill="none" />
             <path d={sector(-130, -106, 67)} fill="#fff" opacity=".22" />
             <path d={sector(50, 74, 67)} fill="#fff" opacity=".16" />
             <path d={sector(-125, -118, 67)} fill="#fff" opacity=".2" />

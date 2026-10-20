@@ -48,7 +48,7 @@ export function HauntRecordDevice(props: DeviceProps) {
       gsap.set(lidOut, { visibility: "visible" });
       gsap.set(disc, { x: DISC_HOME.x, y: DISC_HOME.y, scale: 1, attr: { filter: sh0 } });
       gsap.set(tray, { y: -TRAY_TRAVEL });
-      gsap.set(wedge, { rotation: 0, svgOrigin: "0 0" });
+      gsap.set(wedge, { rotation: 0, transformOrigin: "50% 50%" });
       gsap.set(lit, { visibility: "hidden" });
       gsap.set(led, { attr: { fill: "#3a3a46" } });
 

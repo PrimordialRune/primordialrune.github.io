@@ -43,7 +43,7 @@ function Label({ side, grain }: { side: Side; grain: string }) {
  */
 export function CassetteArt({ name, side }: { name: string; side: Side }) {
   const id = useSvgId();
-  const vis = (on: boolean) => (on ? "visible" : "hidden");
+  const vis = (on: boolean) => (on ? "inherit" : "hidden");
   return (
     <g>
       <defs>

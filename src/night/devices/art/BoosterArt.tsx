@@ -128,8 +128,10 @@ export function BoosterScene() {
 
       {/* the five cards wait inside the pack (behind its front) */}
       {BENCH.map((_, i) => (
-        <g key={i} data-p="card" data-i={i} transform={`translate(${BENCH[i].x} ${BENCH[i].y}) rotate(${BENCH[i].r})`}>
-          <Card i={i} id={id} />
+        <g key={i} data-p="card" data-i={i} transform={`translate(${BENCH[i].x} ${BENCH[i].y})`}>
+          <g data-p="card-rot" transform={`rotate(${BENCH[i].r})`}>
+            <Card i={i} id={id} />
+          </g>
         </g>
       ))}
 

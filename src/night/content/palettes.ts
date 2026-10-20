@@ -55,7 +55,7 @@ export const OBJECT_PALETTES: Record<ProjectId, Record<string, DeclaredPalette>>
     handheld: {
       name: "Generic landscape handheld (no wordmarks)",
       // smoked indigo shell picked to sit under the logo's purples
-      tones: ["#4a4378", "#332d5a", "#221d3d", "#26232f", "#c9c4e6", "#e6cdec", "#f500b8"],
+      tones: ["#544c86", "#4a4378", "#3d3669", "#332d5a", "#221d3d", "#26232f", "#8f89b3", "#c9c4e6", "#f500b8"],
       source: "Shell drawn for the Night Desk; accents from the Minamoto screen palette",
     },
   },
@@ -67,27 +67,28 @@ export const OBJECT_PALETTES: Record<ProjectId, Record<string, DeclaredPalette>>
     },
     walkman: {
       name: "Walkman body, lid and keys",
-      tones: ["#2b2a31", "#1c1b21", "#c9ccd2", "#8e929b", "#53b3c9", "#e0459b", "#f1ead6"],
+      tones: ["#3a3942", "#2b2a31", "#1c1b21", "#121116", "#e1e4e8", "#c9ccd2", "#a3a7b0", "#8e929b", "#6b6f78", "#5d616a", "#53b3c9", "#e0459b"],
       source: "Body drawn for the Night Desk; PLAY pink and stripe cyan from crossfader-logo.png",
     },
   },
   "haunt-record": {
     print: {
       name: "Disc print and booklet",
-      tones: ["#181830", "#1f2c39", "#d84848", "#f06048", "#f0d890", "#48a890"],
-      source: "haunt-record-crown.png and haunt-record-logo.png (colour clusters)",
+      // the exact four tones of the crown and logo art (counted pixel by pixel)
+      tones: ["#1f2c39", "#eb5e54", "#fbde9c", "#48a9a6"],
+      source: "haunt-record-crown.png and haunt-record-logo.png",
     },
     deck: {
       name: "CD deck, jewel case and tray",
-      tones: ["#24242c", "#17171d", "#3a3a46", "#14141c", "#c3ccd1", "#48a890"],
+      tones: ["#2e2e38", "#24242c", "#17171d", "#14141c", "#101018", "#3a3a46", "#c3ccd1", "#eef2f4", "#48a9a6"],
       source: "Deck drawn for the Night Desk; display teal from haunt-record-logo.png",
     },
   },
   "ptcg-cube": {
     pack: {
       name: "Booster pack, cards and foil (monochrome, like the playmat)",
-      tones: ["#151515", "#1f1f1f", "#2e2e2e", "#8c8c8c", "#d8d8d8", "#ffffff", "#4eb99f"],
-      source: "ptcg-cube-playmat.jpg (black field, white line art, grey motifs); teal foil glint",
+      tones: ["#0b0b0b", "#151515", "#1f1f1f", "#2e2e2e", "#5a5a5a", "#8c8c8c", "#d8d8d8", "#ffffff"],
+      source: "ptcg-cube-playmat.jpg (black field, white line art, grey motifs); the playmat photo itself appears as artwork",
     },
   },
 };

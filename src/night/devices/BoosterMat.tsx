@@ -39,6 +39,7 @@ export function PtcgCubeDevice(props: DeviceProps) {
       const [pack] = q("[data-p=pack]");
       const mat = q("[data-p=mat]");
       const cards = q("[data-p=card]");
+      const rots = q("[data-p=card-rot]");
       const strips = [0, 1, 2, 3, 4].map((k) => q(`[data-p=strip-${k}]`));
       const sh0 = pack?.getAttribute("data-sh0") ?? "";
       const sh1 = pack?.getAttribute("data-sh1") ?? "";
@@ -48,7 +49,8 @@ export function PtcgCubeDevice(props: DeviceProps) {
       gsap.set(pack, { scale: 1.12, svgOrigin: origin, attr: { filter: sh0 } });
       gsap.set(mat, { y: 420 });
       strips.forEach((el, k) => gsap.set(el, { visibility: k === 0 ? "visible" : "hidden" }));
-      cards.forEach((c) => gsap.set(c, { x: PACK.cx, y: 110, rotation: 0, svgOrigin: "0 0", visibility: "hidden" }));
+      cards.forEach((c) => gsap.set(c, { x: PACK.cx, y: 110, visibility: "hidden" }));
+      rots.forEach((r) => gsap.set(r, { rotation: 0, svgOrigin: "0 0" }));
 
       tl.set(pack, { scale: 1.16, attr: { filter: sh1 } }, F);
       tl.to(cam, { xPercent: 0, yPercent: 0, scale: 1, duration: SPRING_UI.duration, ease: SPRING_UI.ease }, F);
@@ -64,11 +66,15 @@ export function PtcgCubeDevice(props: DeviceProps) {
       // F8-: deal, 60ms apart, 3 frames each
       cards.forEach((c, i) => {
         const b = BENCH[i];
+        const r = rots[i];
         const at = 8 * F + i * 0.06;
         const left = i <= 2;
-        tl.set(c, { visibility: "visible", x: PACK.cx + (i - 2) * 9, y: -6, rotation: (i - 2) * 7 }, at);
-        tl.set(c, { x: left ? 228 - (2 - i) * 34 : 412 + (i - 3) * 34, y: 150 + Math.abs(i - 2) * 22, rotation: left ? -14 : 14 }, at + F);
-        tl.set(c, { x: b.x, y: b.y, rotation: b.r }, at + 2 * F);
+        tl.set(c, { visibility: "visible", x: PACK.cx + (i - 2) * 9, y: -6 }, at);
+        tl.set(r, { rotation: (i - 2) * 7 }, at);
+        tl.set(c, { x: left ? 228 - (2 - i) * 34 : 412 + (i - 3) * 34, y: 150 + Math.abs(i - 2) * 22 }, at + F);
+        tl.set(r, { rotation: left ? -14 : 14 }, at + F);
+        tl.set(c, { x: b.x, y: b.y }, at + 2 * F);
+        tl.set(r, { rotation: b.r }, at + 2 * F);
       });
       tl.set({}, {}, 8 * F + 4 * 0.06 + 3 * F);
     },

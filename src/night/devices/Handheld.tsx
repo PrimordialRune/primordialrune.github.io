@@ -51,9 +51,10 @@ function Handheld({ skin, ...props }: DeviceProps & { skin: Skin }) {
   const left = size ? snap(size.w / 2 - fx * u, size.dpr) : 0;
   const top = size ? snap(size.h / 2 - fy * u, size.dpr) : 0;
 
+  const measured = !!size;
   useEffect(() => {
-    if (skin === "gba" && canvasRef.current) drawMinamotoScreen(canvasRef.current);
-  }, [skin]);
+    if (skin === "gba" && measured && canvasRef.current) drawMinamotoScreen(canvasRef.current);
+  }, [skin, measured]);
 
   useCeremony(
     stageRef,
@@ -74,14 +75,14 @@ function Handheld({ skin, ...props }: DeviceProps & { skin: Skin }) {
       const wideY = ((fy - (sceneTop + sceneH / 2)) * s0 * 100) / k.body.h;
 
       gsap.set(rig, { xPercent: -8, yPercent: wideY - 6, scale: s0 * 0.92, transformOrigin: `${(fx / k.body.w) * 100}% ${(fy / k.body.h) * 100}%` });
-      gsap.set(body, { xPercent: 112, yPercent: 24 });
+      gsap.set(body, { xPercent: 240, yPercent: 64 });
       gsap.set(cart, { y: -k.lift * u, filter: SHADOW_REST });
 
       // F1: lift, and the camera moves toward the open corner of the mat
       tl.set(cart, { filter: SHADOW_LIFT }, F);
       tl.to(rig, { xPercent: 0, yPercent: wideY, scale: s0, duration: SPRING_UI.duration, ease: SPRING_UI.ease }, F);
       // F1-F4: the handheld steps in
-      tl.add(stepFrames(body, [{ xPercent: 84, yPercent: 18 }, { xPercent: 56, yPercent: 12 }, { xPercent: 28, yPercent: 6 }, { xPercent: 0, yPercent: 0 }]), F);
+      tl.add(stepFrames(body, [{ xPercent: 150, yPercent: 40 }, { xPercent: 76, yPercent: 20 }, { xPercent: 24, yPercent: 6 }, { xPercent: 0, yPercent: 0 }]), F);
       // F5-F7: into the slot, F7 clacks
       tl.add(stepFrames(cart, [{ y: (-k.lift * 2 * u) / 3 }, { y: (-k.lift * u) / 3 }, { y: 0, filter: SHADOW_REST }]), 5 * F);
       tl.set(clack, { visibility: "visible" }, 7 * F);

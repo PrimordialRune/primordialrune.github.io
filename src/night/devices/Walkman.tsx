@@ -17,7 +17,6 @@ import { SPRING_UI } from "../motion/spring";
 import { useCeremony } from "../motion/ceremony";
 import { FRAME as F, stepTo } from "../motion/stepped";
 import type { DeviceProps, Side } from "../types";
-import { REELS } from "./art/Cassette";
 import { LID_HINGE, TAPE_CENTER, WALKMAN_VIEW, WalkmanArt } from "./art/WalkmanArt";
 import { DEVICE_CLOSING_DESCRIPTIONS, DEVICE_DESCRIPTIONS } from "./descriptions";
 import { Stage, snap, useStageSize } from "./Stage";
@@ -44,7 +43,7 @@ function parts(q: Q) {
 
 /** Show exactly one face on a cassette copy */
 function faceVars(p: ReturnType<typeof parts>, copy: "held" | "seat", on: "A" | "B" | "Am" | "Bm") {
-  return (["A", "B", "Am", "Bm"] as const).map((f) => [p.face(copy, f), { visibility: f === on ? "visible" : "hidden" }] as const);
+  return (["A", "B", "Am", "Bm"] as const).map((f) => [p.face(copy, f), { visibility: f === on ? "inherit" : "hidden" }] as const);
 }
 
 function setFace(tl: gsap.core.Timeline | null, p: ReturnType<typeof parts>, copy: "held" | "seat", on: "A" | "B" | "Am" | "Bm", at = 0) {
@@ -74,7 +73,7 @@ export function CrossfaderDevice(props: DeviceProps) {
       gsap.set(p.play, { y: 0 });
       setFace(null, p, "held", "A");
       setFace(null, p, "seat", "A");
-      p.reels.forEach((r, i) => gsap.set(r, { rotation: 0, svgOrigin: `${REELS[i].cx} ${REELS[i].cy}` }));
+      p.reels.forEach((r) => gsap.set(r, { rotation: 0, transformOrigin: "50% 50%" }));
 
       // F1: lift, camera
       tl.set(p.held, { scale: 1.2, attr: { filter: p.sh1 } }, F);
