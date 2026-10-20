@@ -279,7 +279,6 @@ a,
   overflow: hidden;
   color: var(--cream);
   text-shadow: 0 0 0.5cqmin rgba(252, 232, 205, 0.25);
-  animation: crtFlicker 5s steps(40) infinite;
 }
 
 .crt-fx {
@@ -381,12 +380,6 @@ a,
 .is-static .crt-flash { animation: crtFlash 0.22s ease-out; }
 .is-static .crt-content { transform: translateX(0.6cqmin) skewX(-2deg); }
 
-@keyframes crtFlicker {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.975; }
-  52% { opacity: 1; }
-  80% { opacity: 0.985; }
-}
 @keyframes crtTrack { from { top: -12%; } to { top: 104%; } }
 @keyframes crtHeadSwitch {
   0% { transform: translateX(0) skewX(0); }
@@ -678,4 +671,172 @@ a,
   .is-burst .crt-track,
   .is-burst .crt-headswitch { animation: none; opacity: 0; }
   .is-static .crt-content { transform: none; }
+}
+
+/* ---------- Pause menu: the scanlines become slanted bars over a paused screen ---------- */
+.pause-menu {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+  --bh: 60px;
+}
+.pause-menu[data-open="true"] .pause-dim { pointer-events: auto; }
+.pause-dim {
+  position: absolute;
+  inset: 0;
+  background: rgba(5, 12, 16, 0.6);
+  opacity: 0;
+}
+.pause-label {
+  position: absolute;
+  z-index: 3;
+  right: 5%;
+  bottom: 6%;
+  font-family: var(--font-8bit-darling);
+  font-size: clamp(22px, 4.6cqmin, 46px);
+  line-height: 0.9;
+  text-align: right;
+  color: var(--cream);
+  text-shadow: 3px 3px 0 var(--blood-orange);
+  opacity: 0;
+}
+.pause-label small {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--font-gen-ei-kiwami);
+  font-size: 0.38em;
+  letter-spacing: 0.24em;
+  color: var(--aquamarine);
+  text-shadow: none;
+}
+.pause-menu[data-portrait="true"] .pause-label { top: 5%; bottom: auto; }
+.pause-wipe {
+  position: absolute;
+  z-index: 4;
+  top: -10%;
+  bottom: -10%;
+  left: 0;
+  width: 42%;
+  opacity: 0;
+  transform: translateX(-400%) skewX(-16deg);
+  background: var(--blood-orange);
+}
+.pause-wipe-b { width: 10%; background: var(--gold); }
+.pause-hit {
+  position: absolute;
+  z-index: 5;
+  pointer-events: auto;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 6px;
+  -webkit-tap-highlight-color: transparent;
+}
+.pause-menu[data-open="true"] .pause-hit { display: none; }
+.pause-item {
+  position: absolute;
+  z-index: 6;
+  left: 0;
+  top: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  pointer-events: auto;
+  cursor: pointer;
+  text-align: left;
+  color: var(--cream);
+  background: rgba(236, 86, 59, 0.55);
+  -webkit-tap-highlight-color: transparent;
+}
+.pause-item.is-active { background: var(--blood-orange); }
+.pause-item:focus-visible { outline: none; }
+.pause-menu[data-open="false"] .pause-item { animation: pauseLinePulse 2s ease-in-out infinite; animation-delay: calc(var(--i) * 0.2s); }
+/* Open and inactive: blood-orange/40 over peacock, so the bars stay solid over the paused picture */
+.pause-menu[data-open="true"] .pause-item:not(.is-active) {
+  background-color: var(--peacock-blue);
+  background-image: linear-gradient(rgba(236, 86, 59, 0.4), rgba(236, 86, 59, 0.4));
+}
+@keyframes pauseLinePulse { 50% { opacity: 0.7; } }
+.pause-in {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  gap: calc(var(--bh) * 0.22);
+  padding: 0 calc(var(--bh) * 0.45);
+  white-space: nowrap;
+  transform: skewX(12deg);
+  opacity: 0;
+}
+.pause-num {
+  flex: none;
+  font-family: var(--font-8bit-darling);
+  font-size: calc(var(--bh) * 0.36);
+  line-height: 1;
+  color: rgba(252, 232, 205, 0.75);
+}
+.pause-item.is-active .pause-num { color: var(--gold); }
+.pause-lbl {
+  font-family: var(--font-fk-grotesk-black);
+  font-style: italic;
+  font-size: calc(var(--bh) * 0.44);
+  line-height: 1;
+}
+.pause-jp {
+  margin-left: auto;
+  font-family: var(--font-gen-ei-kiwami);
+  font-size: max(10px, calc(var(--bh) * 0.2));
+  letter-spacing: 0.1em;
+  color: rgba(252, 232, 205, 0.85);
+}
+.pause-menu[data-tight="true"] .pause-jp,
+.pause-menu[data-portrait="true"] .pause-jp { display: none; }
+.pause-menu[data-portrait="true"] .pause-lbl { font-size: calc(var(--bh) * 0.3); }
+.pause-cursor {
+  position: absolute;
+  z-index: 7;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-color: transparent transparent transparent var(--gold);
+  filter: drop-shadow(2px 2px 0 var(--peacock-blue));
+  opacity: 0;
+}
+
+/* The paused picture underneath: drained and slightly out of focus */
+.screen-shift[data-paused="true"] .screen-section { filter: saturate(0.45) blur(1.5px); }
+.screen-section { transition: filter 0.3s; }
+
+/* Review-only switcher for the pause menu A/B test (shown with ?ab in the URL) */
+.ab-switch {
+  position: fixed;
+  z-index: 100;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--peacock-blue);
+  box-shadow: 0 6px 20px rgba(16, 47, 65, 0.4);
+  font-family: var(--font-fk-grotesk-black);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+}
+.ab-switch span { align-self: center; padding: 0 6px; color: var(--aquamarine); }
+.ab-switch button {
+  border: 0;
+  border-radius: 8px;
+  padding: 6px 10px;
+  background: transparent;
+  color: var(--cream);
+  cursor: pointer;
+}
+.ab-switch button[aria-pressed="true"] { background: var(--blood-orange); }
+
+@media (prefers-reduced-motion: reduce) {
+  .pause-menu[data-open="false"] .pause-item { animation: none; }
+  .screen-section { transition: none; }
 }

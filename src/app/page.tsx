@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useSyncExternalStore } from "react";
-import Navigation from "@/components/Navigation";
+import PauseMenu, { PauseMotion } from "@/components/PauseMenu";
 import CRTScreen from "@/components/CRTScreen";
 import PowerOn from "@/components/PowerOn";
 import SaveSelect from "@/components/SaveSelect";
@@ -18,25 +18,29 @@ import { writeSave, addPlayTime, readPowered, writePowered } from "@/lib/save";
 import { useGamepadKeys } from "@/lib/useGamepadKeys";
 
 const PLAY_TICK_SECONDS = 15;
+const MOTIONS: { id: PauseMotion; label: string }[] = [
+  { id: "slash", label: "SLASH" },
+  { id: "cutin", label: "CUT-IN" },
+  { id: "ribbon", label: "RIBBON" },
+];
+const MOTION_KEY = "primordialrune:pause-motion";
 const VOID_PEEK_MS = 2600;
 const noSubscribe = () => () => {};
 
-function useResponsive() {
-  const [isMobile, setIsMobile] = useState(false);
-  const [isLandscape, setIsLandscape] = useState(false);
-
-  useEffect(() => {
-    const checkResponsive = () => {
-      setIsMobile(window.innerWidth < 1024);
-      setIsLandscape(window.innerWidth > window.innerHeight);
-    };
-    checkResponsive();
-    window.addEventListener("resize", checkResponsive);
-    return () => window.removeEventListener("resize", checkResponsive);
-  }, []);
-
-  return { isMobile, isLandscape };
+// Pause menu A/B test: ?nav=slash|cutin|ribbon picks a motion (remembered), ?ab (or a
+// NEXT_PUBLIC_SHOW_AB=1 review build) shows the switcher
+function readMotion(): PauseMotion {
+  const isMotion = (v: string | null): v is PauseMotion => MOTIONS.some((m) => m.id === v);
+  const fromUrl = new URLSearchParams(window.location.search).get("nav");
+  if (isMotion(fromUrl)) return fromUrl;
+  try {
+    const saved = localStorage.getItem(MOTION_KEY);
+    if (isMotion(saved)) return saved;
+  } catch {}
+  return "slash";
 }
+const readShowAB = () =>
+  process.env.NEXT_PUBLIC_SHOW_AB === "1" || new URLSearchParams(window.location.search).has("ab");
 
 function Logo() {
   return (
@@ -70,7 +74,10 @@ export default function Home() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isDiscoverMode, setIsDiscoverMode] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
-  const { isMobile, isLandscape } = useResponsive();
+  const [motionPick, setMotionPick] = useState<PauseMotion | null>(null);
+  const pauseMotion = useSyncExternalStore(noSubscribe, readMotion, () => "slash" as PauseMotion);
+  const navMotion = motionPick ?? pauseMotion;
+  const showAB = useSyncExternalStore(noSubscribe, readShowAB, () => false);
   useGamepadKeys();
 
   useEffect(() => {
@@ -81,6 +88,13 @@ export default function Home() {
     if (activeCategory === "hero") return;
     getProjectsByCategory(activeCategory).then(setProjects);
   }, [activeCategory]);
+
+  const pickMotion = (id: PauseMotion) => {
+    setMotionPick(id);
+    try {
+      localStorage.setItem(MOTION_KEY, id);
+    } catch {}
+  };
 
   const powerOn = useCallback(() => {
     writePowered();
@@ -236,16 +250,17 @@ export default function Home() {
         <div className="tv-recess">
         <CRTScreen>
           {powered && !voidPeek && (
-            <Navigation
+            <PauseMenu
+              key={navMotion}
               activeId={activeCategory}
+              motion={navMotion}
+              disabled={Boolean(selectedProject)}
               onOpenChange={setNavOpen}
               onCategoryChange={goTo}
-              isMobile={isMobile}
-              isLandscape={isLandscape}
             />
           )}
-          {/* Content shifts beside the open nav on desktop; on mobile the nav overlays it */}
-          <div className="screen-shift" data-shifted={!isMobile && navOpen}>
+          {/* The pause menu overlays the screen; the picture underneath pauses */}
+          <div className="screen-shift" data-paused={navOpen}>
             {renderScreen()}
           </div>
           {powered && !voidPeek && (
@@ -258,6 +273,17 @@ export default function Home() {
       </main>
 
       <div className="nes-stripe nes-stripe-bottom" />
+
+      {showAB && powered && (
+        <div className="ab-switch" role="group" aria-label="Pause menu motion">
+          <span>NAV</span>
+          {MOTIONS.map((m) => (
+            <button key={m.id} aria-pressed={navMotion === m.id} onClick={() => pickMotion(m.id)}>
+              {m.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       <AnimatePresence>
         {selectedProject && (
