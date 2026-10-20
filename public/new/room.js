@@ -438,7 +438,7 @@ for (const id of Object.keys(PLAYS)) if (id !== 'pc') setScreen(id, false);
 
 // PC: a lit monitor (Omar's logo) and a CD tray that slides out of the drive bay.
 const pc = objects['pc'];
-let monitor, tray, trayDisc;
+let monitor, tray;
 const TRAY = { x: 0.171, y: -0.42, shut: 0.109 - 0.13, open: 0.109 + 0.14 };
 if (pc) {
   monitor = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.502), new THREE.MeshBasicMaterial({ map: screenTex, toneMapped: false, transparent: true, alphaTest: 0.5 }));
@@ -550,13 +550,13 @@ function highlight(ids) {
 }
 function resetChoice() { state.mode = 'free'; state.system = null; highlight([]); }
 
-function use(id) {
+function activate(id) {
   if (!id || state.busy) return;
   if (state.playing) return; // the menu handles eject first
   if (id === 'drawer') return goSpot('drawer');
   if (id === 'envelope') return openLetter();
   const o = objects[id]; if (!o) return;
-  if (PLAYS[id] && !rest?.done) { loadRest().then(() => use(id)); return; } // its games are still on their way
+  if (PLAYS[id] && !rest?.done) { loadRest().then(() => activate(id)); return; } // its games are still on their way
   if (PLAYS[id]) {
     // pick a system: look over at the games that fit, lit up
     state.mode = 'choose'; state.system = id;
@@ -583,7 +583,6 @@ function use(id) {
 // ---------- inserting and ejecting ----------
 // Each system has its own motion: cartridges slide into their slot, the DS card goes in from the
 // back, the cassette door swings open, the PC's tray comes out for the disc. All in GSAP timelines.
-const tmpQ = new THREE.Quaternion(), tmpV = new THREE.Vector3();
 function tweenLocal(tl, obj, pos, quat, scale, dur, ease = 'power2.inOut', at) {
   const p0 = obj.position.clone(), q0 = obj.quaternion.clone(); let s0 = obj.scale.x;
   const k = { t: 0 };
@@ -770,7 +769,7 @@ function openProject(id, playing) {
   const p = PROJECTS[id]; if (!p) return;
   const items = [];
   if (playing) items.push({ label: 'EJECT', act: eject });
-  else if (SYSTEM_OF[id]) items.push({ label: 'PLAY IT', act: () => { closePanel(); use(SYSTEM_OF[id]); } });
+  else if (SYSTEM_OF[id]) items.push({ label: 'PLAY IT', act: () => { closePanel(); activate(SYSTEM_OF[id]); } });
   items.push({ label: 'CASE STUDY', act: () => say(LINES.study, 2.4) });
   items.push({ label: 'BACK', act: () => { if (playing) eject(); else { closePanel(); highlight([]); goSpot(objects[id].place.spot); } } });
   openPanel({ kind: 'project', tag: p.medium, title: p.title, kana: p.kana, body: [p.pitch], items });
@@ -857,7 +856,7 @@ canvas.addEventListener('click', () => {
   if (state.mode === 'boot' || state.busy || state.playing) return;
   const id = pick();
   if (!id) { if (state.mode === 'choose') resetChoice(); return; }
-  use(id);
+  activate(id);
 });
 
 // keyboard: arrows pick among objects in view (or menu entries), Enter uses, Esc steps back, 1-3 move
@@ -879,7 +878,7 @@ addEventListener('keydown', (e) => {
     focusIdx = (focusIdx + (e.key === 'ArrowRight' ? 1 : -1) + list.length) % list.length;
     state.hover = list[focusIdx]; state.keyHover = true; e.preventDefault();
     document.getElementById('say').textContent = `${state.hover}: ${PROMPT(state.hover) || ''}`;
-  } else if (e.key === 'Enter' && state.keyHover && state.hover) { use(state.hover); e.preventDefault(); }
+  } else if (e.key === 'Enter' && state.keyHover && state.hover) { activate(state.hover); e.preventDefault(); }
   else if (e.key === 'Escape') { resetChoice(); goSpot(spot); }
 });
 
@@ -984,4 +983,4 @@ gsap.to(crtMat.uniforms.uPower, { value: 1, duration: reduce ? 0.2 : 0.9, ease: 
 if (!reduce) crtMat.uniforms.uBurst.value = 0.9;
 setTimeout(() => { queue(LINES.boot, 2.6); }, reduce ? 300 : 1300);
 setTimeout(() => { loadRest(); if (state.mode === 'boot') state.mode = 'free'; highlight(Object.keys(PLAYS)); setTimeout(() => highlight([]), 2600); }, reduce ? 1500 : 6500);
-window.__room = { THREE, look, crtMat, objects, goSpot, use, state, camera, eject, openLetter, get panel() { return panel; }, tray, TRAY, doorPivot, frameObject };
+window.__room = { THREE, look, crtMat, objects, goSpot, state, camera, use: activate, eject, openLetter, get panel() { return panel; }, tray, TRAY, doorPivot, frameObject };
