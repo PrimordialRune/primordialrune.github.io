@@ -85,6 +85,7 @@ export default function Emblem3D({
     const report = (b: EmblemBackend) => {
       // Once per mount; the only later call is a downgrade to "none" if a
       // renderer that already drew dies mid-session and the retry fails.
+      if (b === "none") delete host.dataset.backend;
       if (cancelled || reported === b || (reported && b !== "none")) return;
       reported = b;
       onBackendRef.current?.(b);
@@ -148,6 +149,11 @@ export default function Emblem3D({
       renderer.toneMappingExposure = 1.0;
       await renderer.init();
       if (cancelled) return runCleanups();
+      // A lost GPU device leaves a blank canvas: treat it like a draw error
+      // (tear down and retry on WebGL2, or give up).
+      renderer.onDeviceLost = (info) => {
+        fail(new Error(`device lost: ${info.message}`));
+      };
 
       const backend = renderer.backend as { isWebGPUBackend?: boolean };
       const backendName: EmblemBackend = backend.isWebGPUBackend
@@ -164,7 +170,7 @@ export default function Emblem3D({
         const room = new RoomEnvironment();
         const envRT = pmrem.fromScene(room, 0.04);
         scene.environment = envRT.texture;
-        scene.environmentIntensity = 0.12;
+        scene.environmentIntensity = 0;
         cleanups.push(() => {
           envRT.dispose();
           pmrem.dispose();
@@ -178,12 +184,18 @@ export default function Emblem3D({
         // Environment is optional; lights alone still read.
       }
 
-      const hemi = new THREE.HemisphereLight(CREAM, PEACOCK, 0.35);
+      const hemi = new THREE.HemisphereLight(CREAM, PEACOCK, 2.3);
       scene.add(hemi);
 
-      const key = new THREE.DirectionalLight(CREAM, 1.5);
+      const key = new THREE.DirectionalLight(CREAM, 2.0);
       key.position.set(-2.2, 3, 4);
       scene.add(key);
+
+      // Close cream point light: gives the clearcoat a soft gloss spot that
+      // slides across the faces as the emblem tilts (reads as plastic).
+      const gloss = new THREE.PointLight(CREAM, 1.4, 0, 2);
+      gloss.position.set(-0.4, 0.45, 1.3);
+      scene.add(gloss);
 
       const fill = new THREE.DirectionalLight(AQUAMARINE, 0.35);
       fill.position.set(3, -1, 3);
@@ -191,13 +203,13 @@ export default function Emblem3D({
 
       // Teal rim from behind: catches the bevels so the dark crown reads
       // against the matching peacock screen.
-      const rimL = new THREE.DirectionalLight(TEAL, 5);
+      const rimL = new THREE.DirectionalLight(TEAL, 8);
       rimL.position.set(-4, 2, -2.5);
       scene.add(rimL);
-      const rimR = new THREE.DirectionalLight(TEAL, 5);
+      const rimR = new THREE.DirectionalLight(TEAL, 8);
       rimR.position.set(4, -1.5, -2.5);
       scene.add(rimR);
-      const rimT = new THREE.DirectionalLight(TEAL, 3.5);
+      const rimT = new THREE.DirectionalLight(TEAL, 6);
       rimT.position.set(0.5, 4, -2);
       scene.add(rimT);
 
@@ -245,21 +257,27 @@ export default function Emblem3D({
 
       const outerMat = new THREE.MeshPhysicalMaterial({
         color: PEACOCK,
-        roughness: 0.38,
+        roughness: 0.6,
         metalness: 0,
+        specularIntensity: 0.15,
         clearcoat: 1,
-        clearcoatRoughness: 0.12,
-        specularIntensity: 1,
+        clearcoatRoughness: 0.2,
+        // Teal sheen only shows at grazing angles: lights the bevels so the
+        // peacock crown separates from the peacock screen.
+        sheen: 0.8,
+        sheenColor: new THREE.Color(TEAL),
+        sheenRoughness: 0.45,
       });
       const innerColor = new THREE.Color(BLOOD_ORANGE);
       const orange = new THREE.Color(BLOOD_ORANGE);
       const red = new THREE.Color(WARNING_RED);
       const innerMat = new THREE.MeshPhysicalMaterial({
         color: innerColor,
-        roughness: 0.32,
+        roughness: 0.5,
         metalness: 0,
+        specularIntensity: 0.3,
         clearcoat: 1,
-        clearcoatRoughness: 0.1,
+        clearcoatRoughness: 0.2,
         emissive: new THREE.Color(WARNING_RED),
         emissiveIntensity: 0,
       });
@@ -470,6 +488,9 @@ export default function Emblem3D({
       // the caller falls back before anything is reported.
       applyFrame(performance.now(), 0);
       draw();
+      // Live backend for debugging (onBackend fires once; a later runtime
+      // fallback to WebGL2 only shows up here).
+      host.dataset.backend = backendName;
       report(backendName);
       invalidate();
     };

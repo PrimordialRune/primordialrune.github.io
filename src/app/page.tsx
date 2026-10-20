@@ -54,7 +54,7 @@ function readEmblem(): EmblemKind {
     const saved = localStorage.getItem(EMBLEM_KEY);
     if (saved === "flat" || saved === "3d") return saved;
   } catch {}
-  return "3d";
+  return "flat";
 }
 const readShowAB = () =>
   process.env.NEXT_PUBLIC_SHOW_AB === "1" || new URLSearchParams(window.location.search).has("ab");
@@ -96,7 +96,7 @@ export default function Home() {
   const navMotion = motionPick ?? pauseMotion;
   const showAB = useSyncExternalStore(noSubscribe, readShowAB, () => false);
   const [emblemPick, setEmblemPick] = useState<EmblemKind | null>(null);
-  const savedEmblem = useSyncExternalStore(noSubscribe, readEmblem, () => "3d" as EmblemKind);
+  const savedEmblem = useSyncExternalStore(noSubscribe, readEmblem, () => "flat" as EmblemKind);
   const emblem = emblemPick ?? savedEmblem;
   const [backend, setBackend] = useState<EmblemBackend | null>(null);
   const [speed, setSpeed] = useState(1);
