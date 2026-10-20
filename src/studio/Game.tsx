@@ -15,7 +15,7 @@ import {
   type View,
 } from "./story";
 import { consumeResetParam, readPowered, readStory, writePowered, writeStory } from "./persist";
-import { configureNarrator, say, clearNarrator } from "./narrator/narrator";
+import { configureNarrator, say, clearNarrator, currentPage } from "./narrator/narrator";
 import { glitch } from "./fx";
 import Frame from "./Frame";
 import Tube from "./Tube";
@@ -171,11 +171,12 @@ export default function Game() {
     const s = dispatch({ type: "HUB_ENTER" });
     if (s.act === 4 && before.act === 3) {
       // STAY was chosen earlier: the ending starts now that we're back on the hub
-      say("end.afterStay", { interrupt: true, onShown: () => setTimeout(startEnding, 1600) });
+      say("end.afterStay", { interrupt: true });
+      startEnding();
       return;
     }
     if (s.act === 4) return void go({ kind: "void" }, { replace: true });
-    if (line) say(line);
+    if (line) say(line, { interrupt: true });
     if (s.act === 3 && !s.flags.includes("revealPlayed")) return reveal();
     if (!line && s.mode === "story") say("hub.enter");
   }, [dispatch, go, reveal, startEnding]);
@@ -228,7 +229,8 @@ export default function Game() {
       if (next === 4) {
         if (v.kind === "hub" && prev === 3) {
           // YES on the hub
-          say("choice.yes", { interrupt: true, onShown: () => setTimeout(startEnding, 1200) });
+          say("choice.yes", { interrupt: true });
+          startEnding();
         }
         return;
       }
@@ -267,6 +269,27 @@ export default function Game() {
     }
     return () => clearNarrator();
   }, [initial.line, dispatch]);
+
+  // a WORK / CONTACT click on the static first paint can land between boot and mount
+  useEffect(() => {
+    const v = parseHash(window.location.hash);
+    if (!v || viewRef.current.kind !== "power") return;
+    const id = requestAnimationFrame(() => {
+      writePowered(true);
+      if (v.kind === "contact") say("contact.enter");
+      go(v, { replace: true });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [go]);
+
+  // DIRECT mode: the AI keeps to its single-line tab
+  useEffect(() => {
+    if (story.mode !== "direct") return;
+    const k = view.kind;
+    if (k === "manual" || k === "load" || k === "power") return;
+    const p = currentPage();
+    if (!p || !p.text.includes("out of the way")) say("direct", { force: true, interrupt: true });
+  }, [view.kind, story.mode]);
 
   // browser Back steps back through views
   useEffect(() => {

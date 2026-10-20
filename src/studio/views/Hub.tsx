@@ -156,7 +156,7 @@ export default function Hub({ ending = false }: { ending?: boolean }) {
       <div className="hub-face">
         <span className="hub-glow" aria-hidden="true" />
         <button type="button" className="logo-btn" onClick={poke} disabled={ending} aria-label="The logo. Poke it">
-          <AiLogo ref={logo} fill={ending ? "red" : logoFill(story.act)} className="hub-logo" />
+          <AiLogo ref={logo} fill={ending ? "red" : logoFill(story.act)} className="hub-logo" grid={ending} />
         </button>
       </div>
       <div className="cmdwin" ref={win} onKeyDown={onKey}>
@@ -177,7 +177,7 @@ export default function Hub({ ending = false }: { ending?: boolean }) {
         <div className="end-row" aria-hidden="true">
           {PROJECTS.map((p) => (
             <span key={p.slug} className="end-obj" data-kind={p.kind}>
-              <ObjectArt kind={p.kind} width={72} />
+              <ObjectArt kind={p.kind} width={window.innerWidth < 720 ? 50 : 72} />
             </span>
           ))}
         </div>

@@ -10,6 +10,12 @@ import { FrameLogo } from "@/studio/Logo";
 function Shell() {
   return (
     <div className="studio" data-act="0" data-boxpos="hidden" data-view="power">
+      <a className="skip" href="#works">
+        Skip to work
+      </a>
+      <a className="skip" href="#contact">
+        Skip to contact
+      </a>
       <header className="frame" data-protected>
         <div className="stripe" aria-hidden="true" />
         <div className="strip">

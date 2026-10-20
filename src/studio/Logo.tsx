@@ -49,10 +49,12 @@ interface Props {
   className?: string;
   /** eye offset in logo units (stepped, N/E/S/W/centre) */
   eye?: { x: number; y: number };
+  /** mask the shapes with the 8px grid the ending takes apart (off otherwise: no seams at rest) */
+  grid?: boolean;
 }
 
 /** The AI's face. Cells of the disintegration masks carry data-g so the ending can step them out. */
-const AiLogo = forwardRef<SVGSVGElement, Props>(function AiLogo({ fill, className, eye }, ref) {
+const AiLogo = forwardRef<SVGSVGElement, Props>(function AiLogo({ fill, className, eye, grid = false }, ref) {
   const id = "l" + useId().replace(/[^a-zA-Z0-9]/g, "");
   const inner = fill === "original" || fill === "rim" ? "var(--blood-orange)" : fill === "red" ? "var(--ai-red)" : "var(--blood-orange)";
   return (
@@ -61,7 +63,7 @@ const AiLogo = forwardRef<SVGSVGElement, Props>(function AiLogo({ fill, classNam
         <clipPath id={`${id}h`}>
           <polygon points={HALF} />
         </clipPath>
-        {(["o", "i"] as const).map((part) => (
+        {grid && (["o", "i"] as const).map((part) => (
           <mask id={`${id}${part}`} key={part} maskUnits="userSpaceOnUse" x="0" y="0" width="555" height="555">
             <rect width="555" height="555" fill="#000" />
             {GRID.map((c, i) => (
@@ -70,10 +72,10 @@ const AiLogo = forwardRef<SVGSVGElement, Props>(function AiLogo({ fill, classNam
           </mask>
         ))}
       </defs>
-      <g mask={`url(#${id}o)`}>
+      <g mask={grid ? `url(#${id}o)` : undefined}>
         <path d={LOGO_OUTER} fill="var(--peacock-blue)" stroke="var(--teal)" strokeWidth="3" className="logo-outer" />
       </g>
-      <g mask={`url(#${id}i)`} transform={eye ? `translate(${eye.x} ${eye.y})` : undefined} className="logo-eye">
+      <g mask={grid ? `url(#${id}i)` : undefined} transform={eye ? `translate(${eye.x} ${eye.y})` : undefined} className="logo-eye">
         <path d={LOGO_INNER} fill={inner} className="logo-inner" />
         {fill === "half" && <path d={LOGO_INNER} fill="var(--ai-red)" clipPath={`url(#${id}h)`} />}
         {fill === "rim" && <path d={LOGO_INNER} fill="none" stroke="var(--ai-red)" strokeWidth="2" vectorEffect="non-scaling-stroke" />}

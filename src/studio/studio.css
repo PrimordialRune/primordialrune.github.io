@@ -1058,12 +1058,13 @@
   position: absolute;
   display: block;
 }
+/* the players are flat silhouettes in brand tokens; the objects carry the period detail (P3) */
 .ld-slot,
 .ld-deck,
 .ld-player,
 .ld-tray {
   border: 3px solid var(--teal);
-  background: var(--peacock-blue);
+  background: var(--dark-teal);
 }
 /* Game Boy: the cart drops into the DMG slot; the slot front hides its lower part */
 .ld-gb-cart {
@@ -1078,7 +1079,7 @@
   height: 34%;
   z-index: 2;
   border-radius: 12px 12px 18px 18px;
-  box-shadow: inset 0 6px 0 rgba(51, 153, 153, 0.35);
+  box-shadow: inset 0 8px 0 var(--peacock-blue);
 }
 .ld-led {
   position: absolute;

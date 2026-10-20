@@ -202,7 +202,7 @@ export function hasProgress(s: Story) {
 }
 
 export function formatPlaytime(seconds: number) {
-  const m = Math.floor(seconds / 60);
-  const h = Math.floor(m / 60);
-  return `${String(h).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+  // minutes:seconds, like a handheld's play time
+  const t = Math.max(0, Math.round(seconds));
+  return `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`;
 }

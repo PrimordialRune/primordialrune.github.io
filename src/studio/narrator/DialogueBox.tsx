@@ -67,7 +67,8 @@ function NameTag() {
 }
 
 export default function DialogueBox({ pos }: { pos: BoxPos }) {
-  useSyncExternalStore(subscribeNarrator, narratorVersion, narratorVersion);
+  const version = useSyncExternalStore(subscribeNarrator, narratorVersion, narratorVersion);
+  const shown = useRef(false);
   const page = currentPage();
   const box = useRef<HTMLDivElement>(null);
   const text = useRef<HTMLSpanElement>(null);
@@ -87,7 +88,9 @@ export default function DialogueBox({ pos }: { pos: BoxPos }) {
       node.textContent = "";
       return;
     }
+    shown.current = false;
     const done = () => {
+      shown.current = true;
       typing.current = null;
       node.textContent = page.text;
       pageShown(page);
@@ -115,6 +118,14 @@ export default function DialogueBox({ pos }: { pos: BoxPos }) {
       window.clearTimeout(hold.current);
     };
   }, [page, hidden]);
+
+  // lines queued after the current one finished typing: hold it, then move on
+  useEffect(() => {
+    if (!shown.current || typing.current || pendingCount() === 0) return;
+    const p = currentPage();
+    window.clearTimeout(hold.current);
+    hold.current = window.setTimeout(advance, 900 + (p?.text.length ?? 0) * 20);
+  }, [version]);
 
   const onPress = () => {
     if (typing.current) {
