@@ -68,6 +68,26 @@ export default function CRTScreen({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
+  // The glare on the curved glass drifts with the pointer, so the glass reads as a surface in front of the picture
+  useEffect(() => {
+    if (prefersReducedMotion() || !matchMedia("(hover: hover)").matches) return;
+    let raf = 0;
+    const onMove = (e: PointerEvent) => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const tube = tubeRef.current;
+        if (!tube) return;
+        tube.style.setProperty("--glare-x", `${15 + (e.clientX / window.innerWidth) * 45}%`);
+        tube.style.setProperty("--glare-y", `${6 + (e.clientY / window.innerHeight) * 20}%`);
+      });
+    };
+    window.addEventListener("pointermove", onMove);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+
   return (
     <div ref={tubeRef} className="crt-tube">
       <div className="crt-content">{children}</div>

@@ -224,94 +224,41 @@ a,
 
 /* ---------- The tube ---------- */
 
-/* Plastic housing: lit from the top-left, extruded towards the viewer, with
-   a thicker chin carrying the speaker grille, badge and power LED */
+/* Trinitron frame: a slim black front lit from above, then a sloped black mask
+   the curved glass sits behind. The page around it is the rest of the set. */
 .console-screen {
-  --bezel: clamp(10px, 1.6vw, 24px);
-  --chin: clamp(26px, 3.6vw, 48px);
-  --plastic-hi: #f6e8d2;
-  --plastic: #e4d0b3;
-  --plastic-lo: #c9b293;
+  --bezel: clamp(10px, 1.5vw, 22px);
+  --mask: clamp(8px, 1.3vw, 20px);
   grid-area: screen;
   position: relative;
   display: flex;
-  flex-direction: column;
   min-width: 0;
   min-height: 0;
-  margin-bottom: 8px; /* room for the extruded edge */
-  padding: var(--bezel) var(--bezel) 0;
-  border-radius: clamp(22px, 3vw, 42px);
-  background:
-    radial-gradient(120% 90% at 20% 0%, rgba(255, 255, 255, 0.55), transparent 55%),
-    linear-gradient(165deg, var(--plastic-hi) 0%, var(--plastic) 48%, var(--plastic-lo) 100%);
+  margin-bottom: 10px; /* room for the set's thickness */
+  padding: var(--bezel);
+  border-radius: clamp(14px, 1.8vw, 26px);
+  background: linear-gradient(180deg, #3a3d43 0, #24262b 14px, #17181b 60%, #101113);
   box-shadow:
-    inset 0 2px 0 rgba(255, 255, 255, 0.85),
-    inset 2px 0 3px rgba(255, 255, 255, 0.35),
-    inset -2px 0 4px rgba(90, 64, 40, 0.12),
-    inset 0 -10px 18px rgba(90, 64, 40, 0.18),
-    0 1px 0 #c3ab8b,
-    0 3px 0 #b39a79,
-    0 6px 0 #a38a69,
-    0 8px 0 #937a5b,
-    0 14px 22px rgba(16, 47, 65, 0.28),
-    0 34px 60px -18px rgba(16, 47, 65, 0.45);
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 1px 0 0 rgba(255, 255, 255, 0.06),
+    inset -1px 0 0 rgba(0, 0, 0, 0.6),
+    0 4px 0 #0a0a0b,
+    0 7px 0 #060607,
+    0 22px 34px -10px rgba(16, 47, 65, 0.55);
   transition: box-shadow 0.3s, background 0.3s;
 }
 
-/* Dark surround the tube sits in, recessed into the housing */
+/* The mask slopes inward: its top face is in shadow, its bottom face catches the light */
 .tv-recess {
   position: relative;
   flex: 1;
+  min-width: 0;
   min-height: 0;
-  padding: clamp(6px, 0.9vw, 14px);
-  border-radius: clamp(16px, 2.4vw, 32px);
-  background: linear-gradient(180deg, #0c1012, #1b2124 60%, #232a2d);
-  box-shadow:
-    inset 0 8px 16px rgba(0, 0, 0, 0.9),
-    inset 0 -3px 6px rgba(255, 255, 255, 0.06),
-    0 0 0 3px var(--teal),
-    0 0 0 5px rgba(60, 40, 20, 0.28),
-    0 2px 1px 5px rgba(255, 255, 255, 0.55);
-}
-
-.tv-chin {
-  flex: none;
-  height: var(--chin);
-  display: flex;
-  align-items: center;
-  gap: clamp(10px, 1.6vw, 22px);
-  padding: 0 clamp(8px, 1.4vw, 20px);
-}
-.tv-grille {
-  width: clamp(40px, 6vw, 90px);
-  height: clamp(8px, 1vw, 14px);
-  border-radius: 3px;
-  background: repeating-linear-gradient(90deg, rgba(70, 50, 30, 0.55) 0 2px, transparent 2px 5px);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
-}
-/* Embossed into the plastic */
-.tv-badge {
-  flex: 1;
-  text-align: center;
-  font-family: var(--font-fk-grotesk-black);
-  font-style: italic;
-  font-size: clamp(9px, 0.9vw, 13px);
-  letter-spacing: 0.22em;
-  color: var(--plastic-lo);
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7), 0 -1px 0 rgba(90, 64, 40, 0.35);
-  white-space: nowrap;
-}
-.tv-led {
-  width: clamp(7px, 0.7vw, 10px);
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: #8a2a1a;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.6);
-  transition: background-color 0.3s, box-shadow 0.3s;
-}
-.console[data-powered="true"] .tv-led {
-  background: #ff6a3d;
-  box-shadow: 0 0 6px 1px rgba(255, 106, 61, 0.8), 0 0 14px rgba(236, 86, 59, 0.5);
+  border: var(--mask) solid;
+  border-color: #060708 #121417 #34373c #121417;
+  border-radius: clamp(18px, 2.4vw, 34px);
+  background: #000;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), inset 0 0 0 1px #000;
 }
 
 .crt-tube {
@@ -320,7 +267,7 @@ a,
   height: 100%;
   overflow: hidden;
   background: var(--tube-glass);
-  border-radius: clamp(14px, 2.2vw, 28px) / clamp(16px, 2.8vw, 34px);
+  border-radius: clamp(10px, 1.6vw, 22px) / clamp(14px, 2.2vw, 30px);
   container-type: size;
   contain: layout; /* containing block for the nav's fixed backdrop */
   isolation: isolate;
@@ -392,7 +339,7 @@ a,
   z-index: 44;
   border-radius: inherit;
   background:
-    radial-gradient(ellipse 55% 34% at 26% 10%, rgba(255, 255, 255, 0.13), transparent 70%),
+    radial-gradient(ellipse 50% 30% at var(--glare-x, 26%) var(--glare-y, 10%), rgba(255, 255, 255, 0.14), transparent 70%),
     radial-gradient(ellipse 90% 22% at 50% 0%, rgba(255, 255, 255, 0.07), transparent 80%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 30%);
   box-shadow:
@@ -703,21 +650,17 @@ a,
   background: #000;
   box-shadow: none;
 }
-.console[data-void="true"] .tv-chin { opacity: 0; }
 
 @media (max-width: 420px) {
   .console-name { font-size: clamp(16px, 5.4vw, 22px); }
-  .console-screen { --bezel: 8px; --chin: 24px; }
-  .tv-badge { letter-spacing: 0.12em; }
+  .console-screen { --bezel: 7px; --mask: 6px; }
 }
 
 @media (orientation: landscape) and (max-height: 520px) {
   .console-header { padding-block: 4px; }
   .console-logo { width: 26px; }
   .console-name { font-size: 18px; }
-  .console-screen { --bezel: 8px; --chin: 18px; }
-  .tv-grille, .tv-badge { display: none; }
-  .tv-chin { justify-content: flex-end; }
+  .console-screen { --bezel: 6px; --mask: 6px; }
 }
 
 /* Open nav on short landscape screens (phones at 19.5:9): label only */
