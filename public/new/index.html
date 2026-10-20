@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Omar's Room</title>
 <style>
 /* Layout: one Trinitron filling the window. The room renders inside the tube; the nav (three bars under the glass) only moves you around the room. Menus and the letter are drawn inside the tube too. */
@@ -26,42 +26,35 @@
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #07141c; } }
 :root[data-theme="dark"] { --bg: #07141c; }
 * { box-sizing: border-box; }
-html, body { margin: 0; height: 100%; background: var(--bg); color: var(--cream); font-family: var(--grotesk); overflow: hidden; }
-.wrap { position: fixed; inset: 0; display: grid; grid-template-rows: 1fr auto auto; place-items: center; padding: 16px; gap: 12px; }
-/* Trinitron: frame only, black, slightly rounded, flat-ish glass. */
-.tv { position: relative; width: min(100%, calc((100vh - 140px) * 4 / 3)); aspect-ratio: 4 / 3; border-radius: 22px; background: var(--frame); padding: clamp(10px, 2.2vw, 26px); box-shadow: 0 0 0 1px #1c1c20, 0 30px 80px rgba(0,0,0,.6), inset 0 2px 0 rgba(255,255,255,.05); }
-.glass { position: relative; width: 100%; height: 100%; border-radius: 10px / 14px; overflow: hidden; background: #000; }
+html, body { margin: 0; height: 100%; background: var(--frame); color: var(--cream); font-family: var(--grotesk); overflow: hidden; }
+/* Layout: the Trinitron is the whole window. Only its recessed rim frames the picture; the nav,
+   the narrator and every menu are drawn inside the tube. */
+.tv { position: fixed; inset: 0; height: 100dvh; background: var(--frame);
+  padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left)); }
+.glass { position: relative; width: 100%; height: 100%; border-radius: 18px / 24px; overflow: hidden; background: #000;
+  box-shadow: 0 0 0 2px #050506, 0 0 0 4px #1d1d21, inset 0 0 0 1px rgba(255,255,255,.04); }
 canvas { display: block; width: 100%; height: 100%; cursor: crosshair; touch-action: none; }
-.badge { position: absolute; bottom: calc(clamp(10px, 2.2vw, 26px) * 0.25); left: 50%; transform: translateX(-50%); font: 900 10px/1 var(--grotesk); letter-spacing: .35em; color: #6d6d74; pointer-events: none; }
-/* Nav: Omar's scanlines, now a way to move through the room. */
-nav { display: flex; gap: 10px; width: min(100%, 720px); }
-nav button { flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 44px; padding: 8px 14px; border: 0; border-radius: 999px; background: color-mix(in srgb, var(--orange) 35%, transparent); color: var(--cream); font: 900 15px/1 var(--grotesk); letter-spacing: .04em; cursor: pointer; transition: background .2s, transform .2s; }
-nav button small { font: 400 11px/1 var(--grotesk); opacity: .85; }
-nav button[aria-current="true"] { background: var(--orange); }
-nav button:hover { transform: translateY(-2px); }
-nav button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
-nav .num { font: 400 10px/1 var(--pixel); background: var(--peacock); padding: 4px 6px; border-radius: 6px; }
-.hint { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); font: 400 10px/1.4 var(--pixel); color: #5f7480; letter-spacing: .08em; white-space: nowrap; }
-.foot { width: min(100%, 720px); display: flex; gap: 16px; align-items: flex-start; justify-content: space-between; }
-.quick { font: 400 10px/24px var(--pixel); letter-spacing: .08em; color: var(--gold); white-space: nowrap; text-decoration: none; min-height: 24px; }
-.quick:hover, .quick:focus-visible { text-decoration: underline; }
-.credits { flex: 1; font: 200 12px/1.5 var(--grotesk); color: #8aa0aa; }
-.credits summary { font: 400 10px/1 var(--pixel); letter-spacing: .08em; cursor: pointer; min-height: 24px; }
-.credits a { color: inherit; }
-.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
-@media (max-width: 640px) {
-  .wrap { padding: 16px; }
-  nav button small { display: none; }
-  .hint { display: none; }
+.badge { position: absolute; bottom: max(4px, calc(env(safe-area-inset-bottom) - 12px)); left: 50%; transform: translateX(-50%); font: 900 9px/12px var(--grotesk); letter-spacing: .35em; color: #5d5d64; pointer-events: none; }
+/* The DOM nav and credits stay for keyboards and screen readers; the tube draws what you see. */
+.sr, nav, .credits, .quick { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+nav button:focus-visible, .quick:focus-visible { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); width: auto; height: auto; clip: auto; z-index: 3; padding: 8px 14px; background: var(--orange); color: var(--cream); border: 0; border-radius: 999px; font: 400 11px/1 var(--pixel); outline: 2px solid var(--gold); }
+/* Phones held upright: the room only plays sideways. */
+.tilt { display: none; }
+@media (orientation: portrait) and (max-width: 900px) {
+  .tilt { display: grid; position: fixed; inset: 0; z-index: 5; place-content: center; justify-items: center; gap: 14px; padding: 16px; background: var(--bg); text-align: center; }
+  .tilt svg { width: 72px; height: 72px; animation: tilt 2.4s ease-in-out infinite; }
+  .tilt p { margin: 0; font: 400 12px/1.6 var(--pixel); letter-spacing: .08em; }
+  .tilt small { font: 900 12px/1 var(--grotesk); color: var(--aqua); letter-spacing: .1em; }
+  .tilt a { font: 400 10px/1 var(--pixel); color: var(--gold); letter-spacing: .08em; padding: 14px 8px; }
 }
+@keyframes tilt { 0%, 20% { transform: rotate(0); } 50%, 80% { transform: rotate(-90deg); } 100% { transform: rotate(0); } }
+@media (prefers-reduced-motion: reduce) { .tilt svg { animation: none; transform: rotate(-90deg); } }
 </style>
 </head>
 <body>
-<div class="hint">CLICK OBJECTS · ← → PICK · ENTER USE · ESC BACK · 1 2 3 MOVE</div>
-<div class="wrap">
   <div class="tv">
     <div class="glass">
-      <canvas id="crt" aria-label="Omar's room, seen through a Trinitron. Use the buttons below to move, arrow keys to pick an object and Enter to use it."></canvas>
+      <canvas id="crt" aria-label="Omar's room, seen through a Trinitron. Press 1, 2 or 3 to move, the arrow keys to pick an object and Enter to use it."></canvas>
     </div>
     <div class="badge">TRINITRON</div>
   </div>
@@ -70,7 +63,13 @@ nav .num { font: 400 10px/1 var(--pixel); background: var(--peacock); padding: 4
     <button data-spot="table"><span class="num">02</span><span>TABLE</span><small>テーブル</small></button>
     <button data-spot="drawer"><span class="num">03</span><span>DRAWER</span><small>ひきだし</small></button>
   </nav>
-  <div class="foot"><details class="credits"><summary>MODEL CREDITS</summary><p id="credits"></p></details><a class="quick" href="quick/">IN A HURRY? QUICK VIEW →</a></div>
+  <details class="credits"><summary>MODEL CREDITS</summary><p id="credits"></p></details>
+  <a class="quick" href="quick/">IN A HURRY? QUICK VIEW</a>
+<div class="tilt" role="alert">
+  <svg viewBox="0 0 64 64" aria-hidden="true"><rect x="20" y="6" width="24" height="52" rx="5" fill="none" stroke="#fce8cd" stroke-width="3"/><rect x="24" y="12" width="16" height="36" fill="#ec563b"/><circle cx="32" cy="53" r="2" fill="#fce8cd"/></svg>
+  <p>TURN YOUR PHONE SIDEWAYS</p>
+  <small>よこにしてね</small>
+  <a href="quick/">OR TAKE THE QUICK VIEW →</a>
 </div>
 <p class="sr" id="say" aria-live="polite"></p>
 <script>

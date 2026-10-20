@@ -5,7 +5,8 @@
 import * as THREE from 'three';
 import { loadItem, loadTexture } from './stage.js';
 
-const W = 640, H = 480;
+// The picture is always 480 lines; its width follows the window, so the tube can fill it edge to edge.
+const H = 480; let W = 640;
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const DUR = reduce ? 0.35 : 1.1;
 // Keep tweens on wall-clock time even when a slow GPU drops frames.
@@ -127,6 +128,8 @@ const LINES = {
 // Every CC BY model in the room is credited under the TV, as the licence asks.
 const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 const seen = new Set();
+const CREDIT_ITEMS = PLACES.filter((p) => !p.jewel && !p.envelope).map((p) => byId[p.id]).filter((i, k, a) => i && !i.real && i.credit?.url && a.findIndex((j) => j?.credit?.url === i.credit.url) === k);
+const CREDIT_TEXT = CREDIT_ITEMS.map((i) => `“${i.credit.title}” by ${i.credit.author}`).join(' · ') + '. All CC BY 4.0, via Sketchfab. Jewel cases, CD tray and envelope are drawn in code; label and screen art, the Crossfader models and the Cube rulebook are Omar’s own work.';
 document.getElementById('credits').innerHTML = PLACES.filter((p) => !p.jewel && !p.envelope).map((p) => byId[p.id]).filter((i) => i && !i.real && i.credit?.url && !seen.has(i.credit.url) && seen.add(i.credit.url))
   .map((i) => `“<a href="${esc(i.credit.url)}" target="_blank" rel="noopener">${esc(i.credit.title)}</a>” by ${esc(i.credit.author)}, ${esc(i.credit.license)}`).join(' · ') +
   '. Jewel cases, CD tray and envelope are drawn here; all label and screen art, the Crossfader models and the Cube rulebook are Omar’s own work.';
@@ -207,10 +210,15 @@ const quadScene = new THREE.Scene();
 quadScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), crtMat));
 const quadCam = new THREE.Camera();
 
+let cam = null; // the room camera, once it exists
 function resize() {
   const r = canvas.getBoundingClientRect();
+  if (!r.width || !r.height) return;
   renderer.setSize(r.width, r.height, false);
   crtMat.uniforms.uOut.value.set(r.width, r.height);
+  W = Math.round(H * Math.min(2.4, Math.max(1, r.width / r.height)));
+  rt.setSize(W, H); ui.width = W; ui.height = H;
+  if (cam) { cam.aspect = W / H; cam.updateProjectionMatrix(); }
 }
 addEventListener('resize', resize); resize();
 
@@ -219,6 +227,7 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x06090b);
 scene.fog = new THREE.Fog(0x06090b, 2.6, 5.5);
 const camera = new THREE.PerspectiveCamera(50, W / H, 0.02, 20);
+cam = camera; resize();
 
 scene.add(new THREE.HemisphereLight(0x7f9fae, 0x1a120c, 0.9));
 const lamp = new THREE.SpotLight(0xffd6a0, 9, 4, 0.75, 0.6, 1.4);
@@ -787,12 +796,12 @@ const portrait = new Image(); portrait.src = 'labels/omar-pixel.png';
 function drawPanel(t) {
   panelHits = [];
   if (!panel) return;
-  const letter = panel.kind === 'letter';
-  const x = letter ? 48 : 352, y = letter ? 36 : 44, w = letter ? W - 96 : 260;
-  g2.font = `900 ${letter ? 15 : 14}px "FK Grotesk"`;
+  const letter = panel.kind === 'letter', wide = letter || panel.kind === 'credits';
+  const w = wide ? Math.min(W - 96, 600) : 260, x = wide ? Math.round((W - w) / 2) : W - w - 28, y = wide ? 36 : 70;
+  g2.font = `900 ${wide ? 15 : 14}px "FK Grotesk"`;
   const bodyLines = panel.body.flatMap((p) => [...wrap(p, w - 40), '']);
-  const lineH = letter ? 18 : 17;
-  const itemH = letter ? 19 : 22;
+  const lineH = wide ? 18 : 17;
+  const itemH = wide ? 19 : 22;
   const h = 84 + (letter ? 30 : 0) + bodyLines.length * lineH + (panel.extra ? 22 : 0) + panel.items.length * itemH + 14;
   // window: same family as the dialogue box
   g2.fillStyle = 'rgba(16,47,65,0.96)'; g2.fillRect(x, y, w, h);
@@ -811,7 +820,7 @@ function drawPanel(t) {
     g2.imageSmoothingEnabled = true;
     cy += 30;
   }
-  g2.font = `900 ${letter ? 15 : 14}px "FK Grotesk"`; g2.fillStyle = 'rgba(252,232,205,0.92)';
+  g2.font = `900 ${wide ? (panel.kind === 'credits' ? 12 : 15) : 14}px "FK Grotesk"`; g2.fillStyle = 'rgba(252,232,205,0.92)';
   for (const l of bodyLines) { g2.fillText(l, x + 20, cy); cy += lineH; }
   if (panel.extra) { g2.font = '10px "8bitDarling"'; g2.fillStyle = '#fadb68'; g2.fillText(panel.extra.toUpperCase(), x + 20, cy); cy += 22; }
   // the cursor menu
@@ -831,6 +840,51 @@ function panelAt(u, v) {
   const [cu, cv] = curve(u, v); const px = cu * W, py = (1 - cv) * H;
   return panelHits.find((r) => px >= r.x && px <= r.x + r.w && py >= r.y && py <= r.y + r.h);
 }
+function navAt(u, v) {
+  const [cu, cv] = curve(u, v); const px = cu * W, py = (1 - cv) * H;
+  return navHits.find((r) => px >= r.x && px <= r.x + r.w && py >= r.y && py <= r.y + r.h);
+}
+// The nav lives in the tube now: three channel bars top right, credits and the quick view bottom right.
+let navHits = [], navHover = null;
+const NAV = [['desk', '01', 'DESK', 'デスク'], ['table', '02', 'TABLE', 'テーブル'], ['drawer', '03', 'DRAWER', 'ひきだし']];
+function drawNav() {
+  navHits = [];
+  if (panel && panel.kind !== 'project') return;
+  // on short screens (phones sideways) the bars grow so a thumb can hit them
+  const ns = canvas.clientHeight < 520 ? 1.35 : 1;
+  g2.save(); g2.translate(W, 0); g2.scale(ns, ns); g2.translate(-W, 0);
+  let x = W - 18;
+  for (const [id, num, label, kana] of [...NAV].reverse()) {
+    g2.font = `11px "${FONT_PIX}"`; const lw = g2.measureText(label).width;
+    g2.font = `900 9px "${FONT_G}"`; const kw = g2.measureText(kana).width;
+    const w = 34 + Math.max(lw, kw) + 12, h = 30, y = 10; x -= w;
+    const on = spot === id, hot = navHover === id;
+    g2.fillStyle = on ? '#ec563b' : hot ? 'rgba(236,86,59,0.6)' : 'rgba(236,86,59,0.35)';
+    g2.beginPath(); g2.roundRect(x, y, w, h, 15); g2.fill();
+    g2.fillStyle = '#102f41'; g2.fillRect(x + 8, y + 9, 20, 12);
+    g2.font = `8px "${FONT_PIX}"`; g2.fillStyle = '#fce8cd'; g2.fillText(num, x + 11, y + 15.5);
+    g2.font = `11px "${FONT_PIX}"`; g2.fillText(label, x + 34, y + 11);
+    g2.font = `900 9px "${FONT_G}"`; g2.fillStyle = 'rgba(252,232,205,0.85)'; g2.fillText(kana, x + 34, y + 23);
+    navHits.push({ id, x: W - (W - x) * ns, y: y * ns, w: w * ns, h: h * ns, act: () => goSpot(id) });
+    x -= 8;
+  }
+  g2.restore();
+  if (panel) return;
+  // small print, bottom right, above nothing else
+  g2.font = `9px "${FONT_PIX}"`; g2.textAlign = 'right';
+  const links = [['quick', 'QUICK VIEW →', () => { location.href = 'quick/'; }], ['credits', 'CREDITS', () => openPanel(creditsPanel())]];
+  let rx = W - 18; const ry = H - (nar.visible ? 104 : 16);
+  for (const [id, label, act] of links) {
+    const w = g2.measureText(label).width;
+    g2.fillStyle = navHover === id ? '#fadb68' : 'rgba(252,232,205,0.55)'; g2.fillText(label, rx, ry);
+    navHits.push({ id, x: rx - w - 4, y: ry - 9, w: w + 8, h: 18, act });
+    rx -= w + 18;
+  }
+  g2.textAlign = 'left';
+}
+function creditsPanel() {
+  return { kind: 'credits', tag: 'CREDITS', title: 'Model credits', kana: 'クレジット', body: [CREDIT_TEXT], items: [{ label: 'BACK', act: closePanel }] };
+}
 
 // ---------- picking through the curved glass ----------
 const ray = new THREE.Raycaster(); const ndc = new THREE.Vector2(); const mouse = { u: 0.5, v: 0.5, in: false };
@@ -848,11 +902,14 @@ canvas.addEventListener('pointermove', (e) => {
   mouse.u = (e.clientX - r.left) / r.width; mouse.v = 1 - (e.clientY - r.top) / r.height; mouse.in = true;
   sway.x = (mouse.u - 0.5); sway.y = (mouse.v - 0.5);
   state.idle = 0;
-  if (panel) { const hit = panelAt(mouse.u, mouse.v); if (hit) panel.sel = hit.i; canvas.style.cursor = hit ? 'pointer' : 'crosshair'; }
+  const nh = navAt(mouse.u, mouse.v); navHover = nh?.id || null;
+  if (panel) { const hit = panelAt(mouse.u, mouse.v); if (hit) panel.sel = hit.i; canvas.style.cursor = hit || nh ? 'pointer' : 'crosshair'; }
+  else canvas.style.cursor = nh ? 'pointer' : 'crosshair';
 });
 canvas.addEventListener('pointerleave', () => { mouse.in = false; });
 canvas.addEventListener('click', () => {
   if (panel) { const hit = panelAt(mouse.u, mouse.v); if (hit) { panel.items[hit.i].act(); return; } }
+  const nh = navAt(mouse.u, mouse.v); if (nh) { if (nh.id === 'quick' || nh.id === 'credits' || !state.busy) nh.act(); return; }
   if (state.mode === 'boot' || state.busy || state.playing) return;
   const id = pick();
   if (!id) { if (state.mode === 'choose') resetChoice(); return; }
@@ -919,7 +976,7 @@ function drawUI(t) {
   drawPanel(t);
   // the dialogue box
   if (nar.visible && !(panel && panel.kind === 'letter')) {
-    const bx = 40, by = H - 92, bw = W - 80, bh = 72;
+    const bw = Math.min(W - 80, 760), bx = Math.round((W - bw) / 2), by = H - 92, bh = 72;
     g2.fillStyle = 'rgba(16,47,65,0.94)'; g2.fillRect(bx, by, bw, bh);
     g2.strokeStyle = '#fce8cd'; g2.lineWidth = 2; g2.strokeRect(bx + 4, by + 4, bw - 8, bh - 8);
     g2.font = `12px "${FONT_PIX}"`;
@@ -931,6 +988,7 @@ function drawUI(t) {
     wrap(shown, bw - 50).slice(0, 3).forEach((l, i) => g2.fillText(l, bx + 22, by + 28 + i * 22));
     if (nar.shown >= nar.text.length && Math.sin(t * 6) > 0) { g2.fillStyle = '#fadb68'; g2.beginPath(); g2.moveTo(bx + bw - 26, by + bh - 22); g2.lineTo(bx + bw - 16, by + bh - 22); g2.lineTo(bx + bw - 21, by + bh - 15); g2.fill(); }
   }
+  drawNav();
   // spot label, top-left, like a channel number
   if (!(panel && panel.kind === 'letter')) {
     g2.font = `12px "${FONT_PIX}"`; g2.fillStyle = 'rgba(252,232,205,0.7)';
@@ -947,7 +1005,7 @@ renderer.setAnimationLoop(() => {
   crtMat.uniforms.uTime.value = t;
   crtMat.uniforms.uBurst.value *= Math.pow(0.04, rawDt);
   // hover
-  if (mouse.in && !state.keyHover) state.hover = state.mode === 'boot' || panel ? null : pick();
+  if (mouse.in && !state.keyHover) state.hover = state.mode === 'boot' || panel || navHover ? null : pick();
   if (mouse.in && state.keyHover && Math.abs(sway.x) + Math.abs(sway.y) > 0) state.keyHover = false;
   const hov = state.hover;
   if (hov && hov !== state.lastHover && hov !== 'drawer' && state.mode === 'free' && !state.said.has(hov) && LINES.hover[hov]) {
