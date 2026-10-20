@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Portfolio website for **Omar Golinelli (PrimordialRune)** showcasing Game Design and Game Development projects. Built with Next.js 16, TypeScript, Tailwind CSS v4, GSAP (choreographed interface motion) and Framer Motion (simple React springs). three.js (WebGPURenderer, WebGL2 fallback) is lazy-loaded for the 3D title emblem only. Uses static export for GitHub Pages deployment.
+Portfolio website for **Omar Golinelli (PrimordialRune)** showcasing Game Design and Game Development projects. Built with Next.js 16, TypeScript, Tailwind CSS v4, GSAP (choreographed interface motion) and Framer Motion (simple React springs). Uses static export for GitHub Pages deployment.
 
 **Design Direction:** Mix of retro (NES/Gameboy era) and modern/minimal aesthetics with emphasis on 2D animations.
 
@@ -26,20 +26,23 @@ npm run lint     # Run ESLint
 - **src/components/** - Reusable React components
   - `CRTScreen.tsx` - Full-viewport tube: clean Trinitron at rest, VHS burst on events (`triggerBurst` in `lib/crt.ts`)
   - `PauseMenu.tsx` - The nav: corner scanlines that morph into Persona-style pause bars (GSAP; motions slash/cutin/ribbon A/B via `?nav=`), plus the MOTION FULL/QUIET option
-  - `TitleScreen.tsx` - Hero channel: Omar's emblem and name, the narrator's dialogue box, and the save select as its menu
-  - `Emblem3D.tsx` - The logo as a real-time 3D emblem (three.js WebGPURenderer, lazy-loaded; FLAT SVG fallback)
+  - `HeroScreen.tsx` - Channel 01: the emblem (the narrator's face), Omar's name and a JRPG status window (class, skills, contact); every element makes the narrator react
+  - `Narrator.tsx` - Site-wide dialogue box: docked on the hero, a toast elsewhere. Anything can make it talk with `narrate(topic)` / `narrateLine(line)` from `lib/narrator.ts`
+  - `Desk.tsx` - The real projects as objects on the glass (cassette, GB cart, CD, booster, GBA cart): drag, marquee select, double-click to open, right-click for the narrator's menu. Art in `desk/DeskArt.tsx`, data in `lib/desk.ts`
   - `Navigation.tsx` - Old morphing scanline nav, no longer rendered
-  - `PowerOn.tsx` / `SaveSelect.tsx` - Standby + CRT switch-on, then the save select (CONTINUE, corrupted file, NEW GAME)
+  - `PowerOn.tsx` / `SaveSelect.tsx` - Standby + CRT switch-on, then the save select (CONTINUE, corrupted file, NEW GAME), shown once per power-on
   - `DiscoverButton.tsx` - Random-project button
   - `HeroSection.tsx` - Old hero, no longer rendered; kept as source for the narrator work
-  - `FloatingProjects.tsx` - Physics-based draggable project cards
+  - `FloatingProjects.tsx` / `ProjectGrid.tsx` - Old mockup project views, no longer rendered
   - `ProjectModal.tsx` - Modal with 3D tilt and Discover mode
-  - `ProjectGrid.tsx` - Paginated grid for Archives category
   - `AstroidSparkle.tsx` - SVG sparkle decoration component
 - **src/lib/** - Utilities and data
   - `projects.ts` - Project data and helper functions
   - `utils.ts` - Seeded random utility for deterministic layouts
   - `sections.ts` - The five sections (single source for nav and channel numbers)
+  - `narrator.ts` - The narrator's lines per topic, in Omar's lowercase "* " voice
+  - `desk.ts` - The real projects on the desk, per section
+  - `logo.ts` - The logo's two SVG paths; copy from here, never retype them
   - `save.ts` - Save file (localStorage) and power state (sessionStorage), all guarded
   - `motion.ts` - Motion setting (AUTO follows the system's reduced motion, FULL/QUIET override; resolved onto `<html data-motion>`), and `springEase` for GSAP springs
   - `useGamepadKeys.ts` - Gamepad buttons replayed as keyboard keys
@@ -68,7 +71,7 @@ To deploy manually: push to `main` or trigger the workflow from GitHub Actions t
 
 ## Motion review
 
-`?ab` in the URL shows the review panel: pause menu motion, title emblem (FLAT/3D, with the GPU backend in use) and a SPEED control that slows every GSAP animation (`gsap.globalTimeline.timeScale`). Use GSAP for anything choreographed or interruptible; check `isQuiet()` from `lib/motion` instead of reading `prefers-reduced-motion` directly, and style quiet mode with `[data-motion="quiet"]` selectors.
+`?ab` in the URL shows the review panel: pause menu motion, the MOTION setting (with what the system asks for) and a SPEED control that slows every GSAP animation (`gsap.globalTimeline.timeScale`). Use GSAP for anything choreographed or interruptible; check `isQuiet()` from `lib/motion` instead of reading `prefers-reduced-motion` directly, and style quiet mode with `[data-motion="quiet"]` selectors.
 
 ## Framer Motion
 

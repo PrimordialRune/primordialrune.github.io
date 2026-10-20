@@ -9,6 +9,7 @@ export interface SaveData {
 
 const SAVE_KEY = "primordialrune:save";
 const POWER_KEY = "primordialrune:powered";
+const FILE_KEY = "primordialrune:file-picked";
 
 export function readSave(): SaveData | null {
   try {
@@ -54,6 +55,23 @@ export function writePowered() {
     sessionStorage.setItem(POWER_KEY, "1");
   } catch {
     // Storage unavailable: the boot plays again next load
+  }
+}
+
+// The save select appears once per power-on; after a file is picked it stays out of the way
+export function readFilePicked(): boolean {
+  try {
+    return sessionStorage.getItem(FILE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function writeFilePicked() {
+  try {
+    sessionStorage.setItem(FILE_KEY, "1");
+  } catch {
+    // Storage unavailable: the save select shows again next load
   }
 }
 
