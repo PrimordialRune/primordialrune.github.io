@@ -22,16 +22,11 @@
   --accent: var(--blood-orange);
   --accent-secondary: var(--gold);
 
-  /* Responsive Layout Variables */
-  --nav-width: min(400px, 85vw);
-  --header-height: clamp(3.5rem, 8vh, 5rem);
-  --stripe-height: clamp(0.5rem, 0.4vh, 3px);
-  --content-padding: clamp(0.5rem, 2vw, 1.5rem);
-  --nav-left-offset: clamp(0.5rem, 2vw, 2.5rem);
-
+  /* Layout */
+  --stripe-height: 3px;
   /* Nav open width — single source of truth used by Navigation + page content shift */
   --nav-open-width: min(340px, 22vw);
-
+  --tube-glass: #0b1418;
 }
 
 @theme inline {
@@ -147,3 +142,701 @@ a,
   -webkit-tap-highlight-color: transparent;
 }
 
+
+/* ==========================================
+   Console: the page is a TV on a cream console.
+   Header on top, the tube fills the rest. The scanline nav lives inside the tube.
+   ========================================== */
+
+.console {
+  --gutter: clamp(8px, 1.6vw, 24px);
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-areas:
+    "head"
+    "screen";
+  padding:
+    calc(var(--stripe-height) + env(safe-area-inset-top, 0px))
+    max(var(--gutter), env(safe-area-inset-right, 0px))
+    calc(var(--stripe-height) + var(--gutter) + env(safe-area-inset-bottom, 0px))
+    max(var(--gutter), env(safe-area-inset-left, 0px));
+  background: var(--cream);
+  overflow: hidden;
+  transition: background-color 0.3s;
+}
+
+.nes-stripe {
+  position: fixed;
+  left: 0;
+  right: 0;
+  height: var(--stripe-height);
+  background: var(--blood-orange);
+  z-index: 50;
+  transition: opacity 0.3s;
+}
+.nes-stripe-top { top: 0; }
+.nes-stripe-bottom { bottom: 0; }
+
+.console-header {
+  grid-area: head;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-block: clamp(8px, 1.4vh, 14px);
+  min-width: 0;
+  transition: opacity 0.3s;
+}
+
+.console-brand {
+  display: flex;
+  align-items: center;
+  gap: clamp(8px, 1vw, 12px);
+  min-width: 0;
+}
+
+.console-logo {
+  width: clamp(30px, 3vw, 40px);
+  height: auto;
+  flex: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.console-logo:hover { opacity: 0.75; }
+
+.console-name {
+  display: flex;
+  gap: 0.25em;
+  font-family: var(--font-fk-grotesk-black);
+  font-style: italic;
+  font-size: clamp(20px, 2.4vw, 36px);
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.console-name-a { color: var(--blood-orange); }
+.console-name-b { color: var(--peacock-blue); }
+
+.console-actions { display: flex; flex: none; }
+
+/* ---------- The tube ---------- */
+
+/* Trinitron frame: a slim black front lit from above, then a sloped black mask
+   the curved glass sits behind. The page around it is the rest of the set. */
+.console-screen {
+  --bezel: clamp(10px, 1.5vw, 22px);
+  --mask: clamp(8px, 1.3vw, 20px);
+  grid-area: screen;
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  margin-bottom: 10px; /* room for the set's thickness */
+  padding: var(--bezel);
+  border-radius: clamp(14px, 1.8vw, 26px);
+  background: linear-gradient(180deg, #3a3d43 0, #24262b 14px, #17181b 60%, #101113);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 1px 0 0 rgba(255, 255, 255, 0.06),
+    inset -1px 0 0 rgba(0, 0, 0, 0.6),
+    0 4px 0 #0a0a0b,
+    0 7px 0 #060607,
+    0 22px 34px -10px rgba(16, 47, 65, 0.55);
+  transition: box-shadow 0.3s, background 0.3s;
+}
+
+/* The mask slopes inward: its top face is in shadow, its bottom face catches the light */
+.tv-recess {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  border: var(--mask) solid;
+  border-color: #060708 #121417 #34373c #121417;
+  border-radius: clamp(18px, 2.4vw, 34px);
+  background: #000;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), inset 0 0 0 1px #000;
+}
+
+.crt-tube {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--tube-glass);
+  border-radius: clamp(10px, 1.6vw, 22px) / clamp(14px, 2.2vw, 30px);
+  container-type: size;
+  contain: layout; /* containing block for the nav's fixed backdrop */
+  isolation: isolate;
+}
+
+.crt-content {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  color: var(--cream);
+  text-shadow: 0 0 0.5cqmin rgba(252, 232, 205, 0.25);
+}
+
+.crt-fx {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+.crt-noise {
+  z-index: 40;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  opacity: 0.035;
+  mix-blend-mode: screen;
+}
+.crt-grille {
+  z-index: 41;
+  background: repeating-linear-gradient(90deg, rgba(255, 40, 40, 0.07) 0 1px, rgba(40, 255, 90, 0.06) 1px 2px, rgba(60, 90, 255, 0.08) 2px 3px);
+  mix-blend-mode: screen;
+}
+.crt-scan {
+  z-index: 41;
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.3) 0 1px, transparent 1px 3px);
+  opacity: 0.55;
+}
+.crt-track {
+  z-index: 42;
+  top: -12%;
+  bottom: auto;
+  height: 10%;
+  opacity: 0;
+  background: linear-gradient(transparent, rgba(255, 255, 255, 0.1) 35%, rgba(255, 255, 255, 0.24) 50%, rgba(255, 255, 255, 0.1) 65%, transparent);
+  filter: blur(1px);
+}
+.crt-headswitch {
+  z-index: 42;
+  top: auto;
+  height: 4.5%;
+  opacity: 0;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.18) 0 3px, transparent 3px 9px),
+    linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.6));
+}
+/* Convex glass: edges fall off into shadow, corners darkest */
+.crt-vignette {
+  z-index: 43;
+  background:
+    radial-gradient(ellipse 72% 68% at 50% 50%, transparent 55%, rgba(0, 0, 0, 0.78) 100%),
+    radial-gradient(ellipse 140% 100% at 50% 50%, transparent 70%, rgba(0, 0, 0, 0.35) 100%);
+  box-shadow:
+    inset 0 0 6cqmin rgba(0, 0, 0, 0.7),
+    inset 0 1.2cqmin 2cqmin rgba(0, 0, 0, 0.55);
+}
+/* Reflections on the bulge: a soft window glare top-left and a thin rim of light along the top edge */
+.crt-glass {
+  z-index: 44;
+  border-radius: inherit;
+  background:
+    radial-gradient(ellipse 50% 30% at var(--glare-x, 26%) var(--glare-y, 10%), rgba(255, 255, 255, 0.14), transparent 70%),
+    radial-gradient(ellipse 90% 22% at 50% 0%, rgba(255, 255, 255, 0.07), transparent 80%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 30%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+.crt-osd {
+  position: absolute;
+  z-index: 45;
+  top: 5%;
+  left: 5%;
+  font-family: var(--font-8bit-darling);
+  font-size: clamp(16px, 4cqmin, 40px);
+  line-height: 1;
+  letter-spacing: 0.04em;
+  color: #fff;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.6), 0 0 6px rgba(255, 255, 255, 0.35);
+  pointer-events: none;
+}
+.crt-osd:empty { display: none; }
+.crt-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 46;
+  pointer-events: none;
+  opacity: 0;
+  background: #cfd8d8;
+  mix-blend-mode: screen;
+}
+
+/* Tape burst: VHS artefacts for a moment, then back to the clean tube */
+.is-burst .crt-content {
+  filter: saturate(1.3) contrast(1.06) blur(0.35px);
+  text-shadow: -0.25cqmin 0 rgba(255, 30, 80, 0.55), 0.25cqmin 0 rgba(0, 220, 255, 0.45);
+}
+.is-burst .crt-noise { opacity: 0.4; }
+.is-burst .crt-track { opacity: 1; animation: crtTrack 0.5s linear infinite; }
+.is-burst .crt-headswitch { opacity: 1; animation: crtHeadSwitch 0.12s steps(2) infinite; }
+.is-static .crt-flash { animation: crtFlash 0.22s ease-out; }
+.is-static .crt-content { transform: translateX(0.6cqmin) skewX(-2deg); }
+
+@keyframes crtTrack { from { top: -12%; } to { top: 104%; } }
+@keyframes crtHeadSwitch {
+  0% { transform: translateX(0) skewX(0); }
+  50% { transform: translateX(-2%) skewX(-12deg); }
+  100% { transform: translateX(1%) skewX(6deg); }
+}
+@keyframes crtFlash { 0% { opacity: 0.75; } 100% { opacity: 0; } }
+@keyframes blink { 50% { opacity: 0; } }
+
+.screen-shift {
+  position: absolute;
+  inset: 0;
+  z-index: 0; /* own stacking context, so screen content stays under the nav */
+  display: flex;
+  background: var(--peacock-blue);
+  /* CSS, not Framer: Framer can't interpolate a calc() with a var() back to 0 */
+  transition: padding-left 0.4s cubic-bezier(0.3, 1.25, 0.5, 1);
+}
+/* nav width + its left inset (lg:left-6 = 1.5rem) + breathing room (1rem) */
+.screen-shift[data-shifted="true"] { padding-left: calc(var(--nav-open-width) + 2.5rem); }
+
+.screen-section {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: clamp(10px, 2cqmin, 28px);
+}
+
+.screen-signature {
+  position: absolute;
+  z-index: 30;
+  right: clamp(14px, 3cqw, 40px);
+  bottom: clamp(10px, 3cqh, 32px);
+  font-family: var(--font-gen-ei-kiwami);
+  font-size: clamp(12px, 1.8cqmin, 20px);
+  letter-spacing: 0.1em;
+  color: color-mix(in srgb, var(--aquamarine) 40%, transparent);
+  pointer-events: none;
+}
+
+/* ---------- Power on ---------- */
+
+.power-screen {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: #050809;
+  cursor: pointer;
+}
+.power-btn {
+  display: grid;
+  place-items: center;
+  width: clamp(64px, 14cqmin, 140px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: clamp(3px, 0.6cqmin, 6px) solid var(--blood-orange);
+  background: transparent;
+  color: var(--blood-orange);
+  cursor: pointer;
+  transition: box-shadow 0.25s, background-color 0.25s;
+}
+.power-btn svg { width: 46%; height: 46%; }
+.power-btn:hover,
+.power-btn:focus-visible {
+  outline: none;
+  background: rgba(236, 86, 59, 0.12);
+  box-shadow: 0 0 24px rgba(236, 86, 59, 0.55);
+}
+.power-hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 14%;
+  text-align: center;
+  font-family: var(--font-8bit-darling);
+  font-size: clamp(12px, 2.6cqmin, 24px);
+  letter-spacing: 0.12em;
+  color: var(--blood-orange);
+  animation: blink 1.1s steps(2) infinite;
+}
+.power-hint-jp { font-family: var(--font-gen-ei-kiwami); margin-left: 0.6em; }
+.power-beam {
+  position: absolute;
+  inset: 0;
+  background: var(--cream);
+  transform-origin: center;
+}
+
+/* ---------- Save select ---------- */
+
+.save-screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(14px, 4cqh, 40px);
+  padding: clamp(18px, 6cqmin, 72px);
+  background: linear-gradient(var(--peacock-blue), #0a1d28);
+}
+.save-title {
+  margin: 0;
+  font-family: var(--font-fk-grotesk-black);
+  font-size: clamp(24px, 6cqmin, 64px);
+  line-height: 0.95;
+  color: var(--cream);
+}
+.save-title-jp {
+  margin: clamp(4px, 1cqmin, 10px) 0 0;
+  font-family: var(--font-gen-ei-kiwami);
+  font-size: clamp(11px, 2cqmin, 20px);
+  letter-spacing: 0.14em;
+  color: var(--aquamarine);
+}
+.save-list {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(8px, 1.8cqh, 18px);
+  width: 100%;
+  max-width: 900px;
+}
+.save-file {
+  position: relative;
+  display: grid;
+  grid-template-columns: clamp(16px, 3cqmin, 30px) minmax(0, 1fr);
+  align-items: center;
+  min-height: clamp(52px, 11cqh, 100px);
+  padding: clamp(8px, 1.6cqh, 16px) clamp(12px, 2.6cqmin, 28px);
+  border: clamp(2px, 0.35cqmin, 4px) solid var(--teal);
+  border-radius: clamp(8px, 1.4cqmin, 16px);
+  background: rgba(16, 47, 65, 0.92);
+  color: var(--cream);
+  text-align: left;
+  overflow: hidden;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.2s;
+}
+.save-file[data-selected="true"] {
+  border-color: var(--blood-orange);
+  box-shadow: 0 0 0 3px rgba(236, 86, 59, 0.25), 0 0 18px rgba(236, 86, 59, 0.35);
+}
+.save-arrow {
+  color: var(--gold);
+  font-size: clamp(12px, 2.6cqmin, 26px);
+  visibility: hidden;
+}
+.save-file[data-selected="true"] .save-arrow { visibility: visible; }
+.save-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+.save-main { min-width: 0; }
+.save-tag {
+  font-family: var(--font-8bit-darling);
+  font-size: clamp(10px, 1.9cqmin, 18px);
+  letter-spacing: 0.1em;
+  color: var(--aquamarine);
+}
+.save-name {
+  font-family: var(--font-fk-grotesk-black);
+  font-size: clamp(18px, 3.8cqmin, 40px);
+  line-height: 1.05;
+}
+.save-sub {
+  display: block;
+  margin-top: 2px;
+  font-size: clamp(11px, 2cqmin, 19px);
+  opacity: 0.8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.save-time {
+  flex: none;
+  font-family: var(--font-8bit-darling);
+  font-size: clamp(11px, 2.4cqmin, 26px);
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* The corrupted file: erased (blurred smear, wiped by a moving mask) and
+   glitched (sharp RGB slices tearing through) at the same time */
+.save-file-corrupt {
+  border-color: color-mix(in srgb, var(--blood-orange) 70%, transparent);
+  border-style: dashed;
+  background:
+    repeating-linear-gradient(0deg, rgba(78, 185, 159, 0.14) 0 2px, rgba(16, 47, 65, 0.92) 2px 6px);
+}
+.save-file-corrupt .save-tag { color: var(--blood-orange); }
+.save-file-corrupt[data-tearing="true"] { transform: skewX(-8deg) translateX(3%) !important; }
+
+.corrupt-stack {
+  display: grid;
+  min-width: 0;
+  -webkit-mask-image: linear-gradient(90deg, #000 0 22%, rgba(0, 0, 0, 0.15) 38%, #000 52%, #000 70%, rgba(0, 0, 0, 0.2) 86%, #000);
+  mask-image: linear-gradient(90deg, #000 0 22%, rgba(0, 0, 0, 0.15) 38%, #000 52%, #000 70%, rgba(0, 0, 0, 0.2) 86%, #000);
+  -webkit-mask-size: 200% 100%;
+  mask-size: 200% 100%;
+  animation: corruptErase 3.4s linear infinite;
+}
+.corrupt-layer {
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+.corrupt-smear {
+  filter: blur(2.4px);
+  opacity: 0.85;
+  text-shadow: 8px 0 6px rgba(252, 232, 205, 0.45), -12px 0 10px rgba(78, 185, 159, 0.4);
+}
+.corrupt-slice { mix-blend-mode: screen; }
+.corrupt-slice-a {
+  color: #ff4f6d;
+  animation: corruptSliceA 1.1s steps(1) infinite;
+}
+.corrupt-slice-b {
+  color: #4ef0ff;
+  animation: corruptSliceB 0.8s steps(1) infinite;
+}
+
+@keyframes corruptErase {
+  from { -webkit-mask-position: 0 0; mask-position: 0 0; }
+  to { -webkit-mask-position: -200% 0; mask-position: -200% 0; }
+}
+@keyframes corruptSliceA {
+  0% { clip-path: inset(10% 0 70% 0); transform: translateX(-6px); }
+  20% { clip-path: inset(55% 0 30% 0); transform: translateX(4px); }
+  40% { clip-path: inset(30% 0 52% 0); transform: translateX(-2px); }
+  60% { clip-path: inset(80% 0 5% 0); transform: translateX(8px); }
+  80% { clip-path: inset(0 0 86% 0); transform: translateX(-3px); }
+}
+@keyframes corruptSliceB {
+  0% { clip-path: inset(62% 0 18% 0); transform: translateX(5px); }
+  25% { clip-path: inset(5% 0 78% 0); transform: translateX(-7px); }
+  50% { clip-path: inset(40% 0 40% 0); transform: translateX(3px); }
+  75% { clip-path: inset(88% 0 0 0); transform: translateX(-4px); }
+}
+
+/* ---------- The void: a glimpse of the ending ---------- */
+
+.void-screen {
+  position: absolute;
+  inset: 0;
+  background: #000;
+}
+.console[data-void="true"] { background: #000; }
+.console[data-void="true"] .console-header,
+.console[data-void="true"] .nes-stripe,
+.console[data-void="true"] .crt-fx,
+.console[data-void="true"] .crt-osd {
+  opacity: 0;
+  pointer-events: none;
+}
+.console[data-void="true"] .console-screen,
+.console[data-void="true"] .tv-recess {
+  background: #000;
+  box-shadow: none;
+}
+
+@media (max-width: 420px) {
+  .console-name { font-size: clamp(16px, 5.4vw, 22px); }
+  .console-screen { --bezel: 7px; --mask: 6px; }
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  .console-header { padding-block: 4px; }
+  .console-logo { width: 26px; }
+  .console-name { font-size: 18px; }
+  .console-screen { --bezel: 6px; --mask: 6px; }
+}
+
+/* Open nav on short landscape screens (phones at 19.5:9): label only */
+@media (orientation: landscape) and (max-height: 520px) {
+  .nav-badge,
+  .nav-jp { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .screen-shift { transition: none; }
+  .crt-content,
+  .power-hint,
+  .corrupt-stack,
+  .corrupt-slice { animation: none !important; }
+  .is-burst .crt-track,
+  .is-burst .crt-headswitch { animation: none; opacity: 0; }
+  .is-static .crt-content { transform: none; }
+}
+
+/* ---------- Pause menu: the scanlines become slanted bars over a paused screen ---------- */
+.pause-menu {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+  --bh: 60px;
+}
+.pause-menu[data-open="true"] .pause-dim { pointer-events: auto; }
+.pause-dim {
+  position: absolute;
+  inset: 0;
+  background: rgba(5, 12, 16, 0.6);
+  opacity: 0;
+}
+.pause-label {
+  position: absolute;
+  z-index: 3;
+  right: 5%;
+  bottom: 6%;
+  font-family: var(--font-8bit-darling);
+  font-size: clamp(22px, 4.6cqmin, 46px);
+  line-height: 0.9;
+  text-align: right;
+  color: var(--cream);
+  text-shadow: 3px 3px 0 var(--blood-orange);
+  opacity: 0;
+}
+.pause-label small {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--font-gen-ei-kiwami);
+  font-size: 0.38em;
+  letter-spacing: 0.24em;
+  color: var(--aquamarine);
+  text-shadow: none;
+}
+.pause-menu[data-portrait="true"] .pause-label { top: 5%; bottom: auto; }
+.pause-wipe {
+  position: absolute;
+  z-index: 4;
+  top: -10%;
+  bottom: -10%;
+  left: 0;
+  width: 42%;
+  opacity: 0;
+  transform: translateX(-400%) skewX(-16deg);
+  background: var(--blood-orange);
+}
+.pause-wipe-b { width: 10%; background: var(--gold); }
+.pause-hit {
+  position: absolute;
+  z-index: 5;
+  pointer-events: auto;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 6px;
+  -webkit-tap-highlight-color: transparent;
+}
+.pause-menu[data-open="true"] .pause-hit { display: none; }
+.pause-item {
+  position: absolute;
+  z-index: 6;
+  left: 0;
+  top: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  pointer-events: auto;
+  cursor: pointer;
+  text-align: left;
+  color: var(--cream);
+  background: rgba(236, 86, 59, 0.55);
+  -webkit-tap-highlight-color: transparent;
+}
+.pause-item.is-active { background: var(--blood-orange); }
+.pause-item:focus-visible { outline: none; }
+.pause-menu[data-open="false"] .pause-item { animation: pauseLinePulse 2s ease-in-out infinite; animation-delay: calc(var(--i) * 0.2s); }
+/* Open and inactive: blood-orange/40 over peacock, so the bars stay solid over the paused picture */
+.pause-menu[data-open="true"] .pause-item:not(.is-active) {
+  background-color: var(--peacock-blue);
+  background-image: linear-gradient(rgba(236, 86, 59, 0.4), rgba(236, 86, 59, 0.4));
+}
+@keyframes pauseLinePulse { 50% { opacity: 0.7; } }
+.pause-in {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  gap: calc(var(--bh) * 0.22);
+  padding: 0 calc(var(--bh) * 0.45);
+  white-space: nowrap;
+  transform: skewX(12deg);
+  opacity: 0;
+}
+.pause-num {
+  flex: none;
+  font-family: var(--font-8bit-darling);
+  font-size: calc(var(--bh) * 0.36);
+  line-height: 1;
+  color: rgba(252, 232, 205, 0.75);
+}
+.pause-item.is-active .pause-num { color: var(--gold); }
+.pause-lbl {
+  font-family: var(--font-fk-grotesk-black);
+  font-style: italic;
+  font-size: calc(var(--bh) * 0.44);
+  line-height: 1;
+}
+.pause-jp {
+  margin-left: auto;
+  font-family: var(--font-gen-ei-kiwami);
+  font-size: max(10px, calc(var(--bh) * 0.2));
+  letter-spacing: 0.1em;
+  color: rgba(252, 232, 205, 0.85);
+}
+.pause-menu[data-tight="true"] .pause-jp,
+.pause-menu[data-portrait="true"] .pause-jp { display: none; }
+.pause-menu[data-portrait="true"] .pause-lbl { font-size: calc(var(--bh) * 0.3); }
+.pause-cursor {
+  position: absolute;
+  z-index: 7;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-color: transparent transparent transparent var(--gold);
+  filter: drop-shadow(2px 2px 0 var(--peacock-blue));
+  opacity: 0;
+}
+
+/* The paused picture underneath: drained and slightly out of focus */
+.screen-shift[data-paused="true"] .screen-section { filter: saturate(0.45) blur(1.5px); }
+.screen-section { transition: filter 0.3s; }
+
+/* Review-only switcher for the pause menu A/B test (shown with ?ab in the URL) */
+.ab-switch {
+  position: fixed;
+  z-index: 100;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--peacock-blue);
+  box-shadow: 0 6px 20px rgba(16, 47, 65, 0.4);
+  font-family: var(--font-fk-grotesk-black);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+}
+.ab-switch span { align-self: center; padding: 0 6px; color: var(--aquamarine); }
+.ab-switch button {
+  border: 0;
+  border-radius: 8px;
+  padding: 6px 10px;
+  background: transparent;
+  color: var(--cream);
+  cursor: pointer;
+}
+.ab-switch button[aria-pressed="true"] { background: var(--blood-orange); }
+
+@media (prefers-reduced-motion: reduce) {
+  .pause-menu[data-open="false"] .pause-item { animation: none; }
+  .screen-section { transition: none; }
+}

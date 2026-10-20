@@ -3,51 +3,45 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-interface NavItem {
-  id: string;
-  number: string;
-  label: string;
-  labelJp: string;
-}
-
-const navItems: NavItem[] = [
-  { id: "hero", number: "01", label: "HERO", labelJp: "ヒーロー" },
-  { id: "systems", number: "02", label: "SYSTEMS", labelJp: "システム" },
-  { id: "worlds", number: "03", label: "WORLDS", labelJp: "世界" },
-  { id: "interfaces", number: "04", label: "INTERFACES", labelJp: "インターフェース" },
-  { id: "archives", number: "05", label: "ARCHIVES", labelJp: "アーカイブ" },
-];
+import { sections as navItems } from "@/lib/sections";
 
 interface NavigationProps {
+  activeId: string;
   onOpenChange?: (isOpen: boolean) => void;
   onCategoryChange?: (category: string) => void;
   isMobile?: boolean;
   isLandscape?: boolean;
 }
 
-export default function Navigation({ 
-  onOpenChange, 
+export default function Navigation({
+  activeId: currentId,
+  onOpenChange,
   onCategoryChange,
   isMobile = false,
   isLandscape = false
 }: NavigationProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [activeId, setActiveId] = useState("hero");
+  // Keyboard highlight while open; Enter commits it. null = follow the current section.
+  const [highlightId, setHighlightId] = useState<string | null>(null);
+  const activeId = isOpen && highlightId ? highlightId : currentId;
 
   const toggleNav = useCallback((newState: boolean) => {
     setIsOpen(newState);
+    setHighlightId(null);
     onOpenChange?.(newState);
   }, [onOpenChange]);
 
   const changeCategory = useCallback((categoryId: string) => {
-    setActiveId(categoryId);
+    setHighlightId(null);
     onCategoryChange?.(categoryId);
   }, [onCategoryChange]);
 
-  // Keyboard navigation
+  // Keyboard navigation. Capture phase + preventDefault so screens underneath
+  // (the save select) leave these keys alone while the nav is open.
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape" && isOpen) {
+        e.preventDefault();
         toggleNav(false);
         return;
       }
@@ -61,13 +55,13 @@ export default function Navigation({
           e.preventDefault();
           if (currentIndex > 0) {
             // Only change active visual state, don't navigate yet
-            setActiveId(navItems[currentIndex - 1].id);
+            setHighlightId(navItems[currentIndex - 1].id);
           }
           break;
         case "ArrowDown":
           e.preventDefault();
           if (currentIndex < navItems.length - 1) {
-            setActiveId(navItems[currentIndex + 1].id);
+            setHighlightId(navItems[currentIndex + 1].id);
           }
           break;
         case "Enter":
@@ -79,8 +73,8 @@ export default function Navigation({
       }
     };
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown, true);
+    return () => window.removeEventListener("keydown", handleKeyDown, true);
   }, [isOpen, activeId, changeCategory, toggleNav]);
 
   // Calculate responsive nav width - contained within CRT panel
@@ -108,11 +102,7 @@ export default function Navigation({
             exit={{ opacity: 0 }}
             onClick={() => toggleNav(false)}
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-20"
-            style={{
-              // Only cover the CRT panel area
-              top: "var(--header-height, 4rem)",
-              bottom: "var(--stripe-height, 3px)",
-            }}
+            // The tube is the containing block, so this covers the screen only
           />
         )}
       </AnimatePresence>
@@ -131,8 +121,8 @@ export default function Navigation({
         }}
       >
         {/* Navigation Container - Morphs from scanlines to full nav */}
-        <div className="relative flex flex-col gap-1.5 md:gap-2 flex-1 overflow-hidden">
-          {/* Full-area hit target when closed — makes gaps between scanlines clickable */}
+        <div className={`relative flex flex-col gap-1.5 md:gap-2 overflow-hidden ${isOpen ? "flex-1" : ""}`}>
+          {/* Hit target when closed: covers the scanline stack only (gaps included), not the screen below it */}
           {!isOpen && (
             <button
               className={`absolute inset-0 z-10 ${useOverlayMode ? "pointer-events-auto" : ""}`}
@@ -242,7 +232,7 @@ export default function Navigation({
                           stiffness: 400,
                           delay: 0.05,
                         }}
-                        className={`mb-0.5 md:mb-1.5 w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 flex items-center justify-center rounded-lg md:rounded-xl ${
+                        className={`nav-badge mb-0.5 md:mb-1.5 w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 flex items-center justify-center rounded-lg md:rounded-xl ${
                           isActive
                             ? "bg-peacock-blue text-cream"
                             : "bg-peacock-blue/40 text-cream/80"
@@ -269,7 +259,7 @@ export default function Navigation({
                           initial={{ opacity: 0 }}
                           animate={{ opacity: isActive ? 1 : 0.7 }}
                           transition={{ delay: 0.1 }}
-                          className={`text-[8px] sm:text-[10px] tracking-wider ${
+                          className={`nav-jp text-[8px] sm:text-[10px] tracking-wider ${
                             isActive ? "text-cream/90" : "text-cream/80"
                           }`}
                           style={{ fontFamily: "var(--font-gen-ei-kiwami)" }}
