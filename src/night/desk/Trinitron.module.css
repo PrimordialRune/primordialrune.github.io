@@ -1,0 +1,105 @@
+/* The set: a dark plastic shell (object palette: #24282c shell, #3a3f44 edge, #0b1418 glass,
+   gold LED). Lit gradient on the object only; the glow it throws lives in Lighting. */
+.set {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-radius: 14px;
+  background: linear-gradient(160deg, #3a3f44 0%, #24282c 45%, #1b1e21 100%);
+  box-shadow:
+    inset 1px 1px 0 rgba(252, 232, 205, 0.18),
+    inset -1px -1px 0 rgba(0, 0, 0, 0.5),
+    10px 14px 24px rgba(0, 0, 0, 0.45);
+  padding: 7% 6% 0;
+}
+.bezel {
+  position: relative;
+  flex: 1;
+  border-radius: 10% / 13%;
+  padding: 3.2%;
+  background: #15181b;
+  box-shadow: inset 2px 2px 6px rgba(0, 0, 0, 0.7), inset -1px -1px 0 rgba(252, 232, 205, 0.08);
+}
+.glass {
+  --gx: 30%;
+  --gy: 20%;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 9% / 12%;
+  background: #0b1418;
+  container-type: size;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.6), inset 0 0 26px rgba(0, 0, 0, 0.8);
+}
+.set[data-lit] .glass {
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.6),
+    inset 0 0 22px rgba(0, 0, 0, 0.55),
+    inset 0 0 60px rgba(78, 185, 159, 0.16),
+    0 0 18px rgba(78, 185, 159, 0.22);
+}
+.screen {
+  position: absolute;
+  inset: 0;
+}
+/* the dead tube: black once the AI has left or the set is off */
+.dark {
+  position: absolute;
+  inset: 0;
+  background: #05090b;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0s linear 0.25s;
+}
+.set:not([data-lit]) .dark { opacity: 1; }
+.set:not([data-powered]) .dark { transition-delay: 0s; }
+/* the glass reflects the pointer (cream at 12%), a curved highlight at rest */
+.glint {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at var(--gx) var(--gy), rgba(252, 232, 205, 0.12) 0, rgba(252, 232, 205, 0) 22%),
+    linear-gradient(170deg, rgba(252, 232, 205, 0.06) 0%, rgba(252, 232, 205, 0) 30%);
+}
+.chin {
+  height: 13%;
+  min-height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8%;
+  padding: 0 4%;
+}
+.grille {
+  width: 28%;
+  height: 34%;
+  background: repeating-linear-gradient(90deg, #121417 0 2px, transparent 2px 5px);
+  border-radius: 2px;
+}
+.led {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4a4436;
+}
+.set[data-powered] .led {
+  background: var(--gold);
+  box-shadow: 0 0 6px rgba(250, 219, 104, 0.7);
+}
+
+@media (max-width: 719.98px) {
+  .set {
+    flex-direction: row;
+    border-radius: 0;
+    padding: 6px 8px;
+    box-shadow: inset 0 -1px 0 rgba(51, 153, 153, 0.5), 0 8px 18px rgba(0, 0, 0, 0.4);
+  }
+  .bezel { padding: 3px; border-radius: 10px; }
+  .glass { border-radius: 8px; }
+  .chin { height: auto; min-height: 0; flex-direction: column; justify-content: center; gap: 8px; padding: 0 0 0 8px; }
+  .grille { width: 6px; height: 24px; background: repeating-linear-gradient(0deg, #121417 0 2px, transparent 2px 5px); }
+}

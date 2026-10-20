@@ -1,0 +1,44 @@
+/* Centred on the Trinitron's glass (see content/layout.ts TRINITRON); inverse-square-ish
+   falloff. Light, not a fill: it sits under the objects and over the mat. */
+.light {
+  --glow: 78, 185, 159; /* aquamarine */
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at calc(2.2% + 12vw) calc(3.5% + 8vw),
+    rgba(var(--glow), 0.18) 0,
+    rgba(var(--glow), 0.14) 10vw,
+    rgba(var(--glow), 0.08) 22vw,
+    rgba(var(--glow), 0.035) 40vw,
+    rgba(var(--glow), 0) 70vw
+  );
+  transition: opacity 0.25s linear;
+}
+/* stage 2: aquamarine 94% + the AI's red 6% */
+.light[data-tone="warn"] {
+  background: radial-gradient(
+    circle at calc(2.2% + 12vw) calc(3.5% + 8vw),
+    color-mix(in srgb, rgba(78, 185, 159, 0.18) 94%, color-mix(in srgb, var(--ai-red) 18%, transparent) 6%) 0,
+    color-mix(in srgb, rgba(78, 185, 159, 0.12) 94%, color-mix(in srgb, var(--ai-red) 12%, transparent) 6%) 8vw,
+    color-mix(in srgb, rgba(78, 185, 159, 0.06) 94%, color-mix(in srgb, var(--ai-red) 6%, transparent) 6%) 18vw,
+    rgba(78, 185, 159, 0.025) 34vw,
+    rgba(78, 185, 159, 0) 62vw
+  );
+}
+/* the CRT is dead: cream at 4%, from no particular direction */
+.light[data-tone="moon"] {
+  background: rgba(252, 232, 205, 0.04);
+}
+
+@media (max-width: 719.98px) {
+  /* phones: the light comes from the top strip and falls downward */
+  .light {
+    position: fixed;
+    background: radial-gradient(ellipse 120% 70% at 50% 0, rgba(78, 185, 159, 0.16) 0, rgba(78, 185, 159, 0.05) 50%, rgba(78, 185, 159, 0) 100%);
+  }
+  .light[data-tone="warn"] {
+    background: radial-gradient(ellipse 120% 70% at 50% 0, color-mix(in srgb, rgba(78, 185, 159, 0.16) 94%, color-mix(in srgb, var(--ai-red) 16%, transparent) 6%) 0, rgba(78, 185, 159, 0.05) 50%, rgba(78, 185, 159, 0) 100%);
+  }
+  .light[data-tone="moon"] { background: rgba(252, 232, 205, 0.04); }
+}

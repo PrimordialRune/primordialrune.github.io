@@ -1,0 +1,321 @@
+/* ===== Paper: notebook and business card (package C). Brand tokens only. ===== */
+
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(16, 47, 65, 0.72);
+}
+.close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 3;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--peacock-blue, #102f41);
+  color: var(--cream, #fce8cd);
+  font: 900 18px/1 var(--f-omar);
+  cursor: pointer;
+}
+.close:hover { background: var(--blood-orange, #ec563b); }
+
+.kana {
+  display: block;
+  font-family: var(--f-kana);
+  font-weight: 400;
+  font-size: 0.6em;
+  letter-spacing: 0.04em;
+  line-height: 1.3;
+  color: rgba(51, 153, 153, 0.8);
+}
+
+/* ---------- Notebook ---------- */
+
+.notebook {
+  position: relative;
+  width: min(1040px, 100%);
+  max-height: calc(100dvh - 48px);
+  display: flex;
+  flex-direction: column;
+  outline: none;
+}
+.head {
+  padding: 0 64px 12px 4px;
+}
+.h1 {
+  margin: 0;
+  display: grid;
+  gap: 2px;
+  color: var(--cream, #fce8cd);
+  font: 900 22px/1.1 var(--f-omar);
+  outline: none;
+}
+.h1 .kana { font-size: 13px; }
+.h1:focus-visible { outline: 2px solid var(--blood-orange, #ec563b); outline-offset: 4px; }
+
+.spread {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 0;
+  overflow: auto;
+  background: var(--cream, #fce8cd);
+  color: var(--peacock-blue, #102f41);
+  border-radius: 10px;
+  box-shadow: 0 0 0 1px rgba(51, 153, 153, 0.4), 0 24px 64px rgba(0, 0, 0, 0.45);
+  perspective: 1600px;
+  transform-origin: 50% 50%;
+}
+.page {
+  padding: 48px 48px 40px;
+  font-family: var(--f-omar);
+  font-weight: 300;
+  font-size: 18px;
+  line-height: 1.65;
+  min-width: 0;
+}
+.pageLeft {
+  border-right: 1px solid rgba(51, 153, 153, 0.4);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.spread[data-spread="0"] .pageLeft { justify-content: center; align-items: center; }
+.pageRight { max-width: 66ch; }
+.caption {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--dark-teal, #256069);
+  text-align: center;
+}
+.label {
+  margin: 0 0 8px;
+  font: 900 12px/1.2 var(--f-omar);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.label .kana { font-size: 11px; letter-spacing: 0.06em; }
+.h2 {
+  margin: 0 0 16px;
+  font: 900 30px/1.1 var(--f-omar);
+}
+.p { margin: 0 0 16px; }
+.list {
+  margin: 0 0 24px;
+  padding: 0;
+  list-style: none;
+}
+.list li {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(51, 153, 153, 0.3);
+}
+.strong { font-weight: 900; }
+.muted { color: var(--dark-teal, #256069); }
+.link {
+  color: var(--peacock-blue, #102f41);
+  font-weight: 900;
+  text-decoration: underline;
+  text-decoration-color: var(--blood-orange, #ec563b);
+  text-underline-offset: 3px;
+  word-break: break-word;
+}
+.link:hover { color: var(--blood-orange, #ec563b); }
+
+/* the cover and the page leaf: diegetic paper, moved on stepped frames only */
+.cover {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--dark-teal, #256069);
+  border-radius: 10px;
+  transform-origin: 0 50%;
+  backface-visibility: hidden;
+}
+.coverLabel {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 16px 28px;
+  background: var(--cream, #fce8cd);
+  color: var(--peacock-blue, #102f41);
+  font: 900 24px/1 var(--f-omar);
+  border-radius: 4px;
+}
+.leaf {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 50%;
+  z-index: 1;
+  background: var(--cream, #fce8cd);
+  box-shadow: -1px 0 0 rgba(51, 153, 153, 0.4);
+  transform-origin: 0 50%;
+}
+.leaf[data-dir="-1"] { left: 0; transform-origin: 100% 50%; box-shadow: 1px 0 0 rgba(51, 153, 153, 0.4); }
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 12px;
+}
+.pageBtn {
+  min-height: 44px;
+  padding: 10px 18px;
+  border: 2px solid var(--blood-orange, #ec563b);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--cream, #fce8cd);
+  font: 900 15px/1 var(--f-omar);
+  cursor: pointer;
+}
+.pageBtn:hover:not(:disabled) { background: var(--blood-orange, #ec563b); }
+.pageBtn:disabled { opacity: 0.4; cursor: default; }
+.pageNum { font: 900 14px/1 var(--f-omar); color: var(--cream, #fce8cd); }
+
+/* ---------- Business card ---------- */
+
+.card {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+  min-height: 196px;
+  background: var(--cream, #fce8cd);
+  color: var(--peacock-blue, #102f41);
+  border-radius: 8px;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset, 0 10px 24px rgba(0, 0, 0, 0.35);
+  transform-origin: 50% 50%;
+}
+.cardTurn {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+}
+.cardTurnHint {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  font: 900 16px/1 var(--f-omar);
+  color: var(--teal, #339999);
+}
+.cardTurn:hover .cardTurnHint { color: var(--blood-orange, #ec563b); }
+.cardFace {
+  position: relative;
+  z-index: 1;
+  padding: 18px 20px 16px;
+  pointer-events: none;
+}
+.cardFront { height: 100%; }
+.cardTop { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.cardLogo { display: block; flex: none; }
+.cardBrand { font: 900 11px/1 var(--f-omar); letter-spacing: 0.16em; }
+.cardName { margin: 0; font: 900 22px/1.1 var(--f-omar); }
+.cardRole { margin: 2px 0 14px; font: 300 15px/1.3 var(--f-omar); }
+.cardRole .kana { font-size: 11px; }
+.cardLinks {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+  font: 300 14px/1.4 var(--f-omar);
+}
+.cardLinks li { display: flex; gap: 8px; align-items: baseline; }
+.cardKey {
+  flex: none;
+  width: 64px;
+  font: 900 10px/1 var(--f-omar);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dark-teal, #256069);
+}
+.cardLink {
+  pointer-events: auto;
+  color: var(--peacock-blue, #102f41);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(236, 86, 59, 0.6);
+  word-break: break-all;
+}
+.cardLink:hover { color: var(--blood-orange, #ec563b); }
+
+.openWrap {
+  position: relative;
+  width: min(560px, 100%);
+  padding-top: 56px;
+  outline: none;
+}
+.openWrap .close { top: 0; right: 0; }
+.cardBig { max-width: none; min-height: 340px; }
+.cardBack { pointer-events: auto; padding: 28px 28px 24px; }
+.backTitle {
+  margin: 0 0 16px;
+  display: grid;
+  gap: 2px;
+  font: 900 28px/1.1 var(--f-omar);
+  outline: none;
+}
+.backTitle .kana { font-size: 15px; }
+.backTitle:focus-visible { outline: 2px solid var(--blood-orange, #ec563b); outline-offset: 4px; }
+.bigLinks { margin: 0 0 20px; padding: 0; list-style: none; display: grid; gap: 8px; }
+.bigLink {
+  display: grid;
+  gap: 2px;
+  min-height: 56px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--peacock-blue, #102f41);
+  color: var(--cream, #fce8cd);
+  text-decoration: none;
+}
+.bigLink:hover { background: var(--blood-orange, #ec563b); }
+.bigKey { font: 900 11px/1 var(--f-omar); letter-spacing: 0.16em; text-transform: uppercase; color: var(--aquamarine, #4eb99f); }
+.bigLink:hover .bigKey { color: var(--cream, #fce8cd); }
+.bigValue { font: 900 clamp(18px, 4vw, 24px)/1.2 var(--f-omar); word-break: break-all; }
+.copyRow { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.copyBtn {
+  min-height: 44px;
+  padding: 10px 18px;
+  border: 2px solid var(--blood-orange, #ec563b);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--blood-orange, #ec563b);
+  font: 900 15px/1 var(--f-omar);
+  cursor: pointer;
+}
+.copyBtn:hover { background: var(--blood-orange, #ec563b); color: var(--cream, #fce8cd); }
+.copyStatus { font: 300 14px/1.3 var(--f-omar); }
+
+/* ---------- Phone ---------- */
+
+@media (max-width: 719px) {
+  .root { padding: 0; align-items: stretch; }
+  .notebook { max-height: 100dvh; height: 100dvh; padding: 16px; }
+  .spread { grid-template-columns: 1fr; }
+  .pageLeft { border-right: 0; border-bottom: 1px solid rgba(51, 153, 153, 0.4); }
+  .page { padding: 28px 16px; font-size: 17px; }
+  .leaf, .leaf[data-dir="-1"] { left: 0; width: 100%; }
+  .openWrap { align-self: center; padding: 56px 16px 0; }
+  .openWrap .close { right: 16px; }
+}

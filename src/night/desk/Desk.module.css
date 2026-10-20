@@ -1,0 +1,193 @@
+/* The cutting mat: flat peacock-blue with an 8px grid in dark-teal at 35% (P1: hardware
+   numbers shape the composition). One desk unit (--u) sizes every object. */
+.mat {
+  --u: max(1.1px, min(0.15vw, calc((100dvh - var(--bar-h, 56px)) * 0.0026)));
+  position: fixed;
+  top: var(--bar-h, 56px);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  background: var(--peacock-blue);
+}
+.grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, rgba(37, 96, 105, 0.35) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(37, 96, 105, 0.35) 1px, transparent 1px);
+  background-size: 8px 8px;
+}
+
+.crt {
+  position: absolute;
+  left: 2.2%;
+  top: 3.5%;
+  width: 24vw;
+  aspect-ratio: 4 / 3.35;
+  z-index: 2;
+}
+.crt[data-empty] { visibility: hidden; }
+
+.objects {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  z-index: 3;
+}
+
+.item {
+  --lx: 0.6;
+  --ly: 0.6;
+  position: absolute;
+  left: calc(var(--x) * 1%);
+  top: calc(var(--y) * 1%);
+  width: calc(var(--aw) * var(--u));
+}
+@supports (left: round(nearest, 10%, 8px)) {
+  .item {
+    left: round(nearest, calc(var(--x) * 1%), 8px);
+    top: round(nearest, calc(var(--y) * 1%), 8px);
+  }
+}
+
+.obj {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* the object and its shadow, which falls away from the CRT */
+.art {
+  position: relative;
+  display: block;
+  width: 100%;
+  transform: rotate(var(--rot));
+  filter: drop-shadow(calc(var(--lx) * 6px) calc(var(--ly) * 6px) 4px rgba(3, 10, 14, 0.55));
+  /* stepped, not tweened (P6): one frame per state at 12fps */
+  transition: transform 83ms steps(1, end), filter 83ms steps(1, end);
+}
+.artInner {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+.svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.svgBlack { font-family: var(--f-omar); font-weight: 900; }
+
+/* hover: lift one frame; press: one more (and the shadow grows) */
+.obj:hover .art,
+.obj:focus-visible .art {
+  transform: rotate(var(--rot)) translateY(-4px);
+  filter: drop-shadow(calc(var(--lx) * 11px) calc(var(--ly) * 11px) 6px rgba(3, 10, 14, 0.5));
+}
+.obj:active .art,
+.obj[data-pressed] .art {
+  transform: rotate(var(--rot)) translateY(-8px) scale(1.02);
+  filter: drop-shadow(calc(var(--lx) * 16px) calc(var(--ly) * 16px) 8px rgba(3, 10, 14, 0.45));
+}
+.obj:focus-visible { outline: none; }
+.obj:focus-visible .artInner {
+  outline: 2px solid var(--blood-orange);
+  outline-offset: 6px;
+  border-radius: 6px;
+}
+.obj[data-kind="cd"]:focus-visible .artInner { border-radius: 50%; }
+
+/* The caption: the machine's voice (one line, 16px) with its katakana under it */
+.caption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  pointer-events: none;
+}
+.capEn {
+  font-family: var(--f-machine);
+  font-size: 16px;
+  line-height: 1;
+  white-space: nowrap;
+  text-transform: uppercase;
+  color: var(--cream);
+  opacity: 0.86;
+}
+.capJp {
+  font-family: var(--f-kana);
+  font-size: 10px;
+  line-height: 1;
+  white-space: nowrap;
+  color: rgba(51, 153, 153, 0.8);
+}
+.obj:hover .capEn,
+.obj:focus-visible .capEn { opacity: 1; }
+
+.cardItem {
+  transform: rotate(var(--rot));
+  filter: drop-shadow(calc(var(--lx) * 6px) calc(var(--ly) * 6px) 4px rgba(3, 10, 14, 0.5));
+}
+
+/* ---------- Phone: the desk becomes a drawer tray ---------- */
+@media (max-width: 719.98px) {
+  .mat {
+    position: relative;
+    top: auto;
+    margin-top: var(--bar-h, 96px);
+    min-height: calc(100dvh - var(--bar-h, 96px));
+    overflow: visible;
+    padding-bottom: 32px;
+  }
+  .crt {
+    position: sticky;
+    left: auto;
+    top: var(--bar-h, 96px);
+    width: 100%;
+    height: 88px;
+    aspect-ratio: auto;
+    z-index: 6;
+  }
+  .objects {
+    position: relative;
+    inset: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .item,
+  .item[style] {
+    position: relative;
+    left: auto !important;
+    top: auto !important;
+    width: auto;
+    padding: 28px 16px 24px;
+    border-top: 1px solid rgba(51, 153, 153, 0.4);
+    display: flex;
+    justify-content: center;
+  }
+  .item:first-child { border-top: 0; }
+  .obj {
+    width: calc(var(--aw) / 104 * 62vw);
+    max-width: 320px;
+  }
+  .obj[data-kind="notebook"] { width: 44vw; }
+  .art { transform: none; }
+  .obj:hover .art,
+  .obj:focus-visible .art { transform: translateY(-4px); }
+  .obj:active .art { transform: translateY(-8px); }
+  .cardItem { transform: none; }
+}
+
+html[data-motion="quiet"] .art { transition: none; }

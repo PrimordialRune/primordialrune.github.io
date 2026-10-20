@@ -1,0 +1,63 @@
+/* Stage 3: the dialogue box on the mat */
+.box {
+  all: unset;
+  box-sizing: border-box;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 60;
+  width: min(340px, calc(100vw - 32px));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px 14px;
+  background: rgba(16, 47, 65, 0.96);
+  border: 2px solid rgba(252, 232, 205, 0.9);
+  border-radius: 10px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+  color: #fce8cd;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+.box[data-visible="1"] {
+  pointer-events: auto;
+}
+.box:focus-visible {
+  outline: 2px solid #ec563b;
+  outline-offset: 2px;
+}
+.head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.logo {
+  display: block;
+  width: 32px;
+  height: 32px;
+}
+.logo svg {
+  width: 100%;
+  height: 100%;
+}
+.tag {
+  font-family: var(--f-machine), monospace;
+  font-size: 16px;
+  line-height: 20px;
+  -webkit-font-smoothing: none;
+  letter-spacing: 0.08em;
+}
+.line {
+  display: block;
+  text-align: left;
+  overflow-wrap: break-word;
+}
+.more {
+  position: absolute;
+  right: 12px;
+  bottom: 6px;
+  font-size: 10px;
+  color: #fadb68;
+}

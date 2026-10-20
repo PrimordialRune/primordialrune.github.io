@@ -1,0 +1,39 @@
+/* The glitch: an RGB split plus two slices pulled sideways, in 4 stepped frames.
+   Only ever played by glitch() at a state change (P6), never at rest. */
+.glitch {
+  animation: glitch var(--glitch-ms, 200ms) steps(1, end) 1;
+}
+
+@keyframes glitch {
+  0% {
+    transform: translateX(-3px);
+    clip-path: inset(0 0 58% 0);
+    filter: drop-shadow(3px 0 0 var(--ai-red)) drop-shadow(-3px 0 0 #339999);
+  }
+  25% {
+    transform: translateX(4px);
+    clip-path: inset(36% 0 22% 0);
+    filter: drop-shadow(-4px 0 0 var(--ai-red)) drop-shadow(4px 0 0 #339999);
+  }
+  50% {
+    transform: translateX(-2px) skewX(-6deg);
+    clip-path: inset(62% 0 0 0);
+    filter: drop-shadow(2px 0 0 var(--ai-red)) drop-shadow(-2px 0 0 #339999);
+    opacity: 0.7;
+  }
+  75% {
+    transform: translateX(1px);
+    clip-path: inset(0 0 0 0);
+    filter: drop-shadow(1px 0 0 var(--ai-red));
+    opacity: 1;
+  }
+  100% {
+    transform: none;
+    clip-path: none;
+    filter: none;
+  }
+}
+
+html[data-motion="quiet"] .glitch {
+  animation: none;
+}

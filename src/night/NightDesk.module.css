@@ -1,0 +1,50 @@
+.root {
+  --bar-h: 56px;
+  position: relative;
+  min-height: 100dvh;
+  background: var(--peacock-blue);
+  color: var(--cream);
+}
+.main { display: block; }
+
+/* The ceremony stage: the right two-thirds of the mat, over a dimmed desk */
+.stage {
+  position: fixed;
+  top: var(--bar-h);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+}
+.dim {
+  position: absolute;
+  inset: 0;
+  background: rgba(16, 47, 65, 0.72);
+}
+.deviceBox {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 33.333%;
+  right: 0;
+  display: grid;
+  place-items: center;
+}
+/* reading: the device steps aside to the panel's left edge, still in view */
+.stage[data-reading] .deviceBox {
+  left: 0;
+  right: auto;
+  width: max(280px, calc(50% - 380px));
+}
+
+@media (max-width: 719.98px) {
+  .root { --bar-h: 96px; }
+  .stage { top: 0; z-index: 55; }
+  .dim { background: rgba(16, 47, 65, 0.94); }
+  .deviceBox,
+  .stage[data-reading] .deviceBox {
+    left: 0;
+    right: 0;
+    width: auto;
+  }
+}

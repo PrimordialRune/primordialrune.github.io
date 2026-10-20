@@ -1,0 +1,56 @@
+/* Narrator pieces: the logo on its plate and the line's two voices */
+.logo {
+  display: block;
+  overflow: visible;
+}
+.plate {
+  fill: #fce8cd;
+}
+.outer {
+  fill: #102f41;
+}
+.inner {
+  fill: #ec563b;
+}
+.logo[data-inner="red"] .inner {
+  fill: var(--ai-red);
+}
+/* Stage 1: one 200ms flick of warning red, then back to the plate */
+.logo[data-flicker="1"] .inner {
+  animation: flick 200ms steps(1, end) 1;
+}
+@keyframes flick {
+  0% {
+    fill: var(--ai-red);
+  }
+  100% {
+    fill: #ec563b;
+  }
+}
+
+/* Omar's voice: FK Grotesk Thin */
+.omar {
+  font-family: var(--f-omar), system-ui, sans-serif;
+  font-weight: 300;
+  letter-spacing: 0.01em;
+}
+/* The machine's voice: the pixel face, at its native multiple, unsmoothed */
+.machine {
+  font-family: var(--f-machine), monospace;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+  -webkit-font-smoothing: none;
+  font-smooth: never;
+  text-transform: none;
+}
+/* Machine letters creeping into Omar's line (stage 1) */
+.creep {
+  font-family: var(--f-machine), monospace;
+  font-size: 16px;
+  line-height: 1;
+  -webkit-font-smoothing: none;
+}
+.ghost {
+  visibility: hidden;
+}

@@ -1,0 +1,119 @@
+/* Ceremony layer (package B). Lighting gradients live inside the object art only. */
+
+.stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  contain: layout paint;
+}
+
+.live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.layer {
+  position: absolute;
+  inset: 0;
+}
+
+/* the camera: a box in device units, moved on springs only */
+.rig {
+  position: absolute;
+  will-change: transform;
+}
+
+.part {
+  position: absolute;
+  display: block;
+}
+
+.fill {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* handheld art reaches 14 units above the body (switch, shoulders) */
+.fillTall {
+  position: absolute;
+  left: 0;
+  top: calc(-14 * var(--u));
+  width: 100%;
+  height: calc(100% + 14 * var(--u));
+  overflow: visible;
+}
+
+/* pixel screens: whole device pixels, nearest neighbour (P1) */
+.screen {
+  position: absolute;
+  overflow: hidden;
+}
+
+.pixel {
+  position: absolute;
+  display: block;
+  max-width: none;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  pointer-events: none;
+  user-select: none;
+}
+.pixel {
+  image-rendering: pixelated;
+}
+
+.strip {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+.flat {
+  position: absolute;
+  inset: 0;
+}
+
+.bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+}
+
+/* SVG scenes (walkman, disc deck, playmat): sized to the stage, centred */
+.scene {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  will-change: transform;
+}
+.scene > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* TapeFlip sits inside the manual: it takes its container's width */
+.flip {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 380 / 330;
+}
+.flip > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
