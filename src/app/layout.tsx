@@ -1,31 +1,18 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import "@/studio/studio.css";
 import { MOTION_INIT_SCRIPT } from "@/lib/motion";
 
 const fkGrotesk = localFont({
-  src: [
-    {
-      path: "../../public/fonts/FKGrotesk-Thin.otf",
-      weight: "300",
-      style: "normal",
-    },
-  ],
+  src: [{ path: "../../public/fonts/FKGrotesk-Thin.otf", weight: "300", style: "normal" }],
   variable: "--font-fk-grotesk",
 });
 
 const fkGroteskBlack = localFont({
   src: [
-    {
-      path: "../../public/fonts/FKGrotesk-Black.otf",
-      weight: "900",
-      style: "normal",
-    },
-    {
-      path: "../../public/fonts/FKGrotesk-BlackItalic.otf",
-      weight: "900",
-      style: "italic",
-    },
+    { path: "../../public/fonts/FKGrotesk-Black.otf", weight: "900", style: "normal" },
+    { path: "../../public/fonts/FKGrotesk-BlackItalic.otf", weight: "900", style: "italic" },
   ],
   variable: "--font-fk-grotesk-black",
 });
@@ -40,29 +27,23 @@ const killGothic = localFont({
   variable: "--font-kill-gothic",
 });
 
-const genEiKiwami = localFont({
-  src: "../../public/fonts/GenEiKiwamiGo.ttf",
-  variable: "--font-gen-ei-kiwami",
-});
-
 export const metadata: Metadata = {
-  title: "PrimordialRune — Game Design & Development Portfolio",
-  description: "Portfolio of Omar Golinelli (PrimordialRune) — Game Designer and Developer. Board games, videogames, UI/UX, and interactive experiences.",
+  title: "Omar Golinelli — Game Designer",
+  description:
+    "Portfolio of Omar Golinelli (PrimordialRune), game designer and developer. Board games, videogames and the stories around them.",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export const viewport: Viewport = {
+  themeColor: "#fce8cd",
+};
+
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" data-motion="full" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: MOTION_INIT_SCRIPT }} />
       </head>
-      <body
-        className={`${fkGrotesk.variable} ${fkGroteskBlack.variable} ${bitDarling.variable} ${killGothic.variable} ${genEiKiwami.variable} antialiased`}
-      >
+      <body className={`${fkGrotesk.variable} ${fkGroteskBlack.variable} ${bitDarling.variable} ${killGothic.variable}`}>
         {children}
       </body>
     </html>
