@@ -21,14 +21,16 @@ const WIDTH: Record<ObjectKind, number> = {
 };
 
 const PHONE = "(max-width: 720px)";
-function usePhone() {
+// Laptops with a short screen (1280x720, 1024x768): the shelf shrinks so it stays whole
+const SHORT = "(min-width: 721px) and (max-height: 800px)";
+function useMedia(query: string) {
   return useSyncExternalStore(
     (fn) => {
-      const mq = window.matchMedia(PHONE);
+      const mq = window.matchMedia(query);
       mq.addEventListener("change", fn);
       return () => mq.removeEventListener("change", fn);
     },
-    () => window.matchMedia(PHONE).matches,
+    () => window.matchMedia(query).matches,
     () => false,
   );
 }
@@ -50,7 +52,9 @@ export default function Shelf({
   onOpen: (slug: string) => void;
   onKeyNav: () => void;
 }) {
-  const phone = usePhone();
+  const phone = useMedia(PHONE);
+  const short = useMedia(SHORT);
+  const scale = phone ? 0.72 : short ? 0.85 : 1;
   const root = useRef<HTMLDivElement>(null);
   const lifted = useRef<string | null>(null);
   // Touch: the first tap selects (and shows the card), the second opens. Decided from the
@@ -152,7 +156,7 @@ export default function Shelf({
                     >
                       <span className="shelf-pool" aria-hidden />
                       <div className="shelf-object" data-object={p.slug}>
-                        <ObjectArt project={p} size={Math.round(WIDTH[p.kind] * (phone ? 0.72 : 1))} />
+                        <ObjectArt project={p} size={Math.round(WIDTH[p.kind] * scale)} />
                       </div>
                     </div>
                   );

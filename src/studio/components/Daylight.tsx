@@ -8,9 +8,11 @@
 // uniformly, so the panes keep their shape at any window size):
 //   shade  peacock at a few percent, with the panes cut out of it
 //   warm   gold, multiplied: cream turns to afternoon, dark ink stays dark
-//   lift   a backdrop brightness through the panes: dark surfaces (bezel, plank, the
-//          cartridges) visibly catch the sun, while dark ink stays dark
+//   sun    cream, screened: dark surfaces (bezel, plank, the cartridges) catch the sun
 //   bloom  the same panes, soft and multiplied: warm spill around the sun
+// No backdrop filters and no CSS filters: every layer is a flat SVG that only moves by
+// transform, one step a second, so the room at rest costs nothing between steps. The CTA
+// sits above the light (a button keeps its flat fill, P4).
 
 interface WindowShape {
   /** the window's top-left corner, in room px at the reference size */
@@ -61,24 +63,7 @@ function Panes({ w, dx, dy }: { w: WindowShape; dx: number; dy: number }) {
   return <g transform={m}>{rects}</g>;
 }
 
-type Kind = "shade" | "warm" | "bloom";
-
-/** The panes as an SVG image, for the lift layer's CSS mask (same box, same fit) */
-function maskUrl(scene: Scene) {
-  const [vw, vh] = scene.view;
-  const [dx, dy] = scene.offset;
-  const g = scene.windows
-    .map((w) => {
-      const m = `matrix(${w.across[0]} ${w.across[1]} ${w.down[0]} ${w.down[1]} ${w.at[0] + dx} ${w.at[1] + dy})`;
-      let r = "";
-      for (let y = 0; y < w.rows; y++)
-        for (let x = 0; x < w.cols; x++) r += `<rect x='${x * (w.pane[0] + w.bar)}' y='${y * (w.pane[1] + w.bar)}' width='${w.pane[0]}' height='${w.pane[1]}'/>`;
-      return `<g transform='${m}'>${r}</g>`;
-    })
-    .join("");
-  const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 ${vw} ${vh}' preserveAspectRatio='${scene.fit}'><g fill='white'>${g}</g></svg>`;
-  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
-}
+type Kind = "shade" | "warm" | "bloom" | "sun";
 
 function Layer({ scene, kind, tag }: { scene: Scene; kind: Kind; tag: string }) {
   const [vw, vh] = scene.view;
@@ -98,6 +83,17 @@ function Layer({ scene, kind, tag }: { scene: Scene; kind: Kind; tag: string }) 
           </defs>
           <rect className="dl-fill" {...big} mask={`url(#${maskId})`} />
         </>
+      ) : kind === "bloom" ? (
+        <>
+          <defs>
+            <filter id={`dl-soft-${tag}`} x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="30" />
+            </filter>
+          </defs>
+          <g className="dl-fill" filter={`url(#dl-soft-${tag})`}>
+            {panes}
+          </g>
+        </>
       ) : (
         <g className="dl-fill">{panes}</g>
       )}
@@ -110,7 +106,7 @@ function SceneLayers({ scene, tag, className }: { scene: Scene; tag: string; cla
     <div className={`dl-set ${className}`}>
       <Layer scene={scene} kind="shade" tag={tag} />
       <Layer scene={scene} kind="bloom" tag={tag} />
-      <div className="dl-layer dl-lift" style={{ "--dl-mask": maskUrl(scene) } as React.CSSProperties} />
+      <Layer scene={scene} kind="sun" tag={tag} />
       <Layer scene={scene} kind="warm" tag={tag} />
     </div>
   );

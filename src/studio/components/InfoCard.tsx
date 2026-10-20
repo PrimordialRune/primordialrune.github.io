@@ -30,7 +30,9 @@ export default function InfoCard({
       return;
     }
     const el = root.current;
-    if (el) gsap.fromTo(el, { y: 6, opacity: 0.4 }, { y: 0, opacity: 1, duration: UI_SPRING.duration * 0.7, ease: UI_SPRING.ease });
+    // clearProps: a leftover transform would make the card a stacking context and pull the
+    // CTA back under the window light
+    if (el) gsap.fromTo(el, { y: 6, opacity: 0.4 }, { y: 0, opacity: 1, duration: UI_SPRING.duration * 0.7, ease: UI_SPRING.ease, clearProps: "transform,opacity" });
   }, [project.slug]);
 
   const omar = project.slug === "omar";

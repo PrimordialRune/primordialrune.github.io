@@ -604,7 +604,13 @@ export default function Room() {
   const empty = phase === "peek" || phase === "ending";
 
   return (
-    <div className="studio" data-phase={phase} data-guide={view ? "" : undefined} data-guide-top={view && guideTop ? "" : undefined}>
+    <div
+      className="studio"
+      data-phase={phase}
+      data-guide={view ? "" : undefined}
+      data-guide-top={view && guideTop ? "" : undefined}
+      data-opening={opening && focus !== "omar" ? "" : undefined}
+    >
       <Bar
         stage={save.stage}
         ceremony={ceremony}

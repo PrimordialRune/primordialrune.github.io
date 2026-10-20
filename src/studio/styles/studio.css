@@ -195,18 +195,30 @@ html[data-motion="soft"] .motion-knob {
 }
 
 /* ---------------------------------------------------------------- room ---- */
+/* Desktop: the Room is exactly one screen. The shelf (the hero) always sits whole on the
+   bottom edge; the TV takes what height is left, capped by its column's width; the info
+   column scrolls inside itself if it ever runs long. */
 .room {
   --shelf-h: 228px;
-  --nar-h: calc(var(--glass-h) * 0.25);
   --gap: 24px;
-  --glass-h: clamp(270px, calc(100dvh - 56px - var(--shelf-h) - 2 * var(--gap) - 40px), 560px);
+  /* the TV's column (cols 1-8 of 12, 48px gutters) */
+  --tv-w: calc((100vw - 96px - 11 * var(--gap)) * 2 / 3 + 7 * var(--gap));
+  --glass-h: max(240px, min(620px, calc(100dvh - 56px - var(--shelf-h) - 2 * var(--gap) - 40px), calc((var(--tv-w) - 40px) * 3 / 4)));
   position: relative;
-  min-height: calc(100dvh - 56px);
+  height: calc(100dvh - 56px);
+  min-height: 480px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   padding: var(--gap) 48px 0;
   isolation: isolate;
+  /* the light overscans the room; nothing of it may scroll the page */
+  overflow: clip;
+}
+@media (min-width: 721px) and (max-height: 800px) {
+  .room {
+    --shelf-h: 184px;
+    --gap: 16px;
+  }
 }
 
 /* Sunday light through a window (Daylight.tsx): a cool shade over the whole room with a
@@ -232,8 +244,9 @@ html[data-motion="soft"] .motion-knob {
   height: 100%;
   z-index: 2;
   transform-origin: 20% 0%;
-  /* the sun moves: stepped finely, ten small moves a second, in FULL and SOFT alike */
-  animation: dl-drift 60s steps(600) infinite alternate;
+  /* the sun moves: one small step a second, in FULL and SOFT alike. Transform only (the
+     layers are flat SVG, nothing is filtered per frame), so a step costs one recomposite. */
+  animation: dl-drift 60s steps(60) infinite alternate;
 }
 @keyframes dl-drift {
   from {
@@ -249,26 +262,29 @@ html[data-motion="soft"] .motion-knob {
 .dl-shade .dl-fill {
   fill: var(--peacock);
 }
+/* warm spill around the panes: the blur is drawn once into the SVG (no CSS filter) */
 .dl-bloom {
   mix-blend-mode: multiply;
-  opacity: 0.16;
-  filter: blur(26px);
+  opacity: 0.12;
 }
 .dl-bloom .dl-fill {
   fill: var(--gold);
 }
+/* the panes: a pale gold, multiplied (cream turns to afternoon, ink stays ink) */
 .dl-warm {
   mix-blend-mode: multiply;
-  opacity: 0.32;
+  opacity: 0.18;
 }
 .dl-warm .dl-fill {
   fill: var(--gold);
 }
-.dl-lift {
-  -webkit-mask: var(--dl-mask) center / cover no-repeat;
-  mask: var(--dl-mask) center / cover no-repeat;
-  -webkit-backdrop-filter: brightness(1.5);
-  backdrop-filter: brightness(1.5);
+/* and a cream screen: dark surfaces the sun crosses (bezel, plank, cartridges) catch it */
+.dl-sun {
+  mix-blend-mode: screen;
+  opacity: 0.16;
+}
+.dl-sun .dl-fill {
+  fill: var(--cream);
 }
 .dl-phone {
   display: none;
@@ -280,31 +296,38 @@ html[data-motion="soft"] .motion-knob {
   .dl-desk {
     display: none;
   }
-  .dl-phone .dl-lift {
-    -webkit-mask-position: top center;
-    mask-position: top center;
-    -webkit-mask-size: contain;
-    mask-size: contain;
-  }
   .dl-phone {
     display: block;
   }
 }
 
 .room-stage {
+  flex: 1;
+  min-height: 0;
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-rows: minmax(0, 1fr);
   gap: var(--gap);
-  align-items: start;
+  padding-bottom: var(--gap);
 }
 .room-tv {
   grid-column: 1 / span 8;
   display: flex;
   justify-content: center;
+  align-self: center;
 }
 .room-info {
   grid-column: 9 / span 4;
+  min-height: 0;
+  /* room for the CTA's spring and the focus ring inside the scroller */
+  margin: -6px -10px 0;
+  padding: 6px 10px 10px;
+  overflow-y: auto;
+  scrollbar-width: none;
   transition: opacity 0.3s;
+}
+.room-info::-webkit-scrollbar {
+  display: none;
 }
 /* During the power-on the card waits dimmed and inert, except the contacts (P2) */
 .info-wait {
@@ -316,6 +339,8 @@ html[data-motion="soft"] .motion-knob {
 
 /* ------------------------------------------------------------------ tv ---- */
 .tv {
+  /* the dialogue box's real height (Narrator measures it), never less than a quarter */
+  --nar-h: max(calc(var(--glass-h) * 0.25), var(--nar-real, 0px));
   position: relative;
   flex: none;
 }
@@ -346,6 +371,8 @@ html[data-motion="soft"] .motion-knob {
   background: var(--peacock);
   box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.25);
   isolation: isolate;
+  /* screens lay themselves out by the glass's own size */
+  container: glass / size;
 }
 .tv-screen {
   position: absolute;
@@ -500,6 +527,8 @@ html[data-motion="soft"] .tv-sheen {
   position: absolute;
   inset: 10% 7% 13%;
   display: grid;
+  /* one track the size of the box, so the art's max-height: 100% means the box */
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
   place-items: center;
 }
 .title-art img {
@@ -508,13 +537,154 @@ html[data-motion="soft"] .tv-sheen {
   object-fit: contain;
   display: block;
 }
-.title-type {
+/* Built title screens (PTCG Cube, Holon, SpaceRim): composed for the 4:3 glass in the
+   object's own inks. Title in the machine's face at 4x (2x on a small glass), katakana
+   under it, one status or menu line, a cursor that blinks once a second: the screen is on. */
+.ts-stack {
+  position: absolute;
+  inset: 40px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+}
+.ts-title {
+  margin: 0;
+  font-family: var(--font-machine);
+  font-size: var(--px4);
+  line-height: 1;
+  white-space: nowrap;
+}
+.ts-kana {
+  font-size: 15px !important;
+  opacity: 0.85 !important;
+  margin-top: -2px;
+}
+.ts-status,
+.ts-menu {
   font-family: var(--font-machine);
   font-size: var(--px2);
   line-height: 1;
-  text-align: center;
   white-space: nowrap;
 }
+.ts-status {
+  margin: 8px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ts-cursor {
+  display: inline-block;
+  width: calc(var(--px1) * 0.7);
+  height: calc(var(--px1) * 0.7);
+  background: currentColor;
+  animation: caret-blink 1s steps(1) infinite;
+}
+.px-dash {
+  display: inline-block;
+  width: 0.36em;
+  height: 0.14em;
+  margin: 0 0.1em;
+  vertical-align: 0.32em;
+  background: currentColor;
+}
+.ts-emblem {
+  width: clamp(40px, 18cqh, 118px);
+  height: clamp(40px, 18cqh, 118px);
+  flex: none;
+  margin-bottom: 4px;
+}
+.ts-frame {
+  position: absolute;
+  inset: 38px 14px 14px;
+  border: 2px solid;
+  border-radius: 10px;
+  opacity: 0.45;
+  pointer-events: none;
+}
+.ts-ptcg {
+  background: #1a1819;
+  color: #ffffff;
+}
+.ts-mat {
+  /* the playmat as texture: dimmed, cropped to the bench and Omar's signature */
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 0% 100%;
+  opacity: 0.3;
+}
+.ts-panel {
+  padding: 14px 26px 12px;
+  border: 2px solid #ffffff;
+  border-radius: 6px;
+  background: #1a1819;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.ts-menu {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+}
+.ts-menu li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-left: calc(var(--px1) * 0.7 + 12px);
+  opacity: 0.55;
+}
+.ts-menu li[data-on] {
+  padding-left: 0;
+  opacity: 1;
+}
+@container glass (max-width: 470px) {
+  .ts-title {
+    font-size: var(--px2);
+  }
+  .ts-status,
+  .ts-menu {
+    font-size: var(--px1);
+  }
+  .ts-kana {
+    font-size: 11px !important;
+  }
+  .ts-stack {
+    inset: 32px 16px 16px;
+    gap: 6px;
+  }
+  .ts-panel {
+    padding: 10px 16px 8px;
+    gap: 6px;
+  }
+  .ts-menu {
+    margin-top: 6px;
+    gap: 6px;
+  }
+  .ts-frame {
+    inset: 30px 8px 8px;
+  }
+}
+@container glass (max-height: 210px) {
+  .ts-ptcg .ts-menu {
+    display: none;
+  }
+}
+@container glass (max-width: 470px) {
+  .ts-mat {
+    opacity: 0.2;
+  }
+}
+
 .tv-ch {
   position: absolute;
   top: 16px;
@@ -524,7 +694,8 @@ html[data-motion="soft"] .tv-sheen {
 
 .scr-status {
   background: var(--peacock);
-  align-items: start;
+  /* centred in the glass above the box */
+  align-items: center;
   padding: 46px 30px 26px;
 }
 .status-win {
@@ -622,6 +793,83 @@ html[data-motion="soft"] .tv-sheen {
   align-items: baseline;
   flex-wrap: wrap;
 }
+/* The status window, packed so it sits whole above the dialogue box on every laptop and
+   desktop glass: PLAY and MAIL share a row, the skills become one strip of chips, MAIL
+   always stays in view. (Only a very tall glass gets the roomy layout.) */
+@container glass (max-height: 640px) {
+  .scr-status {
+    padding: 36px 22px 14px;
+  }
+  .status-win {
+    padding: 14px 18px;
+    gap: 10px 18px;
+    grid-template-columns: auto 1fr;
+    grid-template-areas: "id id" "after after" "stats mail" "skills skills";
+  }
+  .status-id {
+    grid-area: id;
+    gap: 14px;
+  }
+  .status-id svg {
+    width: 44px;
+    height: 44px;
+  }
+  .status-name {
+    font-size: 26px;
+  }
+  .status-handle {
+    margin-top: 2px;
+    font-size: 15px;
+  }
+  .status-class {
+    margin-top: 5px;
+    font-size: 12px;
+  }
+  .status-after {
+    grid-area: after;
+  }
+  .status-stats {
+    grid-area: stats;
+    align-self: baseline;
+  }
+  .status-mail {
+    grid-area: mail;
+    align-self: baseline;
+  }
+  .status-mail a {
+    font-size: 16px;
+  }
+  .status-skills {
+    grid-area: skills;
+  }
+  .status-skills .status-label {
+    display: none;
+  }
+  .status-skills ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  .status-skills li {
+    font-size: 12px;
+    line-height: 1;
+    padding: 4px 7px;
+    border: 1px solid rgb(252 232 205 / 0.35);
+    border-radius: 999px;
+  }
+  .status-skills li small[lang="ja"] {
+    display: none;
+  }
+}
+@container glass (min-height: 500px) and (max-height: 640px) {
+  .status-name {
+    font-size: 30px;
+  }
+  .status-skills li {
+    font-size: 14px;
+    padding: 5px 9px;
+  }
+}
 .status-mail .pixel-1 {
   color: var(--aquamarine);
 }
@@ -660,14 +908,23 @@ html[data-motion="soft"] .tv-sheen {
   pointer-events: auto;
   transition: opacity 0.2s, transform 0.35s cubic-bezier(0.2, 1.5, 0.4, 1), visibility 0s;
 }
-/* The hero stays in view (P7): while the box is up, the title art fits the glass above it */
-.tv:has(.narrator[data-open]) .title-art {
-  top: 7%;
-  bottom: calc(var(--nar-h) + 10px);
+/* The hero stays in view (P7): while the box is up, the title screen and the status
+   window fit the glass above its real height (clear of the CH label, too) */
+@media (min-width: 721px) {
+  .tv:has(.narrator[data-open]) .title-art {
+    top: 40px;
+    bottom: calc(var(--nar-h) + 10px);
+  }
+  .tv:has(.narrator[data-open]) .scr-status {
+    padding-bottom: calc(var(--nar-h) + 6px);
+  }
+  .tv:has(.narrator[data-open]) .ts-stack {
+    bottom: calc(var(--nar-h) + 6px);
+  }
 }
 .nar-box {
   width: 100%;
-  min-height: 100%;
+  min-height: calc(var(--glass-h) * 0.25 - 14px);
   display: flex;
   gap: 14px;
   align-items: flex-start;
@@ -710,6 +967,7 @@ html[data-motion="soft"] .tv-sheen {
   background: var(--ai-red);
 }
 .nar-text {
+  position: relative;
   margin-top: 8px;
   font-family: var(--font-omar);
   font-weight: 900;
@@ -718,17 +976,83 @@ html[data-motion="soft"] .tv-sheen {
   cursor: pointer;
   min-height: 1.35em;
 }
+@media (min-width: 721px) and (max-height: 800px) {
+  .nar-text {
+    font-size: 16px;
+  }
+}
+/* The whole line sits in the flow, unseen, so the box takes its final size before the
+   type-on starts (nothing below it jumps as it types) */
+.nar-ghost {
+  visibility: hidden;
+}
+.nar-typed {
+  position: absolute;
+  inset: 0;
+}
+.dock-line .nar-ghost,
+.dock-line .nar-typed {
+  display: block;
+}
+.dock-line {
+  position: relative;
+}
 .voice-slip {
   font-family: var(--font-machine);
   font-weight: 400;
   font-size: var(--px1);
 }
+/* Stage 2: the mask slips. The machine's face takes the first word, the letters drift
+   apart and the AI's red caret holds the line. A line short enough for one line is said
+   whole in the machine's voice, at twice its native size (P5: one line, never paragraphs). */
+.nar-slip2 {
+  font-family: var(--font-machine);
+  font-weight: 400;
+  font-size: var(--px2);
+  line-height: 1;
+  letter-spacing: 0;
+}
+.narrator[data-stage="2"] .nar-text,
+.dock-toast[data-stage="2"] .dock-line {
+  letter-spacing: 0.03em;
+}
+.nar-caret {
+  display: inline-block;
+  width: 0.5em;
+  height: 0.9em;
+  margin-left: 0.2em;
+  vertical-align: -0.08em;
+  background: var(--ai-red);
+  animation: caret-blink 1s steps(1) infinite;
+}
+@keyframes caret-blink {
+  50% {
+    opacity: 0;
+  }
+}
+.nar-measure {
+  position: absolute;
+  visibility: hidden;
+  white-space: nowrap;
+  font-family: var(--font-machine);
+  font-size: var(--px2);
+  line-height: 1;
+  /* and the caret */
+  padding-right: 0.9em;
+  pointer-events: none;
+}
 .narrator[data-pixel] .nar-text,
 .dock-toast[data-pixel] .dock-line {
   font-family: var(--font-machine);
   font-weight: 400;
-  font-size: var(--px1);
-  line-height: 1.5;
+  font-size: var(--px2);
+  line-height: 1.2;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+.narrator[data-pixel] .nar-slip2,
+.dock-toast[data-pixel] .nar-slip2 {
+  font-size: inherit;
 }
 .nar-choices {
   display: flex;
@@ -773,6 +1097,12 @@ html[data-motion="soft"] .tv-sheen {
 .nar-off:hover,
 .nar-skip:hover {
   opacity: 1;
+}
+
+/* While an object performs its medium in front of the glass, the box steps aside */
+.studio[data-opening] .narrator .nar-box {
+  opacity: 0;
+  transition: opacity 0.12s;
 }
 
 /* Docked in a guide: the logo bottom-right, lines as a toast above it */
@@ -905,6 +1235,9 @@ html[data-motion="soft"] .tv-sheen {
 /* The CTA: peacock on blood orange at 19px Black (large text, 3.96:1). The kana sits
    under the plate on the cream, where it reads at full contrast. */
 .cta {
+  /* above the window light: a button keeps its one flat fill (P4: no gradient buttons) */
+  position: relative;
+  z-index: 3;
   margin-top: 16px;
   display: inline-flex;
   flex-direction: column;
@@ -986,6 +1319,58 @@ html[data-motion="soft"] .tv-sheen {
   padding-left: calc(5.5em * 15 / 13 + 10px);
 }
 
+/* A short laptop screen: the card packs tighter so it sits whole beside the TV */
+@media (min-width: 721px) and (max-height: 800px) {
+  .info {
+    padding-top: 0;
+  }
+  .info-title {
+    margin-top: 8px;
+    font-size: 32px;
+  }
+  .info-title small[lang="ja"] {
+    font-size: 12px;
+    margin-top: 6px;
+  }
+  .info-pitch {
+    margin-top: 8px;
+    font-size: 16px;
+    line-height: 1.4;
+  }
+  .cta {
+    margin-top: 12px;
+    font-size: 17px;
+  }
+  .cta-face {
+    padding: 9px 16px;
+  }
+  .info-facts {
+    margin-top: 10px;
+    gap: 4px;
+  }
+  .info-facts div {
+    grid-template-columns: 8em 1fr;
+    padding-top: 5px;
+  }
+  .info-facts dd {
+    font-size: 15px;
+    line-height: 1.3;
+  }
+  .info-facts dt small[lang="ja"] {
+    font-size: 9px;
+  }
+  .info-contact li {
+    padding-top: 6px;
+  }
+  .info-contact a span {
+    font-size: 16px;
+  }
+  .info--omar .info-pitch {
+    margin-top: 14px;
+    font-size: 15px;
+  }
+}
+
 /* --------------------------------------------------------------- shelf ---- */
 .shelf {
   --plank: 40px;
@@ -1036,10 +1421,15 @@ html[data-motion="soft"] .tv-sheen {
 .shelf-item:focus-visible {
   outline: none;
 }
-.shelf-item:focus-visible .shelf-object {
-  outline: 2px solid var(--blood-orange);
-  outline-offset: 6px;
-  border-radius: 6px;
+/* Focus on the shelf is the selection itself (spec: gold = "you are here"): the object
+   lifts, the TV light pools under it and the plank's edge lights up. From the keyboard
+   that edge is drawn stronger; no box around the object. */
+.shelf-item[data-on]:focus-visible::after {
+  left: -4px;
+  right: -4px;
+  height: 3px;
+  bottom: -3px;
+  box-shadow: 0 0 10px 1px rgb(250 219 104 / 0.7);
 }
 .shelf-object {
   position: relative;
@@ -1389,6 +1779,7 @@ html[data-motion="soft"] .tv-sheen {
     --glass-w: calc(100vw - 32px - 24px);
     --glass-h: calc(var(--glass-w) * 3 / 4);
     --shelf-h: 160px;
+    height: auto;
     min-height: 0;
     padding: 16px 16px 32px;
     justify-content: flex-start;
@@ -1408,6 +1799,8 @@ html[data-motion="soft"] .tv-sheen {
   .room-info {
     order: 3;
     max-height: none;
+    margin: 0;
+    padding: 0;
     overflow: visible;
   }
   .tv-bezel {
@@ -1476,12 +1869,40 @@ html[data-motion="soft"] .tv-sheen {
   .status-handle {
     font-size: 14px;
   }
+  /* phone glass: one column, the address on its own row */
+  .status-win {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "id" "after" "stats" "mail";
+    gap: 8px;
+  }
+  .status-stats {
+    align-self: center;
+  }
+  .status-mail {
+    align-self: center;
+  }
+  .status-mail a {
+    font-size: 15px;
+    box-shadow: none;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    text-decoration-color: rgb(252 232 205 / 0.5);
+  }
+  .status-after {
+    white-space: nowrap;
+    font-size: 12px;
+    padding: 4px 10px;
+  }
+  .status-after {
+    min-height: 36px;
+  }
+  .status-after small[lang="ja"] {
+    font-size: 9px;
+  }
   .tv-ch {
     top: 10px;
     right: 12px;
-  }
-  .title-type {
-    font-size: var(--px1);
   }
 
   .shelf {
@@ -1525,6 +1946,26 @@ html[data-motion="soft"] .tv-sheen {
   .narrator-dock {
     right: 12px;
     bottom: 12px;
+  }
+  /* At the top of a guide the toast waits up on the cover, clear of the facts strip */
+  .studio[data-guide-top] .dock-toast {
+    position: fixed;
+    top: 58px;
+    left: 16px;
+    right: 16px;
+    max-width: none;
+    border: 2px solid rgb(252 232 205 / 0.85);
+  }
+  .shelf-item {
+    min-height: 44px;
+    display: flex;
+    align-items: flex-end;
+  }
+  .status-mail a {
+    /* the card's CONTACT list below has the full 44px targets */
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
   }
   .dock-logo {
     width: 48px;

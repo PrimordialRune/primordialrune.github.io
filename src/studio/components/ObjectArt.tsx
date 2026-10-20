@@ -330,7 +330,7 @@ function TrainerCard({ p, r, id, size }: DrawProps) {
 }
 
 /* ---------------------------------------------------------------------------------------- */
-/* Booster pack: PTCG Cube, black foil with Omar's playmat as its art and his signature     */
+/* Booster pack: PTCG Cube, graphite foil with Omar's playmat as its art and his signature     */
 /* ---------------------------------------------------------------------------------------- */
 
 function Booster({ p, r, id, size, label }: DrawProps) {
@@ -346,10 +346,12 @@ function Booster({ p, r, id, size, label }: DrawProps) {
   const strip = (
     <>
       <path d={`M2 5 ${zigTop} L62 15.5 L2 15.5 Z`} fill={graphite} />
+      {/* crimp ridges: every other one catches the light */}
       {Array.from({ length: 30 }, (_, i) => (
-        <path key={i} d={`M${3 + i * 2} 6 V14.5`} stroke={foil} strokeOpacity=".55" strokeWidth=".35" />
+        <path key={i} d={`M${3 + i * 2} 5.6 V14.6`} stroke={i % 2 ? foil : "#fff"} strokeOpacity={i % 2 ? 0.45 : 0.42} strokeWidth=".35" />
       ))}
-      <path d="M2 15.2 H62" stroke={white} strokeOpacity=".45" strokeWidth=".4" strokeDasharray="1 1" />
+      <path d="M2 6.2 H62" stroke="#fff" strokeOpacity=".3" strokeWidth=".3" />
+      <path d="M2 15.2 H62" stroke={white} strokeOpacity=".55" strokeWidth=".4" strokeDasharray="1 1" />
     </>
   );
   // each card's art: one of the bench silhouettes from the playmat (centres in playmat px)
@@ -386,7 +388,7 @@ function Booster({ p, r, id, size, label }: DrawProps) {
           <path data-part="tear-off" d={off} transform="translate(-3 0)" />
         </clipPath>
         <clipPath id={`${id}w`}>
-          <rect x="7" y="22" width="50" height="34" rx="1.5" />
+          <rect x="6" y="20" width="52" height="40" rx="1.5" />
         </clipPath>
         <clipPath id={`${id}p`}>
           <rect x="2" y="15.5" width="60" height="83" />
@@ -403,37 +405,46 @@ function Booster({ p, r, id, size, label }: DrawProps) {
       {/* three cards wait inside, behind the foil */}
       <g data-part="cards">{[257, 340, 428].map((x, i) => card(x, i))}</g>
       <g data-part="pack">
-        <path d={`M2 15.5 H62 V98.4 ${zigBot} L2 98.4 Z`} fill={foil} />
-        {/* foil crinkles: light, not fill */}
-        {[9, 21, 40, 52].map((x) => (
-          <path key={x} d={`M${x} 17 V96`} stroke="#fff" strokeOpacity=".06" strokeWidth="1.4" />
+        {/* the foil: graphite, lit (P4: the sheen is light over one flat ink) */}
+        <path d={`M2 15.5 H62 V98.4 ${zigBot} L2 98.4 Z`} fill={graphite} />
+        <path d="M2 15.5 H26 L2 52 Z" fill="#fff" opacity=".12" />
+        <path d="M34 15.5 H46 L2 82 V64 Z" fill="#fff" opacity=".07" />
+        <path d="M62 40 V60 L44 98.4 H32 Z" fill="#fff" opacity=".06" />
+        {/* foil crinkles */}
+        {[8.5, 21, 43, 55.5].map((x) => (
+          <path key={x} d={`M${x} 17 V96`} stroke="#fff" strokeOpacity=".1" strokeWidth=".5" />
         ))}
-        <rect x="6.4" y="21.4" width="51.2" height="35.2" rx="1.8" fill={graphite} />
-        {/* the playmat's top: the poké ball, the ACTIVE frame, the halftone burst, the bench */}
+        {/* the art window: the playmat's halftone burst, printed big */}
+        <rect x="5.4" y="19.4" width="53.2" height="41.2" rx="1.8" fill={foil} />
         <g clipPath={`url(#${id}w)`}>
-          <svg x="7" y="22" width="50" height="34" viewBox="96 0 424 288" preserveAspectRatio="xMidYMid slice">
+          <svg x="6" y="20" width="52" height="40" viewBox="412 6 130 100" preserveAspectRatio="xMidYMid slice">
             {label && <image href={asset(label.src)} x="0" y="0" width="640" height="372" />}
           </svg>
         </g>
-        <rect x="7" y="22" width="50" height="34" rx="1.5" fill="none" stroke={white} strokeOpacity=".8" strokeWidth=".45" />
-        <text x="32" y="66.4" className="obj-t-black" fontSize="8.2" fill={white} textAnchor="middle" letterSpacing=".2">
+        <rect x="6" y="20" width="52" height="40" rx="1.5" fill="none" stroke={white} strokeOpacity=".9" strokeWidth=".5" />
+        <text x="32" y="69.2" className="obj-t-black" fontSize="8.4" fill={white} textAnchor="middle" letterSpacing=".2">
           PTCG CUBE
         </text>
-        <text x="32" y="72.4" className="obj-t-kana" fontSize="3.4" fill={white} textAnchor="middle" opacity=".8">
-          {p.mediumJp || "ブースターパック"}
+        <text x="32" y="74.6" className="obj-t-kana" fontSize="3.4" fill={white} textAnchor="middle" opacity=".85">
+          {p.titleJp || "キューブ"}
         </text>
-        <text x="32" y="80" className="obj-t-black" fontSize="2.8" fill={white} textAnchor="middle" letterSpacing=".5" opacity=".75">
+        <text x="32" y="80.6" className="obj-t-black" fontSize="2.8" fill={white} textAnchor="middle" letterSpacing=".5" opacity=".8">
           ROGUELIKE · CO-OP
         </text>
-        {/* Omar's signature, as on the playmat: the mark and PRIMORDIALRUNE */}
-        <path d="M9 85.4 H55" stroke={white} strokeOpacity=".22" strokeWidth=".3" />
-        <LogoMark x={9} y={87.4} size={5.6} outer={white} inner={graphite} />
-        <text x="16.4" y="91.6" className="obj-t-black" fontSize="2.4" fill={white} letterSpacing=".6" opacity=".7">
+        {/* Omar's signature band, as on the playmat: the mark and PRIMORDIALRUNE */}
+        <rect x="2" y="84" width="60" height="12" fill={foil} />
+        <LogoMark x={9} y={87} size={5.6} outer={white} inner={graphite} />
+        <text x="16.4" y="91.2" className="obj-t-black" fontSize="2.4" fill={white} letterSpacing=".6" opacity=".75">
           PRIMORDIALRUNE
         </text>
         <rect x="2" y="15.5" width="60" height="83" fill={`url(#${id}l)`} />
-        <Glint clip={`url(#${id}p)`} x={-12} y={14} w={6} h={86} travel={120} skew={-14} opacity={0.16} />
-        <path d={`M2 98.4 ${zigBot} L2 98.4 Z`} fill={graphite} opacity=".6" />
+        <Glint clip={`url(#${id}p)`} x={-12} y={14} w={6} h={86} travel={120} skew={-14} opacity={0.2} />
+        {/* the bottom crimp, ridged and catching the light */}
+        <path d={`M2 96 H62 V98.4 ${zigBot} L2 98.4 Z`} fill={graphite} />
+        {Array.from({ length: 30 }, (_, i) => (
+          <path key={i} d={`M${3 + i * 2} 96.4 V99.4`} stroke="#fff" strokeOpacity={i % 2 ? 0.18 : 0.42} strokeWidth=".35" />
+        ))}
+        <path d="M2 96 H62" stroke={foil} strokeOpacity=".6" strokeWidth=".4" />
       </g>
       {/* the crimp: one copy stays, the other is the piece that tears away */}
       <g data-part="foil" clipPath={`url(#${id}k)`}>
@@ -775,7 +786,7 @@ function GbaCart({ p, id, size, label }: DrawProps) {
 /* ---------------------------------------------------------------------------------------- */
 
 /** A small δ emblem: a ring with the letter drawn as a bowl and a hooked stem */
-function Delta({ x, y, r, ring, ink, bg }: { x: number; y: number; r: number; ring: string; ink: string; bg: string }) {
+export function Delta({ x, y, r, ring, ink, bg }: { x: number; y: number; r: number; ring: string; ink: string; bg: string }) {
   const k = r / 10;
   return (
     <g transform={`translate(${x} ${y}) scale(${k})`}>
@@ -947,6 +958,24 @@ function DsCard({ p, id, size, label }: DrawProps) {
 
 const FLOPPY = "M2.5 .5 H82 L89.5 8 V91.5 a2 2 0 0 1 -2 2 H2.5 a2 2 0 0 1 -2 -2 V2.5 a2 2 0 0 1 2 -2Z";
 
+/** SpaceRim's emblem: a castle wall under a ringed planet (centre 25, 58.6; r 9.4) */
+export function CastlePlanet({ shell, accent, paper, metal }: { shell: string; accent: string; paper: string; metal: string }) {
+  return (
+    <g>
+      <circle cx="25" cy="58.6" r="9.4" fill={shell} />
+      <circle cx="28.4" cy="55.4" r="3.4" fill={accent} />
+      <ellipse cx="28.4" cy="55.4" rx="6" ry="1.5" fill="none" stroke={paper} strokeWidth=".6" transform="rotate(-18 28.4 55.4)" />
+      <rect x="19.6" y="52.4" width=".7" height=".7" fill={paper} />
+      <rect x="22.6" y="57.2" width=".6" height=".6" fill={paper} />
+      <path
+        d="M16.4 67.2 V60.6 h2 v-1.6 h1.8 v1.6 h1.4 v-4.4 h1.6 v-1.6 h1.8 v1.6 h1.6 v4.4 h1.4 v-1.6 h1.8 v1.6 h2 V67.2 Z"
+        fill={metal}
+      />
+      <rect x="24" y="62.6" width="2" height="3" rx="1" fill={shell} />
+    </g>
+  );
+}
+
 function Floppy({ p, r, id, size }: DrawProps) {
   const shell = r.dark;
   const paper = r.light;
@@ -986,18 +1015,7 @@ function Floppy({ p, r, id, size }: DrawProps) {
           GODOT · GAME JAM
         </text>
         {/* emblem: a castle wall under a ringed planet */}
-        <g>
-          <circle cx="25" cy="58.6" r="9.4" fill={shell} />
-          <circle cx="28.4" cy="55.4" r="3.4" fill={accent} />
-          <ellipse cx="28.4" cy="55.4" rx="6" ry="1.5" fill="none" stroke={paper} strokeWidth=".6" transform="rotate(-18 28.4 55.4)" />
-          <rect x="19.6" y="52.4" width=".7" height=".7" fill={paper} />
-          <rect x="22.6" y="57.2" width=".6" height=".6" fill={paper} />
-          <path
-            d="M16.4 67.2 V60.6 h2 v-1.6 h1.8 v1.6 h1.4 v-4.4 h1.6 v-1.6 h1.8 v1.6 h1.6 v4.4 h1.4 v-1.6 h1.8 v1.6 h2 V67.2 Z"
-            fill={metal}
-          />
-          <rect x="24" y="62.6" width="2" height="3" rx="1" fill={shell} />
-        </g>
+        <CastlePlanet shell={shell} accent={accent} paper={paper} metal={metal} />
         {words.map((w, i) => (
           <text key={w} x="38" y={words.length > 1 ? 57 + i * 9.4 : 62} className="obj-t-black" fontSize={words.length > 1 ? 10.4 : 7.6} fill={shell} letterSpacing=".2">
             {w}

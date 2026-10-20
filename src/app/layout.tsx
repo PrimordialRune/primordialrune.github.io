@@ -3,6 +3,12 @@ import localFont from "next/font/local";
 import "./globals.css";
 import "@/studio/styles/studio.css";
 import { MOTION_INIT_SCRIPT } from "@/studio/lib/motionInit";
+import { LOGO_INNER, LOGO_OUTER } from "@/lib/logo";
+
+// The favicon is the logo, inlined: no file path to break under a preview sub-path
+const FAVICON = `data:image/svg+xml,${encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 554.72 555"><path d="${LOGO_OUTER}" fill="#102f41"/><path d="${LOGO_INNER}" fill="#ec563b"/></svg>`,
+)}`;
 
 // P5: three voices. Grotesk (Omar), 8bitDarling (the machine), GenEiKiwamiGo (the subtitle)
 const grotesk = localFont({
@@ -34,6 +40,7 @@ export const metadata: Metadata = {
   title: "Omar Golinelli · PrimordialRune · Game Designer",
   description:
     "Omar Golinelli (PrimordialRune) designs games, the board kind and the screen kind. A shelf of his projects under a remembered TV.",
+  icons: { icon: [{ url: FAVICON, type: "image/svg+xml" }] },
 };
 
 export const viewport: Viewport = {

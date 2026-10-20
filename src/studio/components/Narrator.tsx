@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Logo from "./Logo";
-import { lineFor, onUtterance, type Choice, type Utterance } from "@/studio/lib/narrator";
+import { doneTyping, lineFor, onUtterance, type Choice, type Utterance } from "@/studio/lib/narrator";
 import { useMotion } from "@/studio/lib/motion";
 import { nameTags } from "@/studio/data/lines";
 
@@ -22,7 +22,21 @@ function focusHome() {
   el?.focus({ preventScroll: true });
 }
 
+/** Stage 2: the machine takes the first word ("* soon.") */
+const FIRST_WORD = /^(\*?\s*)(\S{3,}|\S{1,2}\s+\S+)/;
+
 function Voice({ text, stage }: { text: string; stage: number }) {
+  if (stage >= 2) {
+    const m = text.match(FIRST_WORD);
+    if (!m) return <>{text}</>;
+    return (
+      <>
+        {m[1]}
+        <span className="nar-slip2">{m[2]}</span>
+        {text.slice(m[0].length)}
+      </>
+    );
+  }
   if (stage !== 1) return <>{text}</>;
   // Stage 1: nouns about Omar slip into the machine's face
   const parts = text.split(ABOUT_OMAR);
@@ -38,6 +52,51 @@ function Voice({ text, stage }: { text: string; stage: number }) {
         ),
       )}
     </>
+  );
+}
+
+/** The line as it types: the whole line unseen in the flow (it sizes the box), the typed
+ *  part laid over it, and at stage 2 the AI's caret */
+function LineBody({ line, typed, stage }: { line: string; typed: number; stage: number }) {
+  return (
+    <>
+      <span className="nar-ghost" aria-hidden>
+        <Voice text={line} stage={stage} />
+        {stage >= 2 && <span className="nar-caret" />}
+      </span>
+      <span className="nar-typed" aria-hidden>
+        <Voice text={line.slice(0, typed)} stage={stage} />
+        {stage >= 2 && <span className="nar-caret" />}
+      </span>
+    </>
+  );
+}
+
+/** Stage 2: a line is said whole in the pixel face only when it fits on one line at twice
+ *  the face's native size (P5); longer lines stay in Grotesk. Sets data-pixel on `host`. */
+function usePixelFit(host: React.RefObject<HTMLElement | null>, text: React.RefObject<HTMLElement | null>, line: string | null, stage: number) {
+  const measure = useRef<HTMLSpanElement>(null);
+  useLayoutEffect(() => {
+    const h = host.current;
+    if (!h) return;
+    const fit = () => {
+      const m = measure.current;
+      const t = text.current;
+      const ok = stage >= 2 && !!line && !!m && !!t && t.clientWidth > 0 && m.scrollWidth <= t.clientWidth;
+      h.toggleAttribute("data-pixel", ok);
+    };
+    fit();
+    // the pixel face may arrive after the first measure
+    let alive = true;
+    document.fonts?.ready.then(() => alive && fit());
+    return () => {
+      alive = false;
+    };
+  }, [host, text, line, stage]);
+  return (
+    <span ref={measure} className="nar-measure" aria-hidden>
+      {stage >= 2 && line ? line : ""}
+    </span>
   );
 }
 
@@ -79,6 +138,10 @@ export default function Narrator({
   const last = useRef<string | null>(null);
   const timer = useRef<number | undefined>(undefined);
   const root = useRef<HTMLDivElement>(null);
+  const box = useRef<HTMLDivElement>(null);
+  const textEl = useRef<HTMLDivElement>(null);
+  const toast = useRef<HTMLDivElement>(null);
+  const toastText = useRef<HTMLButtonElement>(null);
   // Called before the box closes: if focus was inside, bring it back out (P2)
   const release = useCallback(() => {
     const r = root.current;
@@ -124,6 +187,11 @@ export default function Narrator({
   useEffect(() => {
     if (line) last.current = line;
   }, [line]);
+
+  // The bus holds new lines back while this one types; tell it as soon as it is whole
+  useEffect(() => {
+    if (done || !visible) doneTyping();
+  }, [done, visible]);
 
   const finish = useCallback(() => {
     const u = utt;
@@ -171,8 +239,20 @@ export default function Narrator({
     u?.onChoice?.(c.value);
   };
 
-  const pixelType = stage >= 2;
   const open = visible && !!line;
+  const measureTv = usePixelFit(root, textEl, variant === "tv" ? line : null, stage);
+  const measureDock = usePixelFit(toast, toastText, variant === "dock" && visible ? line : null, stage);
+
+  // The box's real height goes to the TV (--nar-real), so the title screen and the status
+  // window above it make room for exactly what the box needs (desktop)
+  useEffect(() => {
+    const b = box.current;
+    const tvEl = root.current?.closest<HTMLElement>(".tv");
+    if (!b || !tvEl) return;
+    const ro = new ResizeObserver(() => tvEl.style.setProperty("--nar-real", `${b.offsetHeight + 14}px`));
+    ro.observe(b);
+    return () => ro.disconnect();
+  }, [variant]);
   // One announcement per line, whole, from a region that is always there (no per-character
   // updates, and never inside the inert box)
   const live = (
@@ -186,13 +266,12 @@ export default function Narrator({
       <div className="narrator-dock" ref={root}>
         {live}
         {visible && line && (
-          <div className="dock-toast" data-pixel={pixelType || undefined}>
+          <div ref={toast} className="dock-toast" data-stage={stage}>
             <NameTag stage={stage} />
-            <button className="dock-line" onClick={advance}>
+            <button ref={toastText} className="dock-line" onClick={advance}>
               <span className="sr-only">{line}</span>
-              <span aria-hidden>
-                <Voice text={line.slice(0, typed)} stage={stage} />
-              </span>
+              <LineBody line={line} typed={typed} stage={stage} />
+              {measureDock}
             </button>
             {choices && (
               <span className="nar-choices">
@@ -228,17 +307,16 @@ export default function Narrator({
   return (
     <>
       {live}
-      <div ref={root} className="narrator" data-open={open ? "" : undefined} data-pixel={pixelType || undefined}>
-        <div className="nar-box" inert={!open || undefined}>
+      <div ref={root} className="narrator" data-open={open ? "" : undefined} data-stage={stage}>
+        <div ref={box} className="nar-box" inert={!open || undefined}>
           <button className="nar-face" onClick={onLogo} aria-label="The narrator's logo">
             <Logo stage={stage} size={36} outer="var(--cream)" title={stage >= 2 ? "a reflection" : undefined} />
           </button>
           <div className="nar-main">
             <NameTag stage={stage} tagRef={tagRef} override={tagOverride} />
-            <div className="nar-text" onClick={advance}>
-              <span aria-hidden>
-                <Voice text={line ? line.slice(0, typed) : ""} stage={stage} />
-              </span>
+            <div ref={textEl} className="nar-text" onClick={advance}>
+              {line && <LineBody line={line} typed={typed} stage={stage} />}
+              {measureTv}
             </div>
             {choices && (
               <div className="nar-choices">

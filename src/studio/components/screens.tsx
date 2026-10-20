@@ -8,6 +8,7 @@ import { asset } from "@/studio/lib/asset";
 import { frames, isSoft } from "@/studio/lib/motion";
 import { formatPlayTime } from "@/studio/lib/story";
 import { profile, saveFiles, ui } from "@/studio/data/script";
+import { CastlePlanet, Delta } from "./ObjectArt";
 import type { StudioProject } from "@/studio/types";
 
 /* ---------------------------------------------------------------------------------- */
@@ -189,21 +190,103 @@ export function TitleScreen({ project, channel }: { project: StudioProject; chan
   const art = project.art.title;
   const bg = SCREEN_BG[project.slug] ?? project.palette[0];
   const fg = project.slug === "crossfader" ? "#2e2828" : project.palette[project.palette.length - 1];
+  const ch = (
+    <span className="tv-ch pixel-1" aria-hidden style={{ color: fg }}>
+      {ui.hints.channel.replace("{nn}", String(channel).padStart(2, "0"))}
+    </span>
+  );
+  if (project.slug === "ptcg-cube") return <PtcgTitle project={project}>{ch}</PtcgTitle>;
+  if (!art) return <EmblemTitle project={project}>{ch}</EmblemTitle>;
   return (
     <div className="scr scr-title" style={{ background: bg, color: fg }}>
       <div ref={ref} className="title-art">
-        {art && art.pixel && box.w > 0 && <Pixel art={art} maxW={box.w} maxH={box.h} />}
+        {art.pixel && box.w > 0 && <Pixel art={art} maxW={box.w} maxH={box.h} />}
         {/* eslint-disable-next-line @next/next/no-img-element -- static export, real art at its own size */}
-        {art && !art.pixel && <img src={asset(art.src)} alt={art.alt} width={art.w} height={art.h} />}
-        {!art && (
-          <span className="title-type">
-            {project.title.toUpperCase()}
-          </span>
-        )}
+        {!art.pixel && <img src={asset(art.src)} alt={art.alt} width={art.w} height={art.h} />}
       </div>
-      <span className="tv-ch pixel-1" aria-hidden style={{ color: fg }}>
-        {ui.hints.channel.replace("{nn}", String(channel).padStart(2, "0"))}
-      </span>
+      {ch}
+    </div>
+  );
+}
+
+/** A dash drawn in the pixel face's own grid (8bitDarling has no hyphen) */
+const Dash = () => <span className="px-dash" aria-hidden />;
+
+/** PTCG Cube: a title screen in the playmat's three inks. The playmat is the texture under
+ *  it, dimmed and cropped to its bench and Omar's signature; the title and the two modes
+ *  are the screen's own type, a cursor blinking on the first. */
+function PtcgTitle({ project, children }: { project: StudioProject; children: React.ReactNode }) {
+  const art = project.art.title!;
+  return (
+    <div className="scr scr-title ts-ptcg" role="img" aria-label="PTCG Cube title screen: PTCG CUBE, with the modes Roguelike and Co-op, over Omar's playmat">
+      {/* eslint-disable-next-line @next/next/no-img-element -- static export */}
+      <img className="ts-mat" src={asset(art.src)} alt="" width={art.w} height={art.h} />
+      <div className="ts-stack">
+        <div className="ts-panel">
+          <p className="ts-title">PTCG CUBE</p>
+          <small lang="ja" className="ts-kana">
+            キューブ
+          </small>
+        </div>
+        <ul className="ts-menu" aria-hidden>
+          <li data-on>
+            <span className="ts-cursor" />
+            <span>ROGUELIKE</span>
+          </li>
+          <li>
+            <span>
+              CO
+              <Dash />
+              OP
+            </span>
+          </li>
+        </ul>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+/** Archives without title art (Holon, SpaceRim): the object's emblem, the title in the
+ *  machine's face, its katakana, and one status line, in the object's palette */
+const EMBLEM_STATUS: Record<string, string> = { holon: "UNITY PROTOTYPE", spacerim: "CASTLE GAME JAM" };
+
+function EmblemTitle({ project, children }: { project: StudioProject; children: React.ReactNode }) {
+  const [dark, paper, gold, accent] =
+    project.kind === "floppy"
+      ? [project.palette[0], project.palette[2], project.palette[3], project.palette[1]]
+      : [project.palette[0], project.palette[1], project.palette[2], project.palette[3]];
+  let emblem: React.ReactNode = <Logo size={64} outer={paper} />;
+  if (project.kind === "deck-box")
+    emblem = (
+      <svg viewBox="-11 -11 22 22" className="ts-emblem" aria-hidden>
+        <Delta x={0} y={0} r={10.6} ring={gold} ink={paper} bg={accent} />
+      </svg>
+    );
+  if (project.kind === "floppy")
+    emblem = (
+      <svg viewBox="13.6 47.2 22.8 22.8" className="ts-emblem" aria-hidden>
+        <circle cx="25" cy="58.6" r="10.8" fill={accent} opacity=".22" />
+        <CastlePlanet shell={dark} accent={gold} paper={paper} metal={accent} />
+        <circle cx="25" cy="58.6" r="9.4" fill="none" stroke={accent} strokeWidth=".5" />
+      </svg>
+    );
+  const status = EMBLEM_STATUS[project.slug] ?? project.medium.toUpperCase().replace(/[^A-Z0-9 ]/g, "");
+  return (
+    <div className="scr scr-title ts-emblem-screen" style={{ background: dark, color: paper }} role="img" aria-label={`${project.title} title screen`}>
+      <div className="ts-frame" style={{ borderColor: accent }} aria-hidden />
+      <div className="ts-stack">
+        {emblem}
+        <p className="ts-title">{project.title.toUpperCase()}</p>
+        <small lang="ja" className="ts-kana" style={{ color: gold }}>
+          {project.titleJp}
+        </small>
+        <p className="ts-status" style={{ color: accent }}>
+          {status}
+          <span className="ts-cursor" style={{ background: gold }} />
+        </p>
+      </div>
+      {children}
     </div>
   );
 }
