@@ -36,7 +36,7 @@
   font-size: 12px;
   letter-spacing: 0.04em;
   line-height: 1.4;
-  opacity: 0.7;
+  opacity: 0.8;
   text-transform: none;
 }
 
@@ -183,7 +183,7 @@
   font-size: 14px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--g-teal);
+  color: var(--g-dark-teal);
   margin: 0 0 6px;
 }
 .guide-chapter-label .guide-kana {
@@ -243,19 +243,22 @@
 .guide-shot-frame img {
   border-radius: 2px;
 }
+/* ①②③: blood orange with peacock numerals (large text, 3.96:1; cream on orange fails AA) */
 .guide-callout-dot {
   position: absolute;
-  width: 28px;
-  height: 28px;
-  margin: -14px 0 0 -14px;
+  width: 32px;
+  height: 32px;
+  margin: -16px 0 0 -16px;
   border-radius: 50%;
   background: var(--g-orange);
-  color: var(--g-cream);
-  box-shadow: 0 0 0 2px var(--g-cream);
+  color: var(--g-peacock);
+  box-shadow:
+    0 0 0 2px var(--g-cream),
+    0 2px 6px rgba(16, 47, 65, 0.35);
   font-family: var(--g-black);
   font-weight: 900;
-  font-size: 14px;
-  line-height: 28px;
+  font-size: 19px;
+  line-height: 32px;
   text-align: center;
   pointer-events: none;
 }
@@ -276,22 +279,22 @@
 }
 .guide-callouts li {
   display: grid;
-  grid-template-columns: 24px 1fr;
+  grid-template-columns: 26px 1fr;
   gap: 10px;
   font-size: 16px;
   line-height: 1.5;
 }
 .guide-callout-num {
-  width: 22px;
-  height: 22px;
-  margin-top: 1px;
+  width: 24px;
+  height: 24px;
+  margin-top: 0;
   border-radius: 50%;
   background: var(--g-orange);
-  color: var(--g-cream);
+  color: var(--g-peacock);
   font-family: var(--g-black);
   font-weight: 900;
-  font-size: 12px;
-  line-height: 22px;
+  font-size: 14px;
+  line-height: 24px;
   text-align: center;
 }
 
@@ -309,6 +312,7 @@
 }
 .guide-notes-label {
   font-family: var(--g-black);
+  line-height: 1.3;
   font-weight: 900;
   font-size: 14px;
   letter-spacing: 0.08em;
@@ -320,6 +324,12 @@
 }
 .guide-notes-card .guide-h {
   margin-bottom: 12px;
+}
+.guide-notes-card .guide-shot {
+  margin: 24px 0 28px;
+}
+.guide-notes-card .guide-callout-dot {
+  box-shadow: 0 0 0 2px var(--g-peacock);
 }
 .guide-notes-card .guide-list > div {
   border-top-color: rgba(252, 232, 205, 0.2);
@@ -352,10 +362,11 @@
 }
 
 /* ---- footer ---- */
+/* the bottom padding keeps BACK and NEXT clear of the docked narrator and its line */
 .guide-footer {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 24px var(--g-gutter) 96px;
+  padding: 24px var(--g-gutter) 176px;
   display: flex;
   justify-content: space-between;
   gap: 16px;
@@ -365,7 +376,7 @@
   appearance: none;
   border: 2px solid var(--g-orange);
   background: transparent;
-  color: var(--g-orange);
+  color: var(--g-peacock);
   border-radius: 12px;
   padding: 12px 18px 10px;
   font-family: var(--g-black);
@@ -385,7 +396,7 @@
 .guide-btn:hover,
 .guide-btn:focus-visible {
   background: var(--g-orange);
-  color: var(--g-cream);
+  color: var(--g-peacock);
 }
 .guide-btn:focus-visible,
 .guide-links a:focus-visible {
@@ -438,5 +449,20 @@
   .guide-fact:nth-child(2n) {
     border-right: 0;
     padding-left: 12px;
+  }
+  /* smaller callouts so they cover less of a 2x shot */
+  .guide-callout-dot {
+    width: 24px;
+    height: 24px;
+    margin: -12px 0 0 -12px;
+    font-size: 14px;
+    line-height: 24px;
+  }
+  .guide-footer {
+    flex-wrap: wrap;
+    padding-bottom: 160px;
+  }
+  .guide-btn {
+    min-height: 44px;
   }
 }

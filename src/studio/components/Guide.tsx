@@ -11,6 +11,7 @@ import { guideFor } from "../data/projects";
 import { ui } from "../data/script";
 import ObjectArt, { OBJECT_BOX } from "./ObjectArt";
 import Pixel from "./Pixel";
+import { asset } from "../lib/asset";
 import "../styles/guide.css";
 
 interface Label {
@@ -93,6 +94,34 @@ const walk = (c: Chapter) => c.kind === "walkthrough" && c.title.en.toLowerCase(
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
+/**
+ * Pixel shots whose subject is small in a big frame: show only the subject, at the largest
+ * integer scale that fits (P1), and move the callouts with it. Keys match the end of the src.
+ */
+const CROPS: Record<string, { x: number; y: number; w: number; h: number }> = {
+  // the GBJAM 11 boot icon sits 36x40 in the middle of a 160x144 plum screen
+  "galactic-news/logo-starfield.png": { x: 54, y: 46, w: 52, h: 52 },
+};
+const cropFor = (src: string) => Object.entries(CROPS).find(([k]) => src.endsWith(k))?.[1];
+
+/** A cropped pixel shot at an integer scale (k >= 1, at most 6) */
+function CroppedPixel({ shot, crop, width }: { shot: Shot; crop: { x: number; y: number; w: number; h: number }; width: number }) {
+  const k = Math.max(1, Math.min(6, Math.floor(width / crop.w)));
+  return (
+    <span style={{ position: "relative", display: "block", overflow: "hidden", width: crop.w * k, height: crop.h * k, margin: "0 auto", borderRadius: 2 }}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={asset(shot.src)}
+        alt={shot.alt}
+        width={shot.w * k}
+        height={shot.h * k}
+        draggable={false}
+        style={{ position: "absolute", left: -crop.x * k, top: -crop.y * k, width: shot.w * k, height: shot.h * k, maxWidth: "none", imageRendering: "pixelated", borderRadius: 0 }}
+      />
+    </span>
+  );
+}
+
 /** One annotated screen: integer-scale pixel art (or a plain image) with ①②③ on top */
 function Figure({ shot }: { shot: Shot }) {
   const ref = useRef<HTMLElement>(null);
@@ -106,13 +135,21 @@ function Figure({ shot }: { shot: Shot }) {
     ro.observe(el);
     return () => ro.disconnect();
   }, [shot.pixel]);
+  const crop = shot.pixel ? cropFor(shot.src) : undefined;
   const callouts = shot.callouts ?? [];
+  // callout positions are in % of the whole shot; a crop moves them into its own frame
+  const at = (c: { x: number; y: number }) =>
+    crop ? { x: (((c.x / 100) * shot.w - crop.x) / crop.w) * 100, y: (((c.y / 100) * shot.h - crop.y) / crop.h) * 100 } : c;
   return (
     <figure ref={ref} className={`guide-shot${shot.pixel ? " guide-shot--pixel" : ""}`}>
       <div className="guide-shot-frame">
-        {shot.pixel ? w > 0 && <Pixel art={shot} maxW={w} maxH={Math.max(shot.h, Math.round(w * 1.2))} /> : <Pixel art={shot} />}
+        {shot.pixel ? (
+          w > 0 && (crop ? <CroppedPixel shot={shot} crop={crop} width={w} /> : <Pixel art={shot} maxW={w} maxH={Math.max(shot.h, Math.round(w * 1.2))} />)
+        ) : (
+          <Pixel art={shot} />
+        )}
         {callouts.map((c, i) => (
-          <span key={i} className="guide-callout-dot" style={{ left: `${c.x}%`, top: `${c.y}%` }} aria-hidden="true">
+          <span key={i} className="guide-callout-dot" style={{ left: `${at(c).x}%`, top: `${at(c).y}%` }} aria-hidden="true">
             {i + 1}
           </span>
         ))}
@@ -319,13 +356,13 @@ export default function Guide({ project, onBack, onNext }: Props) {
           <aside className="guide-notes" aria-label={ui.guide.designNotes.en}>
             {notes.map((c) => (
               <div key={c.id} className="guide-notes-card">
-                <p className="guide-notes-label">
+                <h2 className="guide-notes-label">
                   {ui.guide.designNotes.en}
                   <span className="guide-kana" lang="ja">
                     {ui.guide.designNotes.jp}
                   </span>
-                </p>
-                {c.title.en.toLowerCase() !== ui.guide.designNotes.en.toLowerCase() && <h2 className="guide-h guide-h--small">{c.title.en}</h2>}
+                </h2>
+                {c.title.en.toLowerCase() !== ui.guide.designNotes.en.toLowerCase() && <h3 className="guide-h guide-h--small">{c.title.en}</h3>}
                 {c.body.map((p, i) => (
                   <p key={i} className="guide-p guide-p--small">
                     {p}

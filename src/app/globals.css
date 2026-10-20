@@ -15,6 +15,13 @@
   --font-omar: var(--font-grotesk), "Helvetica Neue", Arial, sans-serif;
   --font-machine: var(--font-pixel), ui-monospace, monospace;
   --font-subtitle: var(--font-kana), "Hiragino Sans", "Yu Gothic", sans-serif;
+
+  /* 8bitDarling draws on a 70/1000 em grid, so its native size is 1000/70 = 100/7 px.
+     Only whole multiples land its pixels on whole CSS pixels: use these, never 16px. */
+  --px1: calc(100px / 7);
+  --px2: calc(200px / 7);
+  --px3: calc(300px / 7);
+  --px4: calc(400px / 7);
 }
 
 @theme inline {

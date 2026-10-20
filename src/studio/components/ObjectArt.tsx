@@ -47,12 +47,13 @@ export const OBJECT_PALETTES: Record<string, string[]> = {
 
 /** Label art the drawings use when the project's own art.label is not the right crop */
 const LABEL_OVERRIDE: Record<string, Art> = {
+  // boot-cart-11.png is the logo and the ship on a starfield (the file names are swapped)
   "galactic-news": {
-    src: "resources/studio-a/galactic-news/title-screen.png",
+    src: "resources/studio-a/galactic-news/boot-cart-11.png",
     w: 160,
     h: 144,
     pixel: true,
-    alt: "The Galactic News title screen",
+    alt: "The Galactic News logo and ship on a starfield",
   },
   "cremisi-portals": {
     src: "resources/studio-a/cremisi-portals/title-screen.png",
@@ -133,6 +134,25 @@ function Spec({ left, right, top }: { left: number; right: number; top: number }
   return <span className="obj-spec" aria-hidden="true" style={{ left: `${left}%`, right: `${right}%`, top: `${top}%` }} />;
 }
 
+/** How much of a pixel-art image fits a window at 1 device pixel per art pixel (1 = all) */
+function usePixelFit(art: Art | undefined, windowPx: { w: number; h: number }) {
+  const dpr = useSyncExternalStore(noSubscribe, readDpr, () => 1);
+  if (!art) return 0;
+  return Math.min((windowPx.w * dpr) / art.w, (windowPx.h * dpr) / art.h);
+}
+
+/** A narrow light band clipped to the plastic; at rest it sits outside the shape. The idle
+ *  (objects.css, focused object only) steps it across: light, not fill (P4), one step a second */
+function Glint({ clip, x, y, w, h, travel, skew = -18, opacity = 0.22 }: { clip: string; x: number; y: number; w: number; h: number; travel: number; skew?: number; opacity?: number }) {
+  return (
+    <g clipPath={clip}>
+      <g transform={`skewX(${skew})`}>
+        <rect data-idle="glint" x={x} y={y} width={w} height={h} fill="#fff" opacity={opacity} style={{ "--gd": `${travel}px` } as CSSProperties} />
+      </g>
+    </g>
+  );
+}
+
 /** A pixel-art image in an HTML window at an integer scale of device pixels: the largest
  *  that fits, or one size up when that crops less than a fifth; cropped from `focus` */
 function PixelWindow({
@@ -174,24 +194,6 @@ function LabelImage({ art, x, y, w, h, align = "xMidYMid" }: { art: Art | undefi
   return <image href={asset(art.src)} x={x} y={y} width={w} height={h} preserveAspectRatio={`${align} meet`} />;
 }
 
-/** Typeset title label for objects with no label art (Holon, SpaceRim) */
-function TypesetTitle({ x, y, w, title, jp, ink, size }: { x: number; y: number; w: number; title: string; jp: string; ink: string; size: number }) {
-  const words = title.toUpperCase().split(" ");
-  const fs = Math.min(size, (w / Math.max(...words.map((s) => s.length))) * 1.55);
-  return (
-    <g>
-      {words.map((word, i) => (
-        <text key={i} x={x + w / 2} y={y + fs * (i + 1) * 0.92} className="obj-t-black" fontSize={fs} fill={ink} textAnchor="middle">
-          {word}
-        </text>
-      ))}
-      <text x={x + w / 2} y={y + fs * words.length * 0.92 + fs * 0.62} className="obj-t-kana" fontSize={fs * 0.42} fill={ink} textAnchor="middle" opacity=".8">
-        {jp}
-      </text>
-    </g>
-  );
-}
-
 /** Omar's logo (from @/lib/logo, never retyped) at a given size */
 function LogoMark({ x, y, size, outer, inner }: { x: number; y: number; size: number; outer: string; inner: string }) {
   const k = size / 555;
@@ -228,6 +230,12 @@ function TrainerCard({ p, r, id, size }: DrawProps) {
     <svg viewBox="0 0 70 96" className="obj-svg" aria-hidden="true">
       <defs>
         <Grain id={`${id}g`} pxPerUnit={px} />
+        <clipPath id={`${id}hs`}>
+          <rect x="3.5" y="27.2" width="63" height="1.6" />
+        </clipPath>
+        <clipPath id={`${id}cc`}>
+          <rect x="3.5" y="6" width="63" height="88" rx="3" />
+        </clipPath>
         <linearGradient id={`${id}s`} x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#fff" stopOpacity=".34" />
           <stop offset=".28" stopColor="#fff" stopOpacity=".04" />
@@ -248,6 +256,14 @@ function TrainerCard({ p, r, id, size }: DrawProps) {
             トレーナーカード
           </text>
           <rect x="3.5" y="26" width="63" height="1.2" fill={orange} />
+          {/* holo foil stripe: four inks in a repeat; the idle shifts it one band a step */}
+          <g clipPath={`url(#${id}hs)`}>
+            <g data-idle="holo" opacity=".85">
+              {Array.from({ length: 22 }, (_, i) => (
+                <rect key={i} x={3.5 + i * 4 - 8} y="27.2" width="4.05" height="1.6" fill={[teal, gold, cream, orange][i % 4]} transform={`skewX(-30)`} />
+              ))}
+            </g>
+          </g>
           {/* portrait slot: the logo, since the narrator speaks through it */}
           <rect x="8" y="31" width="22" height="25" rx="1.5" fill={peacock} />
           <LogoMark x={10} y={34.5} size={18} outer={cream} inner={orange} />
@@ -307,13 +323,14 @@ function TrainerCard({ p, r, id, size }: DrawProps) {
         <rect x="1.5" y="3.5" width="67" height="91.5" rx="2.4" fill={`url(#${id}s)`} stroke="#fff" strokeOpacity=".55" strokeWidth=".5" />
         <path d="M2 4 H68" stroke="#fff" strokeOpacity=".9" strokeWidth=".7" />
         <path d="M2.2 6 V92" stroke="#fff" strokeOpacity=".35" strokeWidth=".5" />
+        <Glint clip={`url(#${id}cc)`} x={-6} y={4} w={6} h={92} travel={110} opacity={0.2} />
       </g>
     </svg>
   );
 }
 
 /* ---------------------------------------------------------------------------------------- */
-/* Booster pack: PTCG Cube, black foil with the playmat as its art                           */
+/* Booster pack: PTCG Cube, black foil with Omar's playmat as its art and his signature     */
 /* ---------------------------------------------------------------------------------------- */
 
 function Booster({ p, r, id, size, label }: DrawProps) {
@@ -335,11 +352,12 @@ function Booster({ p, r, id, size, label }: DrawProps) {
       <path d="M2 15.2 H62" stroke={white} strokeOpacity=".45" strokeWidth=".4" strokeDasharray="1 1" />
     </>
   );
-  const card = (rot: number, key: number) => (
+  // each card's art: one of the bench silhouettes from the playmat (centres in playmat px)
+  const card = (cx: number, key: number) => (
     <g key={key} data-part="card">
       <rect x="10" y="22" width="44" height="62" rx="2" fill={white} />
       <rect x="12.2" y="24.2" width="39.6" height="57.6" rx="1" fill={foil} />
-      <svg x="13.4" y="30" width="37.2" height="26" viewBox={`${100 + rot * 120} 40 300 210`} preserveAspectRatio="xMidYMid slice">
+      <svg x="13.4" y="30" width="37.2" height="26" viewBox={`${cx - 34} 199 68 47.6`} preserveAspectRatio="xMidYMid slice">
         {label && <image href={asset(label.src)} x="0" y="0" width="640" height="372" />}
       </svg>
       <rect x="13.4" y="30" width="37.2" height="26" fill="none" stroke={white} strokeOpacity=".7" strokeWidth=".4" />
@@ -370,6 +388,9 @@ function Booster({ p, r, id, size, label }: DrawProps) {
         <clipPath id={`${id}w`}>
           <rect x="7" y="22" width="50" height="34" rx="1.5" />
         </clipPath>
+        <clipPath id={`${id}p`}>
+          <rect x="2" y="15.5" width="60" height="83" />
+        </clipPath>
         <linearGradient id={`${id}l`} x1="0" y1="0" x2="1" y2="0">
           <stop offset="0" stopColor="#fff" stopOpacity="0" />
           <stop offset=".18" stopColor="#fff" stopOpacity=".16" />
@@ -380,7 +401,7 @@ function Booster({ p, r, id, size, label }: DrawProps) {
         </linearGradient>
       </defs>
       {/* three cards wait inside, behind the foil */}
-      <g data-part="cards">{[-1, 0, 1].map((rot, i) => card(rot, i))}</g>
+      <g data-part="cards">{[257, 340, 428].map((x, i) => card(x, i))}</g>
       <g data-part="pack">
         <path d={`M2 15.5 H62 V98.4 ${zigBot} L2 98.4 Z`} fill={foil} />
         {/* foil crinkles: light, not fill */}
@@ -388,18 +409,30 @@ function Booster({ p, r, id, size, label }: DrawProps) {
           <path key={x} d={`M${x} 17 V96`} stroke="#fff" strokeOpacity=".06" strokeWidth="1.4" />
         ))}
         <rect x="6.4" y="21.4" width="51.2" height="35.2" rx="1.8" fill={graphite} />
-        <g clipPath={`url(#${id}w)`}>{label && <image href={asset(label.src)} x="-2" y="18" width="70" height="40.7" preserveAspectRatio="xMidYMid slice" />}</g>
+        {/* the playmat's top: the poké ball, the ACTIVE frame, the halftone burst, the bench */}
+        <g clipPath={`url(#${id}w)`}>
+          <svg x="7" y="22" width="50" height="34" viewBox="96 0 424 288" preserveAspectRatio="xMidYMid slice">
+            {label && <image href={asset(label.src)} x="0" y="0" width="640" height="372" />}
+          </svg>
+        </g>
         <rect x="7" y="22" width="50" height="34" rx="1.5" fill="none" stroke={white} strokeOpacity=".8" strokeWidth=".45" />
-        <text x="32" y="67" className="obj-t-black" fontSize="8.2" fill={white} textAnchor="middle" letterSpacing=".2">
+        <text x="32" y="66.4" className="obj-t-black" fontSize="8.2" fill={white} textAnchor="middle" letterSpacing=".2">
           PTCG CUBE
         </text>
-        <text x="32" y="73.2" className="obj-t-kana" fontSize="3.4" fill={white} textAnchor="middle" opacity=".8">
+        <text x="32" y="72.4" className="obj-t-kana" fontSize="3.4" fill={white} textAnchor="middle" opacity=".8">
           {p.mediumJp || "ブースターパック"}
         </text>
-        <text x="32" y="83" className="obj-t-black" fontSize="2.8" fill={white} textAnchor="middle" letterSpacing=".5" opacity=".75">
+        <text x="32" y="80" className="obj-t-black" fontSize="2.8" fill={white} textAnchor="middle" letterSpacing=".5" opacity=".75">
           ROGUELIKE · CO-OP
         </text>
+        {/* Omar's signature, as on the playmat: the mark and PRIMORDIALRUNE */}
+        <path d="M9 85.4 H55" stroke={white} strokeOpacity=".22" strokeWidth=".3" />
+        <LogoMark x={9} y={87.4} size={5.6} outer={white} inner={graphite} />
+        <text x="16.4" y="91.6" className="obj-t-black" fontSize="2.4" fill={white} letterSpacing=".6" opacity=".7">
+          PRIMORDIALRUNE
+        </text>
         <rect x="2" y="15.5" width="60" height="83" fill={`url(#${id}l)`} />
+        <Glint clip={`url(#${id}p)`} x={-12} y={14} w={6} h={86} travel={120} skew={-14} opacity={0.16} />
         <path d={`M2 98.4 ${zigBot} L2 98.4 Z`} fill={graphite} opacity=".6" />
       </g>
       {/* the crimp: one copy stays, the other is the piece that tears away */}
@@ -521,6 +554,17 @@ function GbCart({ p, r, id, size, label }: DrawProps) {
   const px = size / 64;
   // the pixel window inside the sticker
   const win = { x: 9.4, y: 15.6, w: 45.2, h: 36.4 };
+  const windowPx = { w: (win.w / 64) * size, h: (win.h / 64) * size };
+  // The real label art only where it shows whole at 1 device px per pixel (P1: never a
+  // fractional scale, never a crop that reads "ALAL"); smaller, the sticker is typeset
+  const pixel = usePixelFit(label, windowPx) >= 0.88;
+  const stars: [number, number, string][] = [
+    [12, 18.5, mint],
+    [50.5, 19.5, shell],
+    [47, 47.5, mint],
+    [14, 46, shell],
+    [30, 49.5, mint],
+  ];
   return (
     <>
       <svg viewBox="0 0 64 72" className="obj-svg" aria-hidden="true">
@@ -531,6 +575,9 @@ function GbCart({ p, r, id, size, label }: DrawProps) {
             <stop offset=".35" stopColor="#fff" stopOpacity="0" />
             <stop offset="1" stopColor="#000" stopOpacity=".1" />
           </linearGradient>
+          <clipPath id={`${id}c`}>
+            <path d={GB_SHAPE} />
+          </clipPath>
         </defs>
         <g data-part="shell">
           <path d={GB_SHAPE} fill={shell} stroke={plum} strokeOpacity=".5" strokeWidth=".7" />
@@ -542,31 +589,53 @@ function GbCart({ p, r, id, size, label }: DrawProps) {
           ))}
           {/* label recess */}
           <rect x="6.4" y="12.9" width="51.2" height="47.2" rx="1.6" fill={plum} opacity=".22" />
-          {/* sticker: plum paper, title screen window, rust and mint print strip */}
+          {/* sticker: plum paper, the logo, rust and mint print strip */}
           <rect x="7.3" y="13.8" width="49.4" height="45.4" rx="1.2" fill={plum} />
+          {!pixel && (
+            <g>
+              {stars.map(([x, y, c], i) => (
+                <rect key={i} x={x} y={y} width=".9" height=".9" fill={c} />
+              ))}
+              <g data-idle="star">
+                <path d="M44.5 23.4 h3 M46 21.9 v3" stroke={mint} strokeWidth=".7" />
+              </g>
+              {/* the masthead: THE / GALACTIC / [NEWS], set italic like the game's logo */}
+              <g transform="skewX(-14) translate(7.6 0)">
+                <text x="11.6" y="26.2" className="obj-t-black" fontSize="4" fill={rust} letterSpacing=".2">
+                  THE
+                </text>
+                <text x="11.4" y="34.4" className="obj-t-black" fontSize="8.6" fill={rust} textLength="37" lengthAdjust="spacingAndGlyphs">
+                  GALACTIC
+                </text>
+                <path d="M10 36.6 H50" stroke={rust} strokeWidth=".7" strokeDasharray="1.4 .7" />
+                <rect x="22.6" y="38.2" width="17.4" height="6.6" fill={rust} />
+                <text x="31.3" y="43.6" className="obj-t-black" fontSize="5.4" fill={plum} textAnchor="middle" letterSpacing=".5">
+                  NEWS
+                </text>
+              </g>
+              {/* the ship's dithered mint trail */}
+              {[0, 1, 2, 3, 4, 5].map((i) => (
+                <rect key={i} x={41.5 + i * 1.4} y={41.6 + (i % 2) * 1.1} width=".8" height=".8" fill={mint} opacity={1 - i * 0.12} />
+              ))}
+            </g>
+          )}
           <rect x="7.3" y="53" width="49.4" height="1" fill={rust} />
           <rect x="7.3" y="54" width="49.4" height=".6" fill={mint} />
           <text x="10" y="57.9" className="obj-t-black" fontSize="2.7" fill={shell} letterSpacing=".25">
-            GALACTIC NEWS
+            {pixel ? "GALACTIC NEWS" : "GBJAM 11"}
           </text>
           <text x="54" y="57.9" className="obj-t-black" fontSize="2.7" fill={mint} textAnchor="end">
-            GBJAM 11
+            {pixel ? "GBJAM 11" : "2023"}
           </text>
           <Paper grain={`${id}g`} x={7.3} y={52.6} w={49.4} h={6.6} />
           {/* embossed arrow */}
           <path d="M28.5 63.6 H35.5 L32 68 Z" fill={plum} opacity=".25" />
           <path d="M28.9 64.1 H35.1" stroke="#fff" strokeOpacity=".6" strokeWidth=".4" />
           <path d={GB_SHAPE} fill={`url(#${id}h)`} />
+          <Glint clip={`url(#${id}c)`} x={-14} y={-4} w={7} h={80} travel={110} />
         </g>
       </svg>
-      {label && (
-        <PixelWindow
-          art={label}
-          box={{ ...win, vw: 64, vh: 72 }}
-          windowPx={{ w: (win.w / 64) * size, h: (win.h / 64) * size }}
-          focus="50% 0%"
-        />
-      )}
+      {label && pixel && <PixelWindow art={label} box={{ ...win, vw: 64, vh: 72 }} windowPx={windowPx} focus="50% 0%" />}
     </>
   );
 }
@@ -591,6 +660,9 @@ function Cd({ r, id, size }: DrawProps) {
           <circle cx={cx} cy={cy} r="20" />
         </clipPath>
         <path id={`${id}a`} d={`M${cx - 33} ${cy} A33 33 0 0 0 ${cx + 33} ${cy}`} />
+        <clipPath id={`${id}lc`}>
+          <rect x="9" y="1" width="103" height="98" />
+        </clipPath>
         <linearGradient id={`${id}p`} x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#fff" stopOpacity=".3" />
           <stop offset=".22" stopColor="#fff" stopOpacity=".05" />
@@ -639,6 +711,7 @@ function Cd({ r, id, size }: DrawProps) {
         <rect x="9" y="1.5" width="103" height="2" fill={coral} />
         <Paper grain={`${id}g`} x={9} y={1.5} w={103} h={97} rx={1} />
         <rect x="8.5" y=".5" width="104" height="99" rx="1.6" fill={`url(#${id}p)`} stroke="#fff" strokeOpacity=".4" strokeWidth=".5" />
+        <Glint clip={`url(#${id}lc)`} x={-6} y={0} w={9} h={100} travel={160} opacity={0.14} />
         <path d="M9.5 6 V94" stroke="#fff" strokeOpacity=".45" strokeWidth=".6" />
       </g>
     </svg>
@@ -680,6 +753,7 @@ function GbaCart({ p, id, size, label }: DrawProps) {
         {/* the edge LED: dark at rest, lit when the cart seats */}
         <rect x="69" y="3" width="4" height="2" rx=".4" fill={maroon} />
         <rect data-part="led" x="69" y="3" width="4" height="2" rx=".4" fill={lilac} visibility="hidden" />
+        <rect data-idle="led" x="69" y="3" width="4" height="2" rx=".4" fill={lilac} opacity="0" />
         {/* label */}
         <rect x="5.4" y="8.6" width="69.2" height="38.8" rx="1.6" fill="#000" opacity=".3" />
         <rect x="6.2" y="9.4" width="67.6" height="37.2" rx="1" fill={white} />
@@ -697,15 +771,29 @@ function GbaCart({ p, id, size, label }: DrawProps) {
 }
 
 /* ---------------------------------------------------------------------------------------- */
-/* Deck box: Holon (typeset label)                                                           */
+/* Deck box: Holon, a typeset label with a δ emblem (Holon: the EX-era delta region)          */
 /* ---------------------------------------------------------------------------------------- */
+
+/** A small δ emblem: a ring with the letter drawn as a bowl and a hooked stem */
+function Delta({ x, y, r, ring, ink, bg }: { x: number; y: number; r: number; ring: string; ink: string; bg: string }) {
+  const k = r / 10;
+  return (
+    <g transform={`translate(${x} ${y}) scale(${k})`}>
+      <circle r="10" fill={ring} />
+      <circle r="8.2" fill={bg} />
+      <circle cx="0" cy="2.4" r="3.6" fill="none" stroke={ink} strokeWidth="2.1" />
+      <path d="M2.2 -0.6 C -2.2 -2.8 -3.2 -4.6 -1.8 -6 C -0.6 -7.1 1.8 -6.8 3.4 -5.6" fill="none" stroke={ink} strokeWidth="2.1" strokeLinecap="round" />
+    </g>
+  );
+}
 
 function DeckBox({ p, r, id, size }: DrawProps) {
   const box = r.dark;
   const paper = r.light;
-  const a0 = r.acc(0);
-  const a1 = r.acc(1);
+  const gold = r.acc(0);
+  const violet = r.acc(1);
   const px = size / 64;
+  const title = p.title.toUpperCase();
   return (
     <svg viewBox="0 0 64 92" className="obj-svg" aria-hidden="true">
       <defs>
@@ -715,44 +803,68 @@ function DeckBox({ p, r, id, size }: DrawProps) {
           <stop offset=".3" stopColor="#fff" stopOpacity="0" />
           <stop offset="1" stopColor="#000" stopOpacity=".18" />
         </linearGradient>
+        <clipPath id={`${id}lc`}>
+          <rect x="2.5" y="4" width="59" height="30" rx="2.2" />
+        </clipPath>
       </defs>
       {/* inside of the box */}
       <rect data-part="inside" x="5" y="30" width="54" height="60" rx="1.5" fill="#000" opacity=".5" />
-      {/* the top card, back up; it turns face-up as it rises */}
+      {/* the top card, back up; it turns face up as it rises */}
       <g data-part="card">
         <g data-part="card-back">
-          <rect x="9" y="34" width="46" height="52" rx="2" fill={a1} />
-          <rect x="11.5" y="36.5" width="41" height="47" rx="1.2" fill="none" stroke={paper} strokeOpacity=".6" strokeWidth=".6" />
-          <circle cx="32" cy="60" r="8" fill="none" stroke={paper} strokeOpacity=".6" strokeWidth=".8" />
-          <circle cx="32" cy="60" r="3" fill={a0} />
+          <rect x="9" y="34" width="46" height="52" rx="2" fill={violet} />
+          <rect x="11.5" y="36.5" width="41" height="47" rx="1.2" fill="none" stroke={gold} strokeWidth=".7" />
+          <Delta x={32} y={60} r={9} ring={gold} ink={gold} bg={box} />
         </g>
         <g data-part="card-front" visibility="hidden">
           <rect x="9" y="34" width="46" height="52" rx="2" fill={paper} />
-          <rect x="11.5" y="36.5" width="41" height="22" fill={box} />
-          <TypesetTitle x={11.5} y={39} w={41} title={p.title} jp={p.titleJp} ink={paper} size={8} />
-          {[64, 70, 76].map((y) => (
+          <rect x="11.5" y="36.5" width="41" height="25" fill={box} />
+          <Delta x={32} y={49} r={8} ring={gold} ink={paper} bg={violet} />
+          <text x="32" y="69" className="obj-t-black" fontSize="6.4" fill={box} textAnchor="middle" letterSpacing=".4">
+            {title}
+          </text>
+          <text x="32" y="73.6" className="obj-t-kana" fontSize="2.8" fill={box} textAnchor="middle" opacity=".75">
+            {p.titleJp}
+          </text>
+          {[77.5, 81].map((y) => (
             <path key={y} d={`M13 ${y} H51`} stroke={box} strokeOpacity=".3" strokeWidth=".5" />
           ))}
           <Paper grain={`${id}g`} x={9} y={34} w={46} h={52} rx={2} />
         </g>
       </g>
-      {/* box front */}
+      {/* box front: the printed label */}
       <g data-part="box">
         <rect x="4" y="30" width="56" height="61" rx="1.8" fill={box} />
-        <rect x="9" y="44" width="46" height="36" rx="1" fill={paper} />
-        <rect x="9" y="44" width="46" height="2" fill={a0} />
-        <TypesetTitle x={9} y={48} w={46} title={p.title} jp={p.titleJp} ink={box} size={9} />
-        <text x="32" y="77" className="obj-t-black" fontSize="2.6" fill={a1} textAnchor="middle" letterSpacing=".5">
+        <rect x="8.5" y="38" width="47" height="49" rx="1" fill={paper} />
+        <rect x="8.5" y="38" width="47" height="6.4" fill={violet} />
+        <text x="32" y="42.4" className="obj-t-black" fontSize="2.6" fill={paper} textAnchor="middle" letterSpacing=".7">
+          UNITY · TCG
+        </text>
+        <rect x="8.5" y="44.4" width="47" height=".8" fill={gold} />
+        <Delta x={32} y={55} r={7} ring={gold} ink={paper} bg={box} />
+        <text x="32" y="72" className="obj-t-black" fontSize="10.6" fill={box} textAnchor="middle" letterSpacing=".3">
+          {title}
+        </text>
+        <text x="32" y="77" className="obj-t-kana" fontSize="3.4" fill={box} textAnchor="middle" opacity=".8">
+          {p.titleJp}
+        </text>
+        <path d="M12 80.4 H52" stroke={box} strokeOpacity=".3" strokeWidth=".4" />
+        <text x="32" y="84.4" className="obj-t-black" fontSize="2.4" fill={violet} textAnchor="middle" letterSpacing=".6">
           DECK BOX
         </text>
-        <Paper grain={`${id}g`} x={9} y={44} w={46} h={36} rx={1} />
+        <Paper grain={`${id}g`} x={8.5} y={38} w={47} h={49} rx={1} />
         <rect x="4" y="30" width="56" height="61" rx="1.8" fill={`url(#${id}h)`} />
       </g>
-      {/* lid */}
+      {/* lid: gold, with the emblem pressed into it */}
       <g data-part="lid">
-        <rect x="2.5" y="4" width="59" height="30" rx="2.2" fill={a0} />
-        <rect x="2.5" y="30" width="59" height="4" fill="#000" opacity=".22" />
+        <rect x="2.5" y="4" width="59" height="30" rx="2.2" fill={gold} />
+        <rect x="2.5" y="28.6" width="59" height="5.4" fill="#000" opacity=".2" />
+        <circle cx="32" cy="16.4" r="6.6" fill="#000" opacity=".14" />
+        <circle cx="32" cy="15.9" r="6.6" fill="none" stroke="#fff" strokeOpacity=".35" strokeWidth=".5" />
+        <Delta x={32} y={16.2} r={5.4} ring={gold} ink={box} bg={gold} />
         <rect x="2.5" y="4" width="59" height="30" rx="2.2" fill={`url(#${id}h)`} />
+        <path d="M4.6 4.6 H59.4" stroke="#fff" strokeOpacity=".5" strokeWidth=".5" />
+        <Glint clip={`url(#${id}lc)`} x={-6} y={3} w={6} h={32} travel={82} opacity={0.2} />
       </g>
     </svg>
   );
@@ -779,6 +891,9 @@ function DsCard({ p, id, size, label }: DrawProps) {
         <clipPath id={`${id}c`}>
           <rect x="10.6" y="14.4" width="23.4" height="19.6" rx=".6" />
         </clipPath>
+        <clipPath id={`${id}k`}>
+          <path d={DS_CARD} />
+        </clipPath>
         <linearGradient id={`${id}h`} x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#fff" stopOpacity=".26" />
           <stop offset=".35" stopColor="#fff" stopOpacity="0" />
@@ -793,15 +908,29 @@ function DsCard({ p, id, size, label }: DrawProps) {
         <path d={DS_CARD} fill={shell} stroke="#000" strokeOpacity=".4" strokeWidth=".4" />
         <rect x="10" y="13.8" width="24.6" height="27.6" rx="1" fill={white} />
         <rect x="10.6" y="14.4" width="23.4" height="19.6" rx=".6" fill={purple} />
-        {label && (
-          <image href={asset(label.src)} x="4" y="14.4" width="36.6" height="20.6" preserveAspectRatio="xMidYMid slice" clipPath={`url(#${id}c)`} />
-        )}
+        {/* the title screen's logo region (emblem + CREMISI PORTALS), letterboxed in space */}
+        <g clipPath={`url(#${id}c)`}>
+          {[
+            [12.4, 16.4],
+            [31.6, 17.2],
+            [14, 31.6],
+            [30.4, 32.4],
+          ].map(([x, y], i) => (
+            <rect key={i} x={x} y={y} width=".5" height=".5" fill={white} opacity=".7" />
+          ))}
+          {label && (
+            <svg x="10.6" y="14.4" width="23.4" height="19.6" viewBox="118 18 251 109" preserveAspectRatio="xMidYMid meet">
+              <image href={asset(label.src)} x="0" y="0" width="480" height="270" />
+            </svg>
+          )}
+        </g>
         <rect x="10.6" y="35" width="23.4" height="1" fill={crimson} />
         <text x="22.3" y="39.4" className="obj-t-black" fontSize="2.2" fill={shell} textAnchor="middle" textLength={Math.min(22, p.title.length * 1.7)} lengthAdjust="spacingAndGlyphs">
           {p.title.toUpperCase()}
         </text>
         <Paper grain={`${id}g`} x={10} y={13.8} w={24.6} h={27.6} rx={1} />
         <path d={DS_CARD} fill={`url(#${id}h)`} />
+        <Glint clip={`url(#${id}k)`} x={0} y={8} w={4} h={38} travel={52} opacity={0.18} />
       </g>
       {/* the clip's front lip, over the card's lower edge */}
       <g data-part="clip">
@@ -813,17 +942,20 @@ function DsCard({ p, id, size, label }: DrawProps) {
 }
 
 /* ---------------------------------------------------------------------------------------- */
-/* 3.5" floppy: SpaceRim (typeset label)                                                     */
+/* 3.5" floppy: SpaceRim, a typeset label with a castle-and-planet emblem (a castle jam game) */
 /* ---------------------------------------------------------------------------------------- */
 
 const FLOPPY = "M2.5 .5 H82 L89.5 8 V91.5 a2 2 0 0 1 -2 2 H2.5 a2 2 0 0 1 -2 -2 V2.5 a2 2 0 0 1 2 -2Z";
 
 function Floppy({ p, r, id, size }: DrawProps) {
   const shell = r.dark;
-  const metal = r.acc(0);
   const paper = r.light;
-  const a1 = r.acc(1);
+  // the shutter is the palette's cool grey-blue when there is one; the accent is the warm tone
+  const cool = p.palette.find((c) => /^#8fa3c7$/i.test(c));
+  const metal = cool ?? r.acc(1);
+  const accent = r.acc(0) === cool ? r.acc(1) : r.acc(0);
   const px = size / 90;
+  const words = p.title.toUpperCase().match(/^(SPACE)(RIM)$/) ? ["SPACE", "RIM"] : [p.title.toUpperCase()];
   return (
     <svg viewBox="0 0 90 94" className="obj-svg" aria-hidden="true">
       <defs>
@@ -838,20 +970,49 @@ function Floppy({ p, r, id, size }: DrawProps) {
           <stop offset=".5" stopColor="#fff" stopOpacity="0" />
           <stop offset="1" stopColor="#fff" stopOpacity=".18" />
         </linearGradient>
+        <clipPath id={`${id}sc`}>
+          <rect x="22" y=".5" width="46" height="31" rx=".8" />
+        </clipPath>
       </defs>
       <g data-part="shell">
         <path d={FLOPPY} fill={shell} stroke="#000" strokeOpacity=".4" strokeWidth=".6" />
         {/* the media under the shutter */}
         <rect x="38" y="4" width="11" height="22" rx="1" fill="#000" opacity=".55" />
-        <rect x="38" y="4" width="11" height="22" rx="1" fill={a1} opacity=".25" />
+        <rect x="38" y="4" width="11" height="22" rx="1" fill={accent} opacity=".25" />
         {/* label */}
-        <rect x="11" y="42" width="68" height="51.5" rx="1.4" fill={paper} />
-        <rect x="11" y="42" width="68" height="3" fill={a1} />
-        <TypesetTitle x={11} y={49} w={68} title={p.title} jp={p.titleJp} ink={shell} size={12} />
-        {[76, 82, 88].map((y) => (
+        <rect x="11" y="40" width="68" height="53.5" rx="1.4" fill={paper} />
+        <rect x="11" y="40" width="68" height="7" fill={accent} />
+        <text x="45" y="45" className="obj-t-black" fontSize="3" fill={shell} textAnchor="middle" letterSpacing=".8">
+          GODOT · GAME JAM
+        </text>
+        {/* emblem: a castle wall under a ringed planet */}
+        <g>
+          <circle cx="25" cy="58.6" r="9.4" fill={shell} />
+          <circle cx="28.4" cy="55.4" r="3.4" fill={accent} />
+          <ellipse cx="28.4" cy="55.4" rx="6" ry="1.5" fill="none" stroke={paper} strokeWidth=".6" transform="rotate(-18 28.4 55.4)" />
+          <rect x="19.6" y="52.4" width=".7" height=".7" fill={paper} />
+          <rect x="22.6" y="57.2" width=".6" height=".6" fill={paper} />
+          <path
+            d="M16.4 67.2 V60.6 h2 v-1.6 h1.8 v1.6 h1.4 v-4.4 h1.6 v-1.6 h1.8 v1.6 h1.6 v4.4 h1.4 v-1.6 h1.8 v1.6 h2 V67.2 Z"
+            fill={metal}
+          />
+          <rect x="24" y="62.6" width="2" height="3" rx="1" fill={shell} />
+        </g>
+        {words.map((w, i) => (
+          <text key={w} x="38" y={words.length > 1 ? 57 + i * 9.4 : 62} className="obj-t-black" fontSize={words.length > 1 ? 10.4 : 7.6} fill={shell} letterSpacing=".2">
+            {w}
+          </text>
+        ))}
+        <text x="38.4" y={words.length > 1 ? 71.4 : 67} className="obj-t-kana" fontSize="3.3" fill={shell} opacity=".75">
+          {p.titleJp}
+        </text>
+        {[78, 84, 90].map((y) => (
           <path key={y} d={`M15 ${y} H75`} stroke={shell} strokeOpacity=".25" strokeWidth=".5" />
         ))}
-        <Paper grain={`${id}g`} x={11} y={42} w={68} h={51.5} rx={1.4} />
+        <text x="15" y="83" className="obj-t-black" fontSize="2.2" fill={shell} opacity=".5" letterSpacing=".4">
+          DISK 1 / 1
+        </text>
+        <Paper grain={`${id}g`} x={11} y={40} w={68} h={53.5} rx={1.4} />
         {/* write-protect and hole */}
         <rect x="4" y="84" width="4" height="5" fill="#000" opacity=".5" />
         <rect x="82" y="84" width="4" height="5" fill="#000" opacity=".5" />
@@ -862,6 +1023,7 @@ function Floppy({ p, r, id, size }: DrawProps) {
         <rect x="22" y=".5" width="46" height="31" rx=".8" fill={`url(#${id}m)`} />
         <rect x="38" y="4" width="11" height="22" rx="1" fill={shell} opacity=".85" />
         <path d="M22.5 1.2 H67.5" stroke="#fff" strokeOpacity=".7" strokeWidth=".5" />
+        <Glint clip={`url(#${id}sc)`} x={16} y={0} w={5} h={32} travel={66} opacity={0.3} />
       </g>
     </svg>
   );

@@ -16,7 +16,7 @@ const WIDTH: Record<ObjectKind, number> = {
   cd: 150,
   "gba-cart": 70,
   "deck-box": 80,
-  "ds-card": 46,
+  "ds-card": 62,
   floppy: 104,
 };
 
@@ -53,6 +53,9 @@ export default function Shelf({
   const phone = usePhone();
   const root = useRef<HTMLDivElement>(null);
   const lifted = useRef<string | null>(null);
+  // Touch: the first tap selects (and shows the card), the second opens. Decided from the
+  // selection as it was at pointerdown, before focus re-selects it.
+  const downWasSelected = useRef<boolean | null>(null);
   const order = SHELF_GROUPS.flatMap((g) => projects.filter((p) => p.shelf === g.id));
 
   // One stepped lift frame on focus; the previous object drops back
@@ -69,7 +72,18 @@ export default function Shelf({
     if (el) liftFrame(el, true, soft);
     lifted.current = selected;
     // Keep the focused object in view in the scrolling strip
-    document.getElementById(`obj-${selected}`)?.scrollIntoView({ block: "nearest", inline: "nearest", behavior: soft ? "auto" : "smooth" });
+    // (horizontally only: a page scroll here would fight CONTACT's scroll on phones)
+    const row = root.current;
+    const item = document.getElementById(`obj-${selected}`);
+    if (row && item && row.scrollWidth > row.clientWidth) {
+      const r = row.getBoundingClientRect();
+      const i = item.getBoundingClientRect();
+      const pad = 24;
+      let dx = 0;
+      if (i.left < r.left + pad) dx = i.left - r.left - pad;
+      else if (i.right > r.right - pad) dx = i.right - r.right + pad;
+      if (dx) row.scrollBy({ left: dx, behavior: soft ? "auto" : "smooth" });
+    }
   }, [selected]);
 
   const move = (to: number) => {
@@ -125,8 +139,16 @@ export default function Shelf({
                       tabIndex={on ? 0 : -1}
                       data-on={on || undefined}
                       onPointerEnter={(e) => e.pointerType === "mouse" && onSelect(p.slug, "pointer")}
+                      onPointerDown={() => {
+                        downWasSelected.current = on;
+                      }}
                       onFocus={() => !on && onSelect(p.slug, "key")}
-                      onClick={() => (on ? onOpen(p.slug) : onSelect(p.slug, "pointer"))}
+                      onClick={() => {
+                        const was = downWasSelected.current ?? on;
+                        downWasSelected.current = null;
+                        if (was) onOpen(p.slug);
+                        else onSelect(p.slug, "pointer");
+                      }}
                     >
                       <span className="shelf-pool" aria-hidden />
                       <div className="shelf-object" data-object={p.slug}>

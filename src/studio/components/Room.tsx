@@ -11,6 +11,7 @@ import Narrator from "./Narrator";
 import Guide from "./Guide";
 import { EmptyRoom, PowerOnScreen, SaveSelectScreen, StandbyScreen, StatusScreen, TitleScreen } from "./screens";
 import { openTimeline, staticBurst } from "./transitions";
+import Daylight from "./Daylight";
 import { applySpeedParam, frames, isSoft, setMotion, getMotion, SHEET_SPRING } from "@/studio/lib/motion";
 import { isPowered, setPowered } from "@/studio/lib/save";
 import { getStory, onStageChange, story, useStory } from "@/studio/lib/story";
@@ -31,6 +32,22 @@ function hashSlug(): string | null {
 
 const objectEl = (slug: string) => document.querySelector<HTMLElement>(`#obj-${slug} .shelf-object`);
 const focusObject = (slug: string) => window.setTimeout(() => document.getElementById(`obj-${slug}`)?.focus({ preventScroll: true }), 30);
+const PHONE = "(max-width: 720px)";
+
+/** CONTACT: on a phone the card sits below the fold, so bring it up before focusing (P2) */
+function revealContact() {
+  const block = document.getElementById("contact");
+  if (!block) return;
+  block.querySelector<HTMLElement>("a")?.focus({ preventScroll: true });
+  if (!window.matchMedia(PHONE).matches) return;
+  const go = (behavior: ScrollBehavior) => block.scrollIntoView({ block: "start", behavior });
+  go(isSoft() ? "auto" : "smooth");
+  // The narrator's box opens above the card a moment later and pushes it down: follow it
+  window.setTimeout(() => {
+    const top = block.getBoundingClientRect().top;
+    if (top < 0 || top > 160) go(isSoft() ? "auto" : "smooth");
+  }, 650);
+}
 
 export default function Room() {
   const save = useStory();
@@ -42,11 +59,14 @@ export default function Room() {
   const [options, setOptions] = useState<{ open: boolean; contact: boolean }>({ open: false, contact: false });
   const [tagOverride, setTagOverride] = useState<string | null>(null);
   const [peekLine, setPeekLine] = useState("* not yet.");
+  // At the top of a guide the narrator's toast sits up by the cover, clear of the facts strip
+  const [guideTop, setGuideTop] = useState(true);
 
   const tv = useRef<TvHandle>(null);
   const sheet = useRef<HTMLDivElement>(null);
   const powerTl = useRef<gsap.core.Timeline | null>(null);
   const openTl = useRef<gsap.core.Timeline | null>(null);
+  const openSlug = useRef<string | null>(null);
   const optionsTrigger = useRef<HTMLElement | null>(null);
   const pushed = useRef(false);
   const pendingBeat = useRef<number | null>(null);
@@ -60,6 +80,18 @@ export default function Room() {
   useEffect(() => {
     live.current = { phase, view, opening, focus, optionsOpen: options.open };
   });
+
+  // Put an opened object back on the shelf. revert() (not progress(0)) undoes the hard
+  // opacity/visibility sets at time 0 and runs the transition's own cleanup.
+  const revertOpen = useCallback(() => {
+    const tl = openTl.current;
+    const slug = openSlug.current;
+    openTl.current = null;
+    openSlug.current = null;
+    tl?.revert();
+    const root = slug ? objectEl(slug)?.querySelector<HTMLElement>(".obj") : null;
+    if (root) gsap.set(root, { clearProps: "opacity,visibility" });
+  }, []);
 
   const ceremony = CEREMONY.includes(phase);
   const project = getProject(focus) ?? projects[0];
@@ -125,17 +157,31 @@ export default function Room() {
   const enterRoom = useCallback((how: "new" | "continue" | "skip", target?: string) => {
     powerTl.current?.kill();
     const s = getStory();
-    if (how === "new" || (how === "skip" && !s.started)) story.newGame();
-    else story.continueGame();
+    const fresh = how === "new" || (how === "skip" && !s.started);
+    // A peek at the corrupt file is remembered across NEW GAME, but its beat waits
+    // until the greeting (at stage 0) has been said
+    const peeks = s.corruptPeeks;
+    if (fresh) {
+      story.newGame();
+      pendingBeat.current = null;
+    } else story.continueGame();
+    const restorePeeks = () => peeks > 0 && story.restorePeeks(peeks);
     setPowered(true);
     const f = target ?? (how === "new" || !s.started ? "omar" : s.focus);
     setFocus(f);
     setPhase("room");
     focusObject(f);
     window.setTimeout(() => {
-      if (how === "new") scriptTopic("newGame", greetNight);
+      if (how === "new")
+        scriptTopic("newGame", () => {
+          greetNight();
+          restorePeeks();
+        });
       else if (how === "continue") script([lineFor("returning") ?? ""].filter(Boolean), greetNight);
-      else sayLine(lineFor("skipIntro") ?? "", { force: true });
+      else {
+        sayLine(lineFor("skipIntro") ?? "", { force: true });
+        if (fresh) window.setTimeout(restorePeeks, 2600);
+      }
     }, 250);
   }, []);
 
@@ -157,9 +203,9 @@ export default function Room() {
     const frames12 = nameTags[to as 0 | 1 | 2]?.glitchFrames ?? [];
     const tag = document.querySelector<HTMLElement>(".narrator .name-tag");
     if (isSoft() || !frames12.length) return; // SOFT: a hard cut
-    if (tag) staticBurst(tag, false);
+    if (tag) staticBurst(tag, false, { force: true });
     const logo = document.querySelector<HTMLElement>(".bar-mark svg");
-    if (logo) staticBurst(logo.parentElement as HTMLElement, false);
+    if (logo) staticBurst(logo.parentElement as HTMLElement, false, { force: true });
     frames12.forEach((f, i) => window.setTimeout(() => setTagOverride(f), (i * 280) / frames12.length));
     window.setTimeout(() => setTagOverride(null), 280);
   }, []);
@@ -282,6 +328,7 @@ export default function Room() {
       pushed.current = true;
     }
     guideEndSaid.current = null;
+    setGuideTop(true);
     setView(slug);
     story.opened(slug);
   }, []);
@@ -301,19 +348,18 @@ export default function Room() {
       setOpening(false);
       if (slug === "omar") {
         // The card shows its back for a moment, then slides home
-        window.setTimeout(() => {
-          openTl.current?.progress(0).kill();
-          openTl.current = null;
-        }, 1400);
-        document.querySelector<HTMLElement>(".info-contact a")?.focus({ preventScroll: true });
+        window.setTimeout(revertOpen, 1400);
+        revealContact();
         return;
       }
       showGuide(slug, true);
     };
     if (!el || !glass) return done();
     setOpening(true);
+    revertOpen();
     const tl = openTimeline(p.kind, el, glass, isSoft());
     openTl.current = tl;
+    openSlug.current = slug;
     tl.eventCallback("onComplete", done);
   };
 
@@ -338,24 +384,20 @@ export default function Room() {
     if (!view || !el) return;
     el.scrollTop = 0;
     el.focus({ preventScroll: true });
-    const reset = () => {
-      if (openTl.current) {
-        openTl.current.progress(0).kill();
-        openTl.current = null;
-      }
-    };
+    const reset = () => revertOpen();
     if (pushed.current) {
       gsap.fromTo(el, { yPercent: 100 }, { yPercent: 0, duration: SHEET_SPRING.duration, ease: SHEET_SPRING.ease, onComplete: reset });
     } else reset();
-  }, [view]);
+  }, [view, revertOpen]);
 
   const leaveGuide = useCallback((slug: string) => {
+    revertOpen();
     setView(null);
     setFocus(slug);
     story.focus(slug);
     focusObject(slug);
     window.setTimeout(() => say("closeGuide"), 300);
-  }, []);
+  }, [revertOpen]);
 
   const closeGuide = useCallback(() => {
     const slug = live.current.view;
@@ -403,6 +445,8 @@ export default function Room() {
 
   const onSheetScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const el = e.currentTarget;
+    const top = el.scrollTop < 240;
+    if (top !== guideTop) setGuideTop(top);
     if (!view || guideEndSaid.current === view) return;
     if (el.scrollTop + el.clientHeight >= el.scrollHeight - 48) {
       guideEndSaid.current = view;
@@ -492,7 +536,7 @@ export default function Room() {
   const toContact = () => {
     if (ceremony) {
       enterRoom("skip", "omar");
-      window.setTimeout(() => document.querySelector<HTMLElement>(".info-contact a")?.focus({ preventScroll: true }), 120);
+      window.setTimeout(revealContact, 120);
       return;
     }
     if (phase === "ending" || phase === "peek") return setOptions({ open: true, contact: true });
@@ -500,7 +544,7 @@ export default function Room() {
     setFocus("omar");
     story.focus("omar");
     say("readContact");
-    window.setTimeout(() => document.querySelector<HTMLElement>(".info-contact a")?.focus({ preventScroll: true }), view ? 400 : 60);
+    window.setTimeout(revealContact, view ? 400 : 60);
   };
 
   const changeMotion = (m: "full" | "soft") => {
@@ -537,7 +581,7 @@ export default function Room() {
     announce = ui.sr.saveSelect;
   } else {
     channel = focus;
-    announce = ui.sr.nowShowing.replace("{title}", project.title);
+    // The shelf option already names what is focused; a second "now showing" would repeat it
     const ch = projects.findIndex((p) => p.slug === focus) + 1;
     screen = focus === "omar" ? <StatusScreen stage={save.stage} playSeconds={save.playSeconds} onAfter={offer} /> : <TitleScreen project={project} channel={ch} />;
   }
@@ -560,7 +604,7 @@ export default function Room() {
   const empty = phase === "peek" || phase === "ending";
 
   return (
-    <div className="studio" data-phase={phase} data-guide={view ? "" : undefined}>
+    <div className="studio" data-phase={phase} data-guide={view ? "" : undefined} data-guide-top={view && guideTop ? "" : undefined}>
       <Bar
         stage={save.stage}
         ceremony={ceremony}
@@ -582,11 +626,12 @@ export default function Room() {
           variant={phase === "peek" ? "peek" : "ending"}
           line={phase === "peek" ? peekLine : TWISTS.terminate.lines[TWISTS.terminate.lines.length - 1]}
           tag={phase === "peek" ? nameTags[2].tag : undefined}
+          light={<Daylight />}
           onPowerOn={powerOnAgain}
         />
       ) : (
-        <main className="room" inert={view ? true : undefined} aria-hidden={view ? true : undefined}>
-          <div className="room-light" aria-hidden />
+        <main className="room" inert={view || options.open ? true : undefined} aria-hidden={view ? true : undefined}>
+          <Daylight />
           <div className="room-stage" onClick={bareClick}>
             <div className="room-tv">
               <Tv
@@ -599,8 +644,8 @@ export default function Room() {
                 {screen}
               </Tv>
             </div>
-            <aside className="room-info" inert={ceremony || undefined} data-dim={ceremony || undefined}>
-              <InfoCard project={project} onOpen={() => open(focus)} onContact={() => say("readContact")} />
+            <aside className="room-info">
+              <InfoCard project={project} ceremony={ceremony} onOpen={() => open(focus)} onContact={() => say("readContact")} />
             </aside>
           </div>
           <Shelf projects={projects} selected={focus} inert={ceremony} onSelect={select} onOpen={open} onKeyNav={onKeyNav} />
@@ -613,7 +658,6 @@ export default function Room() {
             ref={sheet}
             className="sheet"
             role="dialog"
-            aria-modal="true"
             aria-label={`${guideProject.title}: ${ui.sr.guide}`}
             tabIndex={-1}
             onScroll={onSheetScroll}

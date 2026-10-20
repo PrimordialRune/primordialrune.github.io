@@ -13,6 +13,15 @@ import { nameTags } from "@/studio/data/lines";
 
 const ABOUT_OMAR = /\b(omar|he|him|his|me)\b/gi;
 
+/** Where focus goes when the box closes under it: the thing the visitor was on */
+function focusHome() {
+  const el =
+    document.querySelector<HTMLElement>(".save-file[data-active]") ??
+    document.querySelector<HTMLElement>('.shelf-item[aria-selected="true"]') ??
+    document.querySelector<HTMLElement>(".dock-logo");
+  el?.focus({ preventScroll: true });
+}
+
 function Voice({ text, stage }: { text: string; stage: number }) {
   if (stage !== 1) return <>{text}</>;
   // Stage 1: nouns about Omar slip into the machine's face
@@ -35,7 +44,8 @@ function Voice({ text, stage }: { text: string; stage: number }) {
 export function NameTag({ stage, override, tagRef }: { stage: number; override?: string | null; tagRef?: React.Ref<HTMLSpanElement> }) {
   const t = nameTags[Math.min(stage, 3) as 0 | 1 | 2 | 3];
   return (
-    <span ref={tagRef} className="name-tag" data-stage={stage} aria-label={t.ariaLabel ? `Speaker: ${t.ariaLabel}` : undefined}>
+    <span ref={tagRef} className="name-tag" data-stage={stage}>
+      {t.ariaLabel && <span className="sr-only">Speaker: {t.ariaLabel}. </span>}
       <span className="tag-text" aria-hidden>
         {override ?? t.tag}
       </span>
@@ -68,6 +78,12 @@ export default function Narrator({
   const [visible, setVisible] = useState(false);
   const last = useRef<string | null>(null);
   const timer = useRef<number | undefined>(undefined);
+  const root = useRef<HTMLDivElement>(null);
+  // Called before the box closes: if focus was inside, bring it back out (P2)
+  const release = useCallback(() => {
+    const r = root.current;
+    if (r && r.contains(document.activeElement)) window.setTimeout(focusHome, 0);
+  }, []);
   const [wasEnabled, setWasEnabled] = useState(enabled);
 
   // Turning the narrator off: one farewell line, then silence (the logo stays)
@@ -111,10 +127,11 @@ export default function Narrator({
 
   const finish = useCallback(() => {
     const u = utt;
+    release();
     setVisible(false);
     setUtt(null);
     if (u && !u.choices) u.onDone?.();
-  }, [utt]);
+  }, [utt, release]);
 
   const advance = useCallback(() => {
     if (!utt || !line) return;
@@ -131,10 +148,10 @@ export default function Narrator({
   useEffect(() => {
     window.clearTimeout(timer.current);
     if (!utt || !done || choices) return;
-    const wait = utt.script ? 1600 + line!.length * 30 : variant === "dock" ? 4000 : 6000;
+    const wait = utt.script ? 1600 + line!.length * 30 : variant === "dock" || !enabled ? 4000 : 6000;
     timer.current = window.setTimeout(advance, wait);
     return () => window.clearTimeout(timer.current);
-  }, [utt, done, choices, line, advance, variant]);
+  }, [utt, done, choices, line, advance, variant, enabled]);
 
   const skipAll = () => {
     if (!utt) return;
@@ -148,21 +165,34 @@ export default function Narrator({
 
   const choose = (c: Choice) => {
     const u = utt;
+    release();
     setVisible(false);
     setUtt(null);
     u?.onChoice?.(c.value);
   };
 
   const pixelType = stage >= 2;
+  const open = visible && !!line;
+  // One announcement per line, whole, from a region that is always there (no per-character
+  // updates, and never inside the inert box)
+  const live = (
+    <span className="sr-only" aria-live="polite">
+      {open ? line : ""}
+    </span>
+  );
 
   if (variant === "dock") {
     return (
-      <div className="narrator-dock">
+      <div className="narrator-dock" ref={root}>
+        {live}
         {visible && line && (
-          <div className="dock-toast" role="status" aria-live="polite" data-pixel={pixelType || undefined}>
+          <div className="dock-toast" data-pixel={pixelType || undefined}>
             <NameTag stage={stage} />
             <button className="dock-line" onClick={advance}>
-              <Voice text={line.slice(0, typed)} stage={stage} />
+              <span className="sr-only">{line}</span>
+              <span aria-hidden>
+                <Voice text={line.slice(0, typed)} stage={stage} />
+              </span>
             </button>
             {choices && (
               <span className="nar-choices">
@@ -196,40 +226,51 @@ export default function Narrator({
   }
 
   return (
-    <div className="narrator" data-open={visible && !!line ? "" : undefined} data-pixel={pixelType || undefined}>
-      <div className="nar-box">
-        <button className="nar-face" onClick={onLogo} aria-label="The narrator's logo">
-          <Logo stage={stage} size={36} outer="var(--cream)" title={stage >= 2 ? "a reflection" : undefined} />
-        </button>
-        <div className="nar-main">
-          <NameTag stage={stage} tagRef={tagRef} override={tagOverride} />
-          <div className="nar-text" aria-live="polite" aria-atomic="true" onClick={advance}>
-            <span className="sr-only">{line ?? ""}</span>
-            <span aria-hidden>
-              <Voice text={line ? line.slice(0, typed) : ""} stage={stage} />
-            </span>
-          </div>
-          {choices && (
-            <div className="nar-choices">
-              {choices.map((c) => (
-                <button key={c.value} onClick={() => choose(c)}>
-                  {c.label}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-        <div className="nar-ctl">
-          <button className="nar-skip" onClick={skipAll} aria-label="Skip">
-            SKIP ▸
+    <>
+      {live}
+      <div ref={root} className="narrator" data-open={open ? "" : undefined} data-pixel={pixelType || undefined}>
+        <div className="nar-box" inert={!open || undefined}>
+          <button className="nar-face" onClick={onLogo} aria-label="The narrator's logo">
+            <Logo stage={stage} size={36} outer="var(--cream)" title={stage >= 2 ? "a reflection" : undefined} />
           </button>
-          {enabled && (
-            <button className="nar-off" onClick={onTurnOff} aria-label="Turn off narrator" title="TURN OFF NARRATOR">
-              ×
+          <div className="nar-main">
+            <NameTag stage={stage} tagRef={tagRef} override={tagOverride} />
+            <div className="nar-text" onClick={advance}>
+              <span aria-hidden>
+                <Voice text={line ? line.slice(0, typed) : ""} stage={stage} />
+              </span>
+            </div>
+            {choices && (
+              <div className="nar-choices">
+                {choices.map((c) => (
+                  <button key={c.value} onClick={() => choose(c)}>
+                    {c.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="nar-ctl">
+            <button className="nar-skip" onClick={skipAll}>
+              SKIP ▸
             </button>
-          )}
+            {enabled && (
+              <button
+                className="nar-off"
+                onClick={(e) => {
+                  // × unmounts; keep focus in the box on the face while the farewell plays
+                  if (e.currentTarget === document.activeElement) root.current?.querySelector<HTMLElement>(".nar-face")?.focus();
+                  onTurnOff();
+                }}
+                aria-label="Turn off narrator"
+                title="TURN OFF NARRATOR"
+              >
+                ×
+              </button>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

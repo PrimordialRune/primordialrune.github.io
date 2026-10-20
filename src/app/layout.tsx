@@ -21,10 +21,13 @@ const pixel = localFont({
   display: "swap",
 });
 
+// Subset to the characters the site uses (npm run subset-kana): 2.4 MB -> ~23 KB.
+// Subtitle text only, so it is not preloaded; swap covers the gap.
 const kana = localFont({
-  src: "../../public/fonts/GenEiKiwamiGo.ttf",
+  src: "../studio/fonts/GenEiKiwamiGo-subset.woff2",
   variable: "--font-kana",
   display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {

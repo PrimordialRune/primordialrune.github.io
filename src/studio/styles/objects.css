@@ -73,3 +73,79 @@
 [data-motion="soft"] .obj-spec {
   --spec-x: 50%;
 }
+
+/* Idle life at rest (P6: sprites move on frames). Only the focused object on the shelf and
+   the object on a guide's cover idle; FULL and SOFT alike, because none of these is a flash,
+   a glitch or parallax. Every idle is stepped and never faster than one step a second.
+   Travelling clones (transitions.ts) live outside the shelf, so they never idle. */
+:is([aria-selected="true"], .guide-cover) .obj [data-idle="glint"] {
+  animation: obj-glint 9s steps(1, end) infinite;
+}
+@keyframes obj-glint {
+  0% {
+    transform: translateX(0);
+  }
+  56% {
+    transform: translateX(calc(var(--gd, 100px) * 0.3));
+  }
+  67% {
+    transform: translateX(calc(var(--gd, 100px) * 0.55));
+  }
+  78% {
+    transform: translateX(calc(var(--gd, 100px) * 0.8));
+  }
+  89%,
+  100% {
+    transform: translateX(var(--gd, 100px));
+  }
+}
+
+/* the tape's reels: one 30° tick every 3s */
+:is([aria-selected="true"], .guide-cover) .obj [data-part="reel"] {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: obj-reel 36s steps(12, end) infinite;
+}
+@keyframes obj-reel {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* the GBA cart's power LED: on a second, off a second */
+:is([aria-selected="true"], .guide-cover) .obj [data-idle="led"] {
+  animation: obj-led 2s steps(1, end) infinite;
+}
+@keyframes obj-led {
+  0% {
+    opacity: 0;
+  }
+  50%,
+  100% {
+    opacity: 1;
+  }
+}
+
+/* a star on the Galactic News sticker: lit two seconds, dim one */
+:is([aria-selected="true"], .guide-cover) .obj [data-idle="star"] {
+  animation: obj-star 3s steps(1, end) infinite;
+}
+@keyframes obj-star {
+  0% {
+    opacity: 1;
+  }
+  66%,
+  100% {
+    opacity: 0.2;
+  }
+}
+
+/* the trainer card's holo stripe: shifts one band every 1.2s */
+:is([aria-selected="true"], .guide-cover) .obj [data-idle="holo"] {
+  animation: obj-holo 4.8s steps(4, end) infinite;
+}
+@keyframes obj-holo {
+  to {
+    transform: translateX(16px);
+  }
+}

@@ -44,10 +44,10 @@
   opacity: 0.7;
 }
 
-/* The machine voice: one line, integer multiples of its size (16, 32) */
+/* The machine voice: one line, whole multiples of its native size (--px1, --px2) */
 .pixel-1 {
   font-family: var(--font-machine);
-  font-size: 16px;
+  font-size: var(--px1);
   line-height: 1;
   white-space: nowrap;
   font-weight: 400;
@@ -146,7 +146,9 @@
   margin-top: 2px;
 }
 .bar-skip {
-  color: var(--blood-orange);
+  /* peacock text for contrast; the orange stays as its mark */
+  color: var(--peacock);
+  box-shadow: inset 0 -2px 0 var(--blood-orange);
 }
 .bar-options-icon {
   display: none;
@@ -195,6 +197,7 @@ html[data-motion="soft"] .motion-knob {
 /* ---------------------------------------------------------------- room ---- */
 .room {
   --shelf-h: 228px;
+  --nar-h: calc(var(--glass-h) * 0.25);
   --gap: 24px;
   --glass-h: clamp(270px, calc(100dvh - 56px - var(--shelf-h) - 2 * var(--gap) - 40px), 560px);
   position: relative;
@@ -206,16 +209,86 @@ html[data-motion="soft"] .motion-knob {
   isolation: isolate;
 }
 
-/* Sunday light through a window: two soft diagonal beams and a warm corner glow (light only) */
-.room-light {
+/* Sunday light through a window (Daylight.tsx): a cool shade over the whole room with a
+   window's panes cut out of it as sun. Light and shadow only, never a fill (P4). It sits
+   above the room's surfaces (bezel, plank, objects, card) and below the glass, which makes
+   its own light. */
+/* None of these wrappers may form a stacking context: the blend layers have to see the
+   room under them (a transformed or z-indexed wrapper would isolate them). */
+.daylight {
+  position: absolute;
+  inset: -12% -10%;
+  pointer-events: none;
+  overflow: hidden;
+}
+.dl-set {
   position: absolute;
   inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse 60% 55% at 8% 0%, rgb(250 219 104 / 0.28), transparent 70%),
-    linear-gradient(118deg, transparent 8%, rgb(250 219 104 / 0.2) 16%, rgb(250 219 104 / 0.2) 27%, transparent 34%, transparent 38%, rgb(250 219 104 / 0.14) 45%, rgb(250 219 104 / 0.14) 58%, transparent 66%);
-  mask-image: linear-gradient(180deg, #000 0%, #000 55%, transparent 92%);
+}
+.dl-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  transform-origin: 20% 0%;
+  /* the sun moves: stepped finely, ten small moves a second, in FULL and SOFT alike */
+  animation: dl-drift 60s steps(600) infinite alternate;
+}
+@keyframes dl-drift {
+  from {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  to {
+    transform: translate(-2.2%, 1.2%) rotate(0.8deg);
+  }
+}
+.dl-shade {
+  opacity: 0.075;
+}
+.dl-shade .dl-fill {
+  fill: var(--peacock);
+}
+.dl-bloom {
+  mix-blend-mode: multiply;
+  opacity: 0.16;
+  filter: blur(26px);
+}
+.dl-bloom .dl-fill {
+  fill: var(--gold);
+}
+.dl-warm {
+  mix-blend-mode: multiply;
+  opacity: 0.32;
+}
+.dl-warm .dl-fill {
+  fill: var(--gold);
+}
+.dl-lift {
+  -webkit-mask: var(--dl-mask) center / cover no-repeat;
+  mask: var(--dl-mask) center / cover no-repeat;
+  -webkit-backdrop-filter: brightness(1.5);
+  backdrop-filter: brightness(1.5);
+}
+.dl-phone {
+  display: none;
+}
+@media (max-width: 720px) {
+  .daylight {
+    inset: -40px;
+  }
+  .dl-desk {
+    display: none;
+  }
+  .dl-phone .dl-lift {
+    -webkit-mask-position: top center;
+    mask-position: top center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+  }
+  .dl-phone {
+    display: block;
+  }
 }
 
 .room-stage {
@@ -233,7 +306,11 @@ html[data-motion="soft"] .motion-knob {
   grid-column: 9 / span 4;
   transition: opacity 0.3s;
 }
-.room-info[data-dim] {
+/* During the power-on the card waits dimmed and inert, except the contacts (P2) */
+.info-wait {
+  transition: opacity 0.3s;
+}
+.info-wait[data-dim] {
   opacity: 0.3;
 }
 
@@ -261,6 +338,7 @@ html[data-motion="soft"] .motion-knob {
 }
 .tv-glass {
   position: relative;
+  z-index: 3;
   width: calc(var(--glass-h) * 4 / 3);
   height: var(--glass-h);
   border-radius: 18px;
@@ -386,12 +464,12 @@ html[data-motion="soft"] .tv-sheen {
   background: rgb(252 232 205 / 0.06);
 }
 .save-title {
-  font-size: 32px;
+  font-size: var(--px2);
   line-height: 1;
   white-space: nowrap;
 }
 .save-line {
-  font-size: 16px;
+  font-size: var(--px1);
   line-height: 1;
   white-space: nowrap;
   opacity: 0.75;
@@ -432,7 +510,7 @@ html[data-motion="soft"] .tv-sheen {
 }
 .title-type {
   font-family: var(--font-machine);
-  font-size: 32px;
+  font-size: var(--px2);
   line-height: 1;
   text-align: center;
   white-space: nowrap;
@@ -524,34 +602,68 @@ html[data-motion="soft"] .tv-sheen {
 }
 .status-after {
   justify-self: start;
-  background: var(--blood-orange);
+  border: 2px solid var(--blood-orange);
   color: var(--cream);
   font-weight: 900;
   font-size: 13px;
   letter-spacing: 0.08em;
-  padding: 10px 16px;
+  padding: 8px 14px;
   border-radius: 10px;
+  min-height: 44px;
+}
+.status-after:hover {
+  background: var(--blood-orange);
+  color: var(--peacock);
+}
+.status-mail {
+  margin: 0;
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+.status-mail .pixel-1 {
+  color: var(--aquamarine);
+}
+.status-mail a {
+  color: var(--cream);
+  font-weight: 300;
+  font-size: 17px;
+  text-decoration: none;
+  box-shadow: inset 0 -1px 0 rgb(252 232 205 / 0.5);
+}
+.status-mail a:hover {
+  box-shadow: inset 0 -2px 0 var(--gold);
 }
 
 /* ------------------------------------------------------------- narrator ---- */
 .narrator {
   position: absolute;
+  z-index: 3;
   left: 20px;
   right: 20px;
   bottom: 20px;
-  height: calc(var(--glass-h) * 0.28);
+  height: var(--nar-h);
   padding: 0 14px 14px;
   display: flex;
   align-items: flex-end;
   pointer-events: none;
   opacity: 0;
+  visibility: hidden;
   transform: translateY(10px);
-  transition: opacity 0.2s, transform 0.35s cubic-bezier(0.2, 1.5, 0.4, 1);
+  transition: opacity 0.2s, transform 0.35s cubic-bezier(0.2, 1.5, 0.4, 1), visibility 0s linear 0.35s;
 }
 .narrator[data-open] {
   opacity: 1;
+  visibility: visible;
   transform: none;
   pointer-events: auto;
+  transition: opacity 0.2s, transform 0.35s cubic-bezier(0.2, 1.5, 0.4, 1), visibility 0s;
+}
+/* The hero stays in view (P7): while the box is up, the title art fits the glass above it */
+.tv:has(.narrator[data-open]) .title-art {
+  top: 7%;
+  bottom: calc(var(--nar-h) + 10px);
 }
 .nar-box {
   width: 100%;
@@ -584,7 +696,7 @@ html[data-motion="soft"] .tv-sheen {
   align-items: center;
   gap: 2px;
   font-family: var(--font-machine);
-  font-size: 16px;
+  font-size: var(--px1);
   line-height: 1;
   color: var(--gold);
 }
@@ -609,13 +721,13 @@ html[data-motion="soft"] .tv-sheen {
 .voice-slip {
   font-family: var(--font-machine);
   font-weight: 400;
-  font-size: 16px;
+  font-size: var(--px1);
 }
 .narrator[data-pixel] .nar-text,
 .dock-toast[data-pixel] .dock-line {
   font-family: var(--font-machine);
   font-weight: 400;
-  font-size: 16px;
+  font-size: var(--px1);
   line-height: 1.5;
 }
 .nar-choices {
@@ -646,16 +758,17 @@ html[data-motion="soft"] .tv-sheen {
 }
 .nar-skip {
   font-family: var(--font-machine);
-  font-size: 16px;
-  opacity: 0.8;
+  font-size: var(--px1);
+  /* cream on peacock at full strength (P2 contrast); quieter by size, not by fading */
+  min-height: 32px;
+  padding: 0 4px;
 }
 .nar-off {
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
   border-radius: 6px;
-  font-size: 18px;
+  font-size: 20px;
   line-height: 1;
-  opacity: 0.6;
 }
 .nar-off:hover,
 .nar-skip:hover {
@@ -669,7 +782,7 @@ html[data-motion="soft"] .tv-sheen {
   bottom: 20px;
   z-index: 35;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: flex-end;
   gap: 10px;
   pointer-events: none;
@@ -687,7 +800,7 @@ html[data-motion="soft"] .tv-sheen {
   box-shadow: 0 8px 20px -10px rgb(16 47 65 / 0.6);
 }
 .dock-toast {
-  max-width: min(460px, calc(100vw - 40px));
+  max-width: min(420px, calc(100vw - 120px));
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -702,6 +815,16 @@ html[data-motion="soft"] .tv-sheen {
   font-weight: 900;
   font-size: 16px;
   line-height: 1.35;
+}
+/* At the top of a guide the toast waits up by the cover, clear of the facts strip */
+@media (min-width: 721px) {
+  .studio[data-guide-top] .dock-toast {
+    position: fixed;
+    top: 72px;
+    right: 20px;
+    /* on the peacock cover the box needs its edge, like the TV's dialogue box */
+    border: 2px solid rgb(252 232 205 / 0.85);
+  }
 }
 @keyframes toast-in {
   from {
@@ -723,7 +846,7 @@ html[data-motion="soft"] .tv-sheen {
   margin-top: 4px;
 }
 .info-title {
-  margin: 16px 0 0;
+  margin: 12px 0 0;
   font-weight: 900;
   font-size: 40px;
   line-height: 0.98;
@@ -742,23 +865,23 @@ html[data-motion="soft"] .tv-sheen {
   color: var(--dark-teal);
 }
 .info-pitch {
-  margin: 16px 0 0;
+  margin: 12px 0 0;
   font-weight: 300;
-  font-size: 19px;
-  line-height: 1.5;
+  font-size: 18px;
+  line-height: 1.45;
   max-width: 40ch;
 }
 .info-facts {
-  margin: 24px 0 0;
+  margin: 14px 0 0;
   display: grid;
-  gap: 10px;
+  gap: 6px;
 }
 .info-facts div {
   display: grid;
   grid-template-columns: 9.5em 1fr;
   gap: 12px;
   align-items: baseline;
-  padding-top: 10px;
+  padding-top: 7px;
   box-shadow: inset 0 1px 0 rgb(16 47 65 / 0.12);
 }
 .info-facts dt,
@@ -779,22 +902,29 @@ html[data-motion="soft"] .tv-sheen {
   font-size: 17px;
   line-height: 1.4;
 }
+/* The CTA: peacock on blood orange at 19px Black (large text, 3.96:1). The kana sits
+   under the plate on the cream, where it reads at full contrast. */
 .cta {
-  margin-top: 22px;
-  display: inline-block;
-  text-align: center;
-  padding: 14px 22px;
-  border-radius: 12px;
-  background: var(--blood-orange);
-  color: var(--cream);
+  margin-top: 16px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: var(--peacock);
   font-weight: 900;
-  font-size: 15px;
-  letter-spacing: 0.08em;
+  font-size: 19px;
+  letter-spacing: 0.06em;
   transition: transform 0.35s cubic-bezier(0.2, 1.6, 0.4, 1);
 }
+.cta-face {
+  display: block;
+  padding: 11px 20px;
+  border-radius: 12px;
+  background: var(--blood-orange);
+  line-height: 1.1;
+}
 .cta small[lang="ja"] {
-  font-size: 10px;
-  margin-top: 3px;
+  font-size: 11px;
 }
 .cta:hover,
 .cta:focus-visible {
@@ -802,6 +932,17 @@ html[data-motion="soft"] .tv-sheen {
 }
 .info-contact {
   margin-top: 20px;
+}
+.info--omar .info-contact {
+  margin-top: 26px;
+}
+#contact {
+  /* clear of the sticky bar when CONTACT scrolls to it */
+  scroll-margin-top: 64px;
+}
+.info--omar .info-pitch {
+  margin-top: 22px;
+  font-size: 17px;
 }
 .info-contact ul {
   list-style: none;
@@ -911,13 +1052,24 @@ html[data-motion="soft"] .tv-sheen {
   right: -30%;
   bottom: -14px;
   height: 26px;
-  background: radial-gradient(ellipse at center, rgb(250 219 104 / 0.55), transparent 70%);
+  background: radial-gradient(ellipse at center, rgb(250 219 104 / 0.8), transparent 70%);
   opacity: 0;
   transition: opacity 0.2s;
   pointer-events: none;
 }
 .shelf-item[data-on] .shelf-pool {
   opacity: 1;
+}
+.shelf-item[data-on]::after {
+  /* where the focused object stands, the plank's edge catches the TV light */
+  content: "";
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  bottom: -2px;
+  height: 2px;
+  background: var(--gold);
+  pointer-events: none;
 }
 .shelf-label {
   height: var(--plank);
@@ -926,11 +1078,14 @@ html[data-motion="soft"] .tv-sheen {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: rgb(252 232 205 / 0.6);
+  color: var(--cream);
+}
+.shelf-label small[lang="ja"] {
+  opacity: 1;
 }
 .shelf-label span {
   font-family: var(--font-machine);
-  font-size: 16px;
+  font-size: var(--px1);
   line-height: 1;
 }
 .shelf-label small[lang="ja"] {
@@ -960,10 +1115,15 @@ html[data-motion="soft"] .tv-sheen {
   background: var(--cream);
   box-shadow: 0 -1px 0 rgb(16 47 65 / 0.12);
   outline: none;
+  /* room under NEXT for the docked narrator and its toast */
+  padding-bottom: 112px;
 }
 
 /* ---------------------------------------------------------- empty room ---- */
 .empty-room {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   min-height: calc(100dvh - 56px);
   display: flex;
   flex-direction: column;
@@ -977,12 +1137,12 @@ html[data-motion="soft"] .tv-sheen {
 .empty-line {
   margin: 0;
   font-family: var(--font-machine);
-  font-size: 32px;
+  font-size: var(--px2);
   line-height: 1.2;
   color: var(--peacock);
 }
 .empty-room .name-tag {
-  font-size: 32px;
+  font-size: var(--px2);
 }
 .empty-contact {
   color: var(--peacock);
@@ -1150,7 +1310,62 @@ html[data-motion="soft"] .tv-sheen {
     display: block;
   }
   .motion-word {
+    /* kept for the accessible name ("MOTION FULL"), hidden on screen */
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  /* Tap targets: 44px at least (WCAG 2.5.5) */
+  .bar-mark,
+  .bar-btn,
+  .bar-options {
+    min-width: 44px;
+    min-height: 44px;
+    display: grid;
+    place-items: center;
+    align-content: center;
+  }
+  .bar-mark {
+    display: flex;
+    justify-content: center;
+  }
+  .motion-chip {
+    min-height: 44px;
+  }
+  .nar-face,
+  .nar-off {
+    width: 44px;
+    height: 44px;
+  }
+  .nar-skip {
+    min-height: 44px;
+  }
+  .info-contact a,
+  .opt-contact a {
+    min-height: 44px;
+    align-items: center;
+  }
+  .options-close {
+    width: 44px;
+    height: 44px;
+  }
+  .opt-seg button,
+  .opt-btn,
+  .status-after,
+  .power-on {
+    min-height: 44px;
+  }
+  .bar-work {
     display: none;
+  }
+  .shelf-item::before {
+    /* the art keeps its real size; the hit box grows to 44px */
+    content: "";
+    position: absolute;
+    inset: -8px -8px -6px;
   }
   .bar-nav {
     gap: 14px;
@@ -1204,7 +1419,10 @@ html[data-motion="soft"] .tv-sheen {
     border-radius: 12px;
   }
   .narrator {
-    position: static;
+    position: relative;
+    left: auto;
+    right: auto;
+    bottom: auto;
     height: auto;
     padding: 10px 0 0;
     display: none;
@@ -1214,10 +1432,6 @@ html[data-motion="soft"] .tv-sheen {
   }
   .nar-text {
     font-size: 16px;
-  }
-  .nar-face {
-    width: 36px;
-    height: 36px;
   }
 
   .scr-save {
@@ -1235,7 +1449,7 @@ html[data-motion="soft"] .tv-sheen {
     gap: 4px;
   }
   .save-title {
-    font-size: 16px;
+    font-size: var(--px1);
   }
   .save-line:nth-child(n + 4) {
     display: none;
@@ -1267,7 +1481,7 @@ html[data-motion="soft"] .tv-sheen {
     right: 12px;
   }
   .title-type {
-    font-size: 16px;
+    font-size: var(--px1);
   }
 
   .shelf {
@@ -1282,9 +1496,6 @@ html[data-motion="soft"] .tv-sheen {
   }
   .shelf-items {
     gap: 16px;
-  }
-  .shelf-label span {
-    font-size: 16px;
   }
 
   .info-title {
@@ -1309,7 +1520,7 @@ html[data-motion="soft"] .tv-sheen {
   }
   .empty-line,
   .empty-room .name-tag {
-    font-size: 16px;
+    font-size: var(--px1);
   }
   .narrator-dock {
     right: 12px;

@@ -16,7 +16,8 @@ import type { StudioProject } from "@/studio/types";
 
 export function StandbyScreen() {
   return (
-    <div className="scr scr-standby" aria-label="The TV is on standby">
+    <div className="scr scr-standby">
+      <span className="sr-only">The TV is on standby</span>
       <span className="standby-dot" />
     </div>
   );
@@ -58,7 +59,8 @@ export function PowerOnScreen({ short, onDone, tlRef }: { short: boolean; onDone
   }, [short, tlRef]);
 
   return (
-    <div ref={root} className="scr scr-power" aria-label="Powering on">
+    <div ref={root} className="scr scr-power">
+      <span className="sr-only">Powering on</span>
       <div className="pw-fill" />
       <div className="pw-line" />
       <div className="pw-mark">
@@ -142,13 +144,12 @@ export function SaveSelectScreen({
               data-id={f.id}
               data-active={active === i || undefined}
               tabIndex={active === i ? 0 : -1}
-              aria-label={fill(f.ariaLabel)}
               onFocus={() => focusFile(i)}
               onPointerEnter={(e) => e.currentTarget.focus()}
               onClick={() => onPick(f.id)}
             >
               {rows.map((r, k) => (
-                <span key={k} className={k === 0 ? "save-title" : "save-line"} aria-hidden>
+                <span key={k} className={k === 0 ? "save-title" : "save-line"}>
                   {fill(r) || " "}
                 </span>
               ))}
@@ -195,7 +196,7 @@ export function TitleScreen({ project, channel }: { project: StudioProject; chan
         {/* eslint-disable-next-line @next/next/no-img-element -- static export, real art at its own size */}
         {art && !art.pixel && <img src={asset(art.src)} alt={art.alt} width={art.w} height={art.h} />}
         {!art && (
-          <span className="title-type" aria-label={project.title}>
+          <span className="title-type">
             {project.title.toUpperCase()}
           </span>
         )}
@@ -218,7 +219,7 @@ export function StatusScreen({ stage, playSeconds, onAfter }: { stage: number; p
         <div className="status-id">
           <Logo stage={stage} size={56} outer="var(--cream)" />
           <div>
-            <h2 className="status-name">{profile.name}</h2>
+            <p className="status-name">{profile.name}</p>
             <p className="status-handle">{profile.handle}</p>
             <p className="status-class">
               {profile.class.en}
@@ -226,6 +227,11 @@ export function StatusScreen({ stage, playSeconds, onAfter }: { stage: number; p
             </p>
           </div>
         </div>
+        {stage >= 2 && (
+          <button className="status-after" onClick={onAfter}>
+            WHAT COMES AFTER? ▸<small lang="ja">このあと</small>
+          </button>
+        )}
         <dl className="status-stats">
           <div>
             <dt className="pixel-1">PLAY</dt>
@@ -247,11 +253,10 @@ export function StatusScreen({ stage, playSeconds, onAfter }: { stage: number; p
             ))}
           </ul>
         </div>
-        {stage >= 2 && (
-          <button className="status-after" onClick={onAfter}>
-            WHAT COMES AFTER? ▸<small lang="ja">このあと</small>
-          </button>
-        )}
+        <p className="status-mail">
+          <span className="pixel-1">MAIL</span>
+          <a href={profile.contact[0].href}>{profile.contact[0].value}</a>
+        </p>
       </div>
       <span className="tv-ch pixel-1" aria-hidden>
         {ui.hints.channel.replace("{nn}", "01")}
@@ -268,11 +273,14 @@ export function EmptyRoom({
   variant,
   line,
   tag,
+  light,
   onPowerOn,
 }: {
   variant: "peek" | "ending";
   line: string;
   tag?: string;
+  /** The window light stays where the room was: an empty space with a memory in it */
+  light?: React.ReactNode;
   onPowerOn?: () => void;
 }) {
   const root = useRef<HTMLDivElement>(null);
@@ -284,6 +292,7 @@ export function EmptyRoom({
   }, [variant]);
   return (
     <section ref={root} className="empty-room" data-variant={variant} aria-label={variant === "ending" ? "The end" : "An empty file"}>
+      {light}
       {tag && <span className="empty-in name-tag" data-stage="2">{tag}</span>}
       <p className="empty-in empty-line">{line}</p>
       {variant === "ending" && (

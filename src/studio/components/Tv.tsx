@@ -23,18 +23,40 @@ const Tv = forwardRef<TvHandle, {
   const frame = useRef<HTMLDivElement>(null);
   const screen = useRef<HTMLDivElement>(null);
   const first = useRef(true);
+  const prev = useRef(channel);
+  const lastBurst = useRef(0);
+  const settle = useRef<number | undefined>(undefined);
   useImperativeHandle(ref, () => ({ glass: glass.current, frame: frame.current }), []);
 
-  // Channel change: FULL = <=300ms static burst; SOFT = a 120ms crossfade
+  // Channel change: FULL = <=300ms static burst; SOFT = a 120ms crossfade.
+  // Flash safety (WCAG 2.3.1): no static coming out of the power-on (it has its own
+  // animation), at most one burst per 400ms, and a quick sweep across the shelf only
+  // bursts once it settles for 120ms; changes in between get the soft crossfade.
   useEffect(() => {
+    const from = prev.current;
+    prev.current = channel;
     if (first.current) {
       first.current = false;
       return;
     }
     const g = glass.current;
-    if (!g || !screen.current) return;
-    if (isSoft()) gsap.fromTo(screen.current, { opacity: 0.15 }, { opacity: 1, duration: 0.12, ease: "none" });
-    else staticBurst(g, false);
+    const scr = screen.current;
+    if (!g || !scr) return;
+    const fade = () => gsap.fromTo(scr, { opacity: 0.15 }, { opacity: 1, duration: 0.12, ease: "none" });
+    if (isSoft() || from === "boot" || from === "standby" || from === "power") {
+      if (from !== "boot" && from !== "standby") fade();
+      return;
+    }
+    window.clearTimeout(settle.current);
+    if (performance.now() - lastBurst.current < 400) {
+      fade();
+      return;
+    }
+    settle.current = window.setTimeout(() => {
+      lastBurst.current = performance.now();
+      staticBurst(g, false);
+    }, 120);
+    return () => window.clearTimeout(settle.current);
   }, [channel]);
 
   // The glass reflects the pointer (FULL only; SOFT has no pointer specular)

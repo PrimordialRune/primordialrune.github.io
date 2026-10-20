@@ -68,16 +68,19 @@ export default function Bar({
           <span>WORK</span>
           <small lang="ja">ゲーム</small>
         </button>
-        <button className="bar-btn" onClick={onContact}>
+        {/* A real link: before the scripts arrive it still jumps to the contacts (P2) */}
+        <a
+          className="bar-btn bar-contact"
+          href="#contact"
+          onClick={(e) => {
+            e.preventDefault();
+            onContact();
+          }}
+        >
           <span>CONTACT</span>
           <small lang="ja">コンタクト</small>
-        </button>
-        <button
-          className="motion-chip"
-          onClick={toggleMotion}
-          aria-label={`Motion: ${motion}. Switch to ${motion === "full" ? "soft" : "full"}`}
-          aria-pressed={motion === "full"}
-        >
+        </a>
+        <button className="motion-chip" onClick={toggleMotion} role="switch" aria-checked={motion === "full"}>
           <span className="motion-label">
             <span className="motion-now">
               <span className="motion-word">MOTION </span>

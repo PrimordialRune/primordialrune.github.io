@@ -83,6 +83,11 @@ export const story = {
   focus(slug: string) {
     if (getStory().focus !== slug) update({ focus: slug }, { silentStage: true });
   },
+  /** After NEW GAME's greeting: the corrupt-file peeks are a memory the new file keeps */
+  restorePeeks(n: number) {
+    const s = getStory();
+    if (n > s.corruptPeeks) update({ corruptPeeks: n });
+  },
   corruptPeek() {
     update({ corruptPeeks: getStory().corruptPeeks + 1 });
   },

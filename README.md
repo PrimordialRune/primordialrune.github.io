@@ -20,6 +20,17 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Japanese subtitle font
+
+The kana face is subset to the characters the site uses (2.4 MB -> ~23 KB woff2) and committed
+at `src/studio/fonts/GenEiKiwamiGo-subset.woff2`. After adding new katakana or kanji anywhere
+under `src/`, regenerate it:
+
+```bash
+pip install fonttools brotli
+npm run subset-kana
+```
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
