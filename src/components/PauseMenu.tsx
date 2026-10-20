@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
+import { gsap } from "gsap";
 import { sections } from "@/lib/sections";
-import { prefersReducedMotion } from "@/lib/crt";
+import { isQuiet, readMotionSetting, springEase, subscribeMotion, writeMotionSetting } from "@/lib/motion";
 
 export type PauseMotion = "slash" | "cutin" | "ribbon";
 
@@ -15,81 +16,35 @@ interface PauseMenuProps {
 }
 
 type Rect = { x: number; y: number; w: number; h: number };
-type Frame = Keyframe & Record<string, string | number | null | undefined>;
 
 const SKEW = -12;
 const TAN = Math.tan(12 * (Math.PI / 180));
-// Literal hex: WAAPI keyframes interpolate these, and var() inside them isn't reliable
-const SHADOW_ON = "7px 7px 0 #102f41, 13px 13px 0 #fadb68";
-const SHADOW_PEAK = "11px 11px 0 #102f41, 20px 20px 0 #fadb68";
-const SHADOW_OFF = "0px 0px 0 #102f41, 0px 0px 0 #fadb68";
-const OUT = "cubic-bezier(.2,.8,.2,1)";
-const IN = "cubic-bezier(.6,0,.8,.4)";
-
-// A damped spring sampled into a CSS linear() easing (cubic-bezier where linear() isn't supported)
-function spring(k: number, c: number, fallback: string, fallbackMs: number) {
-  if (typeof CSS === "undefined" || !CSS.supports("animation-timing-function", "linear(0, 1)")) {
-    return { easing: fallback, dur: fallbackMs };
-  }
-  const samples: number[] = [];
-  let x = 0, v = 0, t = 0;
-  const dt = 1 / 600;
-  while (t < 3) {
-    v += (k * (1 - x) - c * v) * dt;
-    x += v * dt;
-    t += dt;
-    samples.push(x);
-    if (t > 0.2 && Math.abs(1 - x) < 0.0015 && Math.abs(v) < 0.02) break;
-  }
-  const n = 36;
-  const pts = Array.from({ length: n + 1 }, (_, i) =>
-    i === n ? 1 : +samples[Math.round((i / n) * (samples.length - 1))].toFixed(4)
-  );
-  return { easing: `linear(${pts.join(",")})`, dur: Math.round(t * 1000) };
-}
-
-const css = (r: Rect) => ({ left: `${r.x}px`, top: `${r.y}px`, width: `${r.w}px`, height: `${r.h}px` });
-
-function settle(el: HTMLElement, frame: Frame) {
-  for (const k in frame) {
-    if (k === "offset" || k === "easing" || k === "composite") continue;
-    el.style.setProperty(k.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`), String(frame[k]));
-  }
-}
-
-// Keyframes, then the end state written onto the element so nothing is left filling
-function run(el: HTMLElement, frames: Frame[], opts: KeyframeAnimationOptions) {
-  const a = el.animate(frames, { fill: "both", ...opts });
-  a.finished.then(() => { settle(el, frames[frames.length - 1]); a.cancel(); }).catch(() => {});
-  return a;
-}
-
-// Freeze running animations where they are, so the next motion starts from there
-function freeze(el: HTMLElement) {
-  el.getAnimations().forEach((a) => {
-    if (a.id === "bob") return;
-    if (a.id !== "flash") {
-      try { (a as Animation).commitStyles(); } catch {}
-    }
-    a.cancel();
-  });
-}
+const SHADOW_ON = "7px 7px 0px #102f41, 13px 13px 0px #fadb68";
+const SHADOW_PEAK = "11px 11px 0px #102f41, 20px 20px 0px #fadb68";
+const SHADOW_OFF = "0px 0px 0px #102f41, 0px 0px 0px #fadb68";
+const GEO = "x,y,width,height,skewX,borderRadius";
+// Springs (stiffness, damping): snap for selection, soft for the ribbon unfurl
+const SNAP = springEase(260, 20);
+const SOFT = springEase(170, 19);
 
 // The scanlines in the corner are the pause menu: picking them pauses the screen and the
-// same five elements become slanted Persona-style bars. Three choreographies for that
-// morph are being A/B tested (slash, cut-in, ribbon); selection and picking are shared.
+// same five elements morph into slanted Persona-style bars. Three choreographies for that
+// morph are A/B tested (slash, cut-in, ribbon); selection and picking are shared.
+// Everything runs on GSAP, so it can be interrupted mid-flight and slowed down for review.
 export default function PauseMenu({ activeId, motion, disabled, onOpenChange, onCategoryChange }: PauseMenuProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const hitRef = useRef<HTMLButtonElement>(null);
   const dimRef = useRef<HTMLDivElement>(null);
   const pauseRef = useRef<HTMLDivElement>(null);
+  const optRef = useRef<HTMLButtonElement>(null);
   const cursorRef = useRef<HTMLDivElement>(null);
   const wipeRefs = useRef<(HTMLDivElement | null)[]>([]);
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const state = useRef({ open: false, hi: 0, active: 0, lh: 8 });
-  const springs = useRef<{ snap: ReturnType<typeof spring>; soft: ReturnType<typeof spring> } | null>(null);
   const props = useRef({ motion, onOpenChange, onCategoryChange });
   props.current = { motion, onOpenChange, onCategoryChange };
+  const motionSetting = useSyncExternalStore(subscribeMotion, readMotionSetting, () => "auto" as const);
+  const quietNow = useSyncExternalStore(subscribeMotion, isQuiet, () => false);
 
   const activeIndex = Math.max(0, sections.findIndex((s) => s.id === activeId));
   state.current.active = activeIndex;
@@ -105,8 +60,8 @@ export default function PauseMenu({ activeId, motion, disabled, onOpenChange, on
     const closed = sections.map((_, i) => ({ x: pad, y: pad + i * (lh + lg), w: lineW, h: lh }));
     const top = portrait ? pad + Math.min(80, H * 0.1) : pad * 1.2;
     const g = Math.max(6, H * 0.018);
-    const bh = Math.min(portrait ? 62 : 92, (H - top - pad - 4 * g) / 5);
-    const y0 = top + Math.max(0, (H - top - pad - (5 * bh + 4 * g)) / 2);
+    const bh = Math.min(portrait ? 62 : 92, (H - top - pad * 2.2 - 4 * g) / 5);
+    const y0 = top + Math.max(0, (H - top - pad * 2.2 - (5 * bh + 4 * g)) / 2);
     const left = pad + bh * TAN + 6;
     const bar = (i: number, hi: number): Rect => {
       const slide = (4 - i) * (bh + g) * TAN * (portrait ? 0.3 : 0.9);
@@ -120,17 +75,21 @@ export default function PauseMenu({ activeId, motion, disabled, onOpenChange, on
     return { W, H, pad, closed, bar, stack: { x: pad - 6, y: pad - 6, w: lineW + 12, h: 5 * lh + 4 * lg + 12 } };
   }, []);
 
-  const pill = () => `${state.current.lh / 2}px`;
   const items = () => itemRefs.current.filter(Boolean) as HTMLButtonElement[];
-  const reduced = () => prefersReducedMotion();
+  const inner = (b: HTMLElement) => b.firstChild as HTMLElement;
+  const line = (r: Rect) => ({ x: r.x, y: r.y, width: r.w, height: r.h, skewX: 0, borderRadius: state.current.lh / 2 });
+  const slab = (r: Rect) => ({ x: r.x, y: r.y, width: r.w, height: r.h, skewX: SKEW, borderRadius: 6 });
 
   const paintActive = useCallback((hi: number, animate: boolean, delay = 0) => {
     items().forEach((b, i) => {
       const on = i === hi;
       b.classList.toggle("is-active", on || (hi < 0 && i === state.current.active));
-      if (!on) { b.style.boxShadow = "none"; return; }
-      if (!animate || reduced()) { b.style.boxShadow = SHADOW_ON; return; }
-      run(b, [{ boxShadow: SHADOW_OFF }, { boxShadow: SHADOW_PEAK, offset: 0.45 }, { boxShadow: SHADOW_ON }], { duration: 420, delay, easing: "ease-out" });
+      gsap.killTweensOf(b, "boxShadow");
+      if (!on) gsap.set(b, { boxShadow: "none" });
+      else if (!animate || isQuiet()) gsap.set(b, { boxShadow: SHADOW_ON });
+      else gsap.fromTo(b, { boxShadow: SHADOW_OFF }, {
+        delay, keyframes: [{ boxShadow: SHADOW_PEAK, duration: 0.18, ease: "power2.out" }, { boxShadow: SHADOW_ON, duration: 0.24, ease: "power2.inOut" }],
+      });
     });
   }, []);
 
@@ -138,53 +97,45 @@ export default function PauseMenu({ activeId, motion, disabled, onOpenChange, on
     const cursor = cursorRef.current!;
     const r = geometry().bar(i, i), s = Math.max(9, r.h * 0.2);
     cursor.style.borderWidth = `${s}px 0 ${s}px ${s * 1.3}px`;
-    const to = { left: `${r.x - (r.h * TAN) / 2 - s * 1.3 - Math.max(12, r.h * 0.2)}px`, top: `${r.y + r.h / 2 - s}px` };
-    freeze(cursor);
-    if (appear || reduced()) {
-      settle(cursor, { ...to, opacity: 1 });
-      if (!reduced()) cursor.animate([{ transform: "translateX(-12px)", opacity: 0 }, { transform: "none", opacity: 1 }], { duration: 200, easing: OUT });
-      return;
+    const to = { left: r.x - (r.h * TAN) / 2 - s * 1.3 - Math.max(12, r.h * 0.2), top: r.y + r.h / 2 - s };
+    gsap.killTweensOf(cursor, "left,top,opacity,xPercent");
+    if (appear || isQuiet()) {
+      gsap.set(cursor, { ...to, opacity: 1 });
+      if (!isQuiet()) gsap.from(cursor, { xPercent: -120, opacity: 0, duration: 0.2, ease: "power3.out" });
+    } else {
+      gsap.to(cursor, { ...to, opacity: 1, duration: SNAP.duration, ease: SNAP.ease });
     }
-    const snap = springs.current!.snap;
-    run(cursor, [{ left: cursor.style.left, top: cursor.style.top, opacity: 1 }, { ...to, opacity: 1 }], { duration: snap.dur, easing: snap.easing });
   }, [geometry]);
 
   const placeClosed = useCallback(() => {
     const G = geometry();
     items().forEach((b, i) => {
-      settle(b, { ...css(G.closed[i]), transform: "skewX(0deg)", borderRadius: pill(), boxShadow: "none" });
-      (b.firstChild as HTMLElement).style.opacity = "0";
+      gsap.set(b, { ...line(G.closed[i]), boxShadow: "none", opacity: 1 });
+      gsap.set(inner(b), { opacity: 0 });
       b.classList.toggle("is-active", i === state.current.active);
       b.tabIndex = -1;
     });
-    settle(hitRef.current!, css(G.stack));
-    dimRef.current!.style.opacity = "0";
-    pauseRef.current!.style.opacity = "0";
-    cursorRef.current!.style.opacity = "0";
+    gsap.set(hitRef.current!, { left: G.stack.x, top: G.stack.y, width: G.stack.w, height: G.stack.h });
+    gsap.set([dimRef.current!, pauseRef.current!, cursorRef.current!, optRef.current!], { opacity: 0 });
+    gsap.set(wipeRefs.current, { opacity: 0, xPercent: -400 });
   }, [geometry]);
 
   const placeOpen = useCallback(() => {
     const G = geometry(), hi = state.current.hi;
     items().forEach((b, i) => {
-      settle(b, { ...css(G.bar(i, hi)), transform: `skewX(${SKEW}deg)`, borderRadius: "6px" });
-      (b.firstChild as HTMLElement).style.opacity = "1";
+      gsap.set(b, { ...slab(G.bar(i, hi)), opacity: 1 });
+      gsap.set(inner(b), { opacity: 1, clipPath: "inset(0% 0% 0% 0%)" });
       b.tabIndex = 0;
     });
-    dimRef.current!.style.opacity = "1";
-    pauseRef.current!.style.opacity = "1";
+    gsap.set([dimRef.current!, pauseRef.current!, optRef.current!], { opacity: 1, y: 0 });
     moveCursor(hi, true);
     paintActive(hi, false);
   }, [geometry, moveCursor, paintActive]);
 
   const stopAll = () => {
-    [...items(), ...items().map((b) => b.firstChild as HTMLElement), cursorRef.current!, dimRef.current!, pauseRef.current!, ...(wipeRefs.current as HTMLElement[])].forEach(freeze);
+    const all = items();
+    gsap.killTweensOf([...all, ...all.map(inner), cursorRef.current, dimRef.current, pauseRef.current, optRef.current, ...wipeRefs.current]);
   };
-
-  const textIn = (b: HTMLElement, delay: number) =>
-    run(b.firstChild as HTMLElement, [{ opacity: 0, clipPath: "inset(0 100% 0 0)" }, { opacity: 1, clipPath: "inset(0 0% 0 0)" }], { duration: 220, delay, easing: OUT });
-  const textOut = (b: HTMLElement) => run(b.firstChild as HTMLElement, [{ opacity: 1 }, { opacity: 0 }], { duration: 80 });
-  const now = (b: HTMLElement): Frame => ({ ...css({ x: parseFloat(b.style.left), y: parseFloat(b.style.top), w: parseFloat(b.style.width), h: parseFloat(b.style.height) }), transform: b.style.transform || "skewX(0deg)", borderRadius: b.style.borderRadius || pill() });
-  const rectOf = (b: HTMLElement): Rect => ({ x: parseFloat(b.style.left), y: parseFloat(b.style.top), w: parseFloat(b.style.width), h: parseFloat(b.style.height) });
 
   const setOpen = useCallback((open: boolean) => {
     const s = state.current;
@@ -196,85 +147,93 @@ export default function PauseMenu({ activeId, motion, disabled, onOpenChange, on
     rootRef.current!.dataset.open = String(open);
     props.current.onOpenChange?.(open);
     items().forEach((b) => (b.tabIndex = open ? 0 : -1));
+    optRef.current!.tabIndex = open ? 0 : -1;
     if (!open && rootRef.current!.contains(document.activeElement)) hitRef.current!.focus({ preventScroll: true });
-    if (reduced()) { if (open) placeOpen(); else placeClosed(); return; }
 
-    const { snap, soft } = springs.current!;
-    const tilt = `skewX(${SKEW}deg)`, flat = "skewX(0deg)";
+    // Quiet: no travel, a short cross-fade between the two states
+    if (isQuiet()) {
+      const all = items();
+      gsap.to(all, {
+        opacity: 0, duration: 0.07, ease: "none",
+        onComplete: () => {
+          if (open) placeOpen(); else placeClosed();
+          gsap.fromTo(all, { opacity: 0 }, { opacity: 1, duration: 0.12, ease: "none" });
+          if (open) gsap.fromTo([dimRef.current, pauseRef.current, optRef.current], { opacity: 0 }, { opacity: 1, duration: 0.15 });
+        },
+      });
+      if (!open) gsap.to([dimRef.current, pauseRef.current, optRef.current, cursorRef.current], { opacity: 0, duration: 0.12 });
+      return;
+    }
+
     const m = props.current.motion;
+    const tl = gsap.timeline();
     if (open) {
       items().forEach((b, i) => {
-        const c = G.closed[i], r = G.bar(i, s.hi);
+        const c = G.closed[i], r = G.bar(i, s.hi), mid = r.y + r.h / 2;
+        const txt = inner(b);
+        gsap.set(txt, { opacity: 0, clipPath: "inset(0% 100% 0% 0%)" });
         if (m === "slash") {
-          // Shoot across as a thin line, then thicken and lean into the bar
-          const d = i * 45;
-          run(b, [
-            { ...css(c), transform: flat, borderRadius: pill(), easing: OUT },
-            { ...css({ x: r.x, y: r.y + r.h / 2 - c.h / 2, w: r.w, h: c.h }), transform: flat, borderRadius: pill(), offset: 0.42, easing: snap.easing },
-            { ...css(r), transform: tilt, borderRadius: "6px" },
-          ], { duration: 560, delay: d });
-          textIn(b, d + 380);
+          // The line shoots out thin and overlong, then snaps to the bar's thickness and leans in
+          const d = i * 0.045;
+          tl.to(b, { x: r.x, y: mid - c.h * 0.35, width: r.w * 1.12, height: c.h * 0.7, duration: 0.2, ease: "power3.in" }, d)
+            .to(b, { y: r.y, width: r.w, height: r.h, skewX: SKEW, borderRadius: 6, duration: SNAP.duration, ease: SNAP.ease }, d + 0.2)
+            .to(txt, { opacity: 1, clipPath: "inset(0% 0% 0% 0%)", duration: 0.22, ease: "power3.out" }, d + 0.32);
         } else if (m === "cutin") {
-          // Whip off to the right behind the slash, slam back in from the right edge
-          const d = 60 + i * 40;
-          run(b, [
-            { ...css(c), transform: flat, borderRadius: pill(), easing: IN },
-            { ...css({ x: G.W + 20, y: c.y, w: c.w * 2, h: c.h }), transform: flat, borderRadius: pill(), offset: 0.28 },
-            { ...css({ x: G.W + 20, y: r.y, w: r.w, h: r.h }), transform: tilt, borderRadius: "6px", offset: 0.38, easing: "cubic-bezier(.2,1.5,.4,1)" },
-            { ...css(r), transform: tilt, borderRadius: "6px" },
-          ], { duration: 620, delay: d });
-          textIn(b, d + 460);
+          // Whip off right behind the wipe, then slam back in from the right edge already leaning
+          const d = 0.05 + i * 0.04;
+          tl.to(b, { x: G.W + 40, width: c.w * 2.2, duration: 0.17, ease: "power2.in" }, d)
+            .set(b, { y: r.y, width: r.w, height: r.h, skewX: SKEW, borderRadius: 6 }, d + 0.17)
+            .fromTo(b, { x: G.W + 40 }, { x: r.x, duration: 0.42, ease: "back.out(1.5)", immediateRender: false }, d + 0.24)
+            .to(txt, { opacity: 1, clipPath: "inset(0% 0% 0% 0%)", duration: 0.2, ease: "power3.out" }, d + 0.42);
         } else {
-          // One spring from line to bar, leaning on the way
-          const d = i * 32;
-          run(b, [{ ...css(c), transform: flat, borderRadius: pill() }, { ...css(r), transform: tilt, borderRadius: "6px" }], { duration: soft.dur, delay: d, easing: soft.easing });
-          textIn(b, d + 300);
+          // Ribbon: the line drops into place and fattens first, its length unfurls a beat behind
+          const d = i * 0.035;
+          tl.to(b, { y: r.y, height: r.h, skewX: SKEW, borderRadius: 6, duration: SOFT.duration, ease: SOFT.ease }, d)
+            .to(b, { x: r.x, width: r.w, duration: SOFT.duration, ease: SOFT.ease }, d + 0.07)
+            .to(txt, { opacity: 1, clipPath: "inset(0% 0% 0% 0%)", duration: 0.24, ease: "power3.out" }, d + 0.26);
         }
       });
       if (m === "cutin") {
-        wipeRefs.current.forEach((w, k) => w && run(w, [
-          { transform: "translateX(-160%) skewX(-16deg)", opacity: 1 },
-          { transform: `translateX(${G.W * (k ? 11 : 3.2)}px) skewX(-16deg)`, opacity: 1, offset: 0.99 },
-          { transform: "translateX(-400%) skewX(-16deg)", opacity: 0 },
-        ], { duration: 420, delay: 80 + k * 40, easing: "cubic-bezier(.7,0,.3,1)" }));
+        wipeRefs.current.forEach((w, k) => w && tl.fromTo(w,
+          { xPercent: -160, x: 0, skewX: -16, opacity: 1 },
+          { x: G.W * (k ? 1.6 : 1.4), xPercent: 0, duration: 0.4, ease: "expo.inOut", onComplete: () => { gsap.set(w, { opacity: 0, xPercent: -400, x: 0 }); } },
+          0.06 + k * 0.04));
       }
-      paintActive(s.hi, true, m === "cutin" ? 640 : m === "slash" ? 520 : 420);
-      run(dimRef.current!, [{ opacity: 0 }, { opacity: 1 }], { duration: 260, easing: "ease-out" });
-      run(pauseRef.current!, [
-        { opacity: 0, transform: "translateY(-6px)" }, { opacity: 1, offset: 0.2 }, { opacity: 0.2, offset: 0.35 },
-        { opacity: 1, offset: 0.5, transform: "translateY(0)" }, { opacity: 1, transform: "translateY(0)" },
-      ], { duration: 520, delay: 120 });
-      window.setTimeout(() => { if (state.current.open) moveCursor(state.current.hi, true); }, m === "cutin" ? 520 : 420);
+      const settled = m === "cutin" ? 0.62 : m === "slash" ? 0.5 : 0.42;
+      tl.add(() => paintActive(state.current.hi, true), settled)
+        .add(() => moveCursor(state.current.hi, true), settled - 0.08)
+        .fromTo(dimRef.current, { opacity: 0 }, { opacity: 1, duration: 0.26, ease: "power1.out" }, 0)
+        .fromTo(pauseRef.current, { opacity: 0, y: -6 }, {
+          keyframes: [{ opacity: 1, duration: 0.1 }, { opacity: 0.2, duration: 0.08 }, { opacity: 1, y: 0, duration: 0.08 }],
+        }, 0.12)
+        .fromTo(optRef.current, { opacity: 0 }, { opacity: 1, duration: 0.2 }, settled);
     } else {
       items().forEach((b, i) => {
-        const c = G.closed[i], from = now(b), r = rectOf(b);
-        textOut(b);
+        const c = G.closed[i];
+        const r = { x: gsap.getProperty(b, "x") as number, y: gsap.getProperty(b, "y") as number, w: b.offsetWidth, h: b.offsetHeight };
+        tl.to(inner(b), { opacity: 0, duration: 0.08 }, 0);
         if (m === "slash") {
-          run(b, [
-            { ...from, easing: OUT },
-            { ...css({ x: r.x, y: r.y + r.h / 2 - c.h / 2, w: r.w, h: c.h }), transform: flat, borderRadius: pill(), offset: 0.4, easing: "cubic-bezier(.3,1.2,.5,1)" },
-            { ...css(c), transform: flat, borderRadius: pill() },
-          ], { duration: 440, delay: (4 - i) * 35 });
+          const d = (4 - i) * 0.035;
+          tl.to(b, { y: r.y + r.h / 2 - c.h / 2, height: c.h, skewX: 0, borderRadius: state.current.lh / 2, duration: 0.16, ease: "power3.out" }, d)
+            .to(b, { ...line(c), duration: 0.28, ease: "back.out(1.3)" }, d + 0.16);
         } else if (m === "cutin") {
-          run(b, [
-            { ...from, easing: IN },
-            { ...from, left: `${-r.w - 60}px`, offset: 0.45 },
-            { ...css({ x: c.x, y: c.y, w: 0, h: c.h }), transform: flat, borderRadius: pill(), offset: 0.46, easing: OUT },
-            { ...css(c), transform: flat, borderRadius: pill() },
-          ], { duration: 520, delay: i * 30 });
+          const d = i * 0.03;
+          tl.to(b, { x: -r.w - 60, duration: 0.22, ease: "power2.in" }, d)
+            .set(b, { ...line(c), width: 0 }, d + 0.22)
+            .to(b, { width: c.w, duration: 0.26, ease: "power3.out" }, d + 0.23);
         } else {
-          run(b, [from, { ...css(c), transform: flat, borderRadius: pill() }], { duration: snap.dur, delay: (4 - i) * 26, easing: snap.easing });
+          tl.to(b, { ...line(c), duration: SNAP.duration, ease: SNAP.ease }, (4 - i) * 0.026);
         }
       });
       paintActive(-1, false);
-      run(dimRef.current!, [{ opacity: 1 }, { opacity: 0 }], { duration: 220, easing: "ease-out" });
-      run(pauseRef.current!, [{ opacity: 1 }, { opacity: 0 }], { duration: 120 });
-      run(cursorRef.current!, [{ opacity: 1 }, { opacity: 0 }], { duration: 100 });
+      tl.to(dimRef.current, { opacity: 0, duration: 0.22, ease: "power1.out" }, 0)
+        .to([pauseRef.current, optRef.current], { opacity: 0, duration: 0.12 }, 0)
+        .to(cursorRef.current, { opacity: 0, duration: 0.1 }, 0);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- stopAll/now read refs only
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- stopAll/line/slab read refs only
   }, [geometry, moveCursor, paintActive, placeClosed, placeOpen]);
 
-  // Selection: the bar slides out on a spring, the number ticks, the cursor follows
+  // Selection: both bars spring to their new rects from wherever they are, the number ticks, the cursor follows
   const highlight = useCallback((i: number) => {
     const s = state.current;
     if (!s.open || i === s.hi) return;
@@ -283,46 +242,42 @@ export default function PauseMenu({ activeId, motion, disabled, onOpenChange, on
     const G = geometry(), all = items();
     [prev, i].forEach((k) => {
       const b = all[k];
-      freeze(b);
-      // Full target rect: a bar caught mid-entry still lands where it belongs
-      const to = { ...css(G.bar(k, i)), transform: `skewX(${SKEW}deg)`, borderRadius: "6px" };
-      if (reduced()) settle(b, to);
-      else run(b, [now(b), to], { duration: springs.current!.snap.dur, easing: springs.current!.snap.easing });
+      gsap.killTweensOf(b, GEO);
+      if (isQuiet()) gsap.set(b, slab(G.bar(k, i)));
+      else gsap.to(b, { ...slab(G.bar(k, i)), duration: SNAP.duration, ease: SNAP.ease });
+      gsap.set(inner(b), { opacity: 1, clipPath: "inset(0% 0% 0% 0%)" });
     });
-    if (!reduced()) all[i].querySelector(".pause-num")?.animate([{ transform: "translateY(-30%)", opacity: 0.4 }, { transform: "none", opacity: 1 }], { duration: 220, easing: OUT });
+    const num = all[i].querySelector(".pause-num");
+    if (num && !isQuiet()) gsap.fromTo(num, { yPercent: -35, opacity: 0.4 }, { yPercent: 0, opacity: 1, duration: 0.22, ease: "power3.out" });
     paintActive(i, true);
     moveCursor(i, false);
     all[i].focus({ preventScroll: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- now() reads the element only
   }, [geometry, moveCursor, paintActive]);
 
   // Picking: the bar flashes, the game resumes, then the channel changes
   const pick = useCallback((i: number) => {
     highlight(i);
     const b = items()[i];
-    if (!reduced()) b.animate([{ backgroundColor: "#fce8cd" }, { backgroundColor: "#ec563b" }], { id: "flash", duration: 160 });
-    window.setTimeout(() => {
+    const quiet = isQuiet();
+    if (!quiet) gsap.fromTo(b, { backgroundColor: "#fce8cd" }, { backgroundColor: "#ec563b", duration: 0.16, clearProps: "backgroundColor" });
+    gsap.delayedCall(quiet ? 0 : 0.17, () => {
       setOpen(false);
       const id = sections[i].id;
-      window.setTimeout(() => props.current.onCategoryChange?.(id), reduced() ? 0 : 200);
-    }, reduced() ? 0 : 170);
+      gsap.delayedCall(quiet ? 0 : 0.2, () => props.current.onCategoryChange?.(id));
+    });
   }, [highlight, setOpen]);
 
-  // Mount: springs, resting place, the cursor's idle bob, and re-layout on resize
+  // Mount: resting place, the cursor's idle bob, and re-layout on resize
   useEffect(() => {
-    springs.current = {
-      snap: spring(260, 20, "cubic-bezier(.3,1.35,.5,1)", 520),
-      soft: spring(170, 19, "cubic-bezier(.3,1.2,.5,1)", 620),
-    };
     placeClosed();
-    const cursor = cursorRef.current!;
-    const bob = prefersReducedMotion() ? null : cursor.animate([{ translate: "0 0" }, { translate: "-4px 0" }, { translate: "0 0" }], { id: "bob", duration: 700, iterations: Infinity, easing: "ease-in-out" });
+    const bob = gsap.to(cursorRef.current, { x: -4, duration: 0.35, ease: "sine.inOut", repeat: -1, yoyo: true, paused: isQuiet() });
     const ro = new ResizeObserver(() => {
       stopAll();
       if (state.current.open) placeOpen(); else placeClosed();
     });
     ro.observe(rootRef.current!);
-    return () => { ro.disconnect(); bob?.cancel(); };
+    const off = subscribeMotion(() => (isQuiet() ? bob.pause(0) : bob.play()));
+    return () => { ro.disconnect(); bob.kill(); off(); stopAll(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -350,12 +305,14 @@ export default function PauseMenu({ activeId, motion, disabled, onOpenChange, on
       else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
         e.preventDefault();
         highlight((s.hi + (e.key === "ArrowDown" ? 1 : -1) + sections.length) % sections.length);
-      } else if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(s.hi); }
+      } else if ((e.key === "Enter" || e.key === " ") && document.activeElement !== optRef.current) { e.preventDefault(); pick(s.hi); }
       else if (/^[1-5]$/.test(e.key)) { e.preventDefault(); pick(Number(e.key) - 1); }
     };
     window.addEventListener("keydown", onKey, true);
     return () => window.removeEventListener("keydown", onKey, true);
   }, [disabled, setOpen, highlight, pick]);
+
+  const motionLabel = quietNow ? "QUIET" : "FULL";
 
   return (
     <div ref={rootRef} className="pause-menu" data-open="false">
@@ -386,6 +343,17 @@ export default function PauseMenu({ activeId, motion, disabled, onOpenChange, on
           </button>
         ))}
       </nav>
+      <button
+        ref={optRef}
+        className="pause-opt"
+        tabIndex={-1}
+        aria-label={`Motion: ${motionLabel.toLowerCase()}. Switch to ${quietNow ? "full" : "quiet"}`}
+        onClick={() => writeMotionSetting(quietNow ? "full" : "quiet")}
+      >
+        MOTION <b>{motionLabel}</b>
+        {motionSetting === "auto" && quietNow && <i> · SYSTEM</i>}
+        <small>モーション</small>
+      </button>
       <div ref={cursorRef} className="pause-cursor" aria-hidden="true" />
     </div>
   );

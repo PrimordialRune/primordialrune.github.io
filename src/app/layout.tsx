@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { MOTION_INIT_SCRIPT } from "@/lib/motion";
 
 const fkGrotesk = localFont({
   src: [
@@ -55,7 +56,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" data-motion="full" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: MOTION_INIT_SCRIPT }} />
+      </head>
       <body
         className={`${fkGrotesk.variable} ${fkGroteskBlack.variable} ${bitDarling.variable} ${killGothic.variable} ${genEiKiwami.variable} antialiased`}
       >
