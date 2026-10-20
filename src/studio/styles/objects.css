@@ -1,0 +1,75 @@
+/* Shelf objects (ObjectArt.tsx). Imported by ObjectArt itself. */
+
+.obj {
+  position: relative;
+  display: block;
+  flex: none;
+  user-select: none;
+  -webkit-user-select: none;
+  --obj-black: var(--font-black, var(--font-grotesk, "Helvetica Neue", Arial, sans-serif));
+  --obj-thin: var(--font-grotesk, "Helvetica Neue", Arial, sans-serif);
+  --obj-kana: var(--font-kana, "Hiragino Sans", "Yu Gothic", sans-serif);
+}
+
+.obj-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  display: block;
+}
+
+/* SVG type: printed labels are Omar's typeset voice; never the pixel face (P5: that face
+   only at integer multiples, which a scaled drawing cannot promise) */
+.obj-t-black {
+  font-family: var(--obj-black);
+  font-weight: 900;
+}
+.obj-t-thin {
+  font-family: var(--obj-thin);
+  font-weight: 300;
+}
+.obj-t-kana {
+  font-family: var(--obj-kana);
+  font-weight: 700;
+}
+
+/* Paper print grain: baked once by one feTurbulence filter, inside imagery only */
+.obj-grain {
+  opacity: 0.12;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+/* Pixel-art label window: the image sits at an integer scale of device pixels */
+.obj-pixel {
+  position: absolute;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  overflow: hidden;
+  pointer-events: none;
+}
+.obj-pixel img {
+  display: block;
+  flex: none;
+  max-width: none;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* Plastic: a 1px specular top edge (cream/30) with a highlight that follows the pointer.
+   The parent sets --spec-x (0%..100%) on any ancestor; light, not fill (P4). */
+.obj-spec {
+  position: absolute;
+  height: 1px;
+  pointer-events: none;
+  background:
+    radial-gradient(28% 100% at var(--spec-x, 50%) 50%, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0) 100%),
+    linear-gradient(90deg, rgba(252, 232, 205, 0), rgba(252, 232, 205, 0.3) 10%, rgba(252, 232, 205, 0.3) 90%, rgba(252, 232, 205, 0));
+}
+/* SOFT: no pointer specular, the highlight rests in the middle */
+[data-motion="soft"] .obj-spec {
+  --spec-x: 50%;
+}
