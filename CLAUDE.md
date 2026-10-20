@@ -31,7 +31,7 @@ Studio B, "STILL HERE": the portfolio is one dialogue-driven game, a conversatio
   - `fx.ts` - motion vocabulary: `spring()` (GSAP + `springEase`), `frames(n)` (stepped), `glitch(kind)`, `twitch()`; all respect QUIET
   - `fourthwall.ts` - tab title, favicon, visibility, idle, clock, visits, pointer exit, resize, copy, console line, active time
   - `views/` - PowerOn, Title, Hub (also plays the ending), Record, Load (load/eject per medium), Manual, About, Contact, Void
-  - `objects/art.tsx` - the five objects (ported Desk art); `projects.ts` - object kinds, palettes, contacts
+  - `objects/art.tsx` - the five objects (ported Desk art); `objects/players.tsx` - the hardware they load into (Game Boy, GBA, cassette deck, CD player); `projects.ts` - object kinds, palettes, contacts
   - `AbPanel.tsx` - `?ab` review panel (motion, act jump, SPEED, reset); `studio.css` - all view styles
 - **src/lib/** - `logo.ts` (logo paths; copy, never retype), `motion.ts` (MOTION setting AUTO/FULL/QUIET on `<html data-motion>`, `springEase`)
 - **public/** - `fonts/`, `resources/desk/` (object art), `.nojekyll`

@@ -12,7 +12,8 @@ import { useGame } from "../ctx";
 import { getProject } from "../projects";
 import { MANUALS } from "../script";
 import type { Slug } from "../story";
-import ObjectArt, { RES } from "../objects/art";
+import ObjectArt, { RES, gbMinWidth } from "../objects/art";
+import { CdPlayer, CdTray, Deck, DeckGlass, Dmg, Gba } from "../objects/players";
 import { quiet } from "../fx";
 import type { ObjectKind } from "../projects";
 
@@ -31,31 +32,36 @@ function buildTimeline(kind: ObjectKind, root: HTMLElement, S: number) {
   switch (kind) {
     case "gb-cart": {
       const cart = q(".ld-obj");
-      tl.set(q(".ld-slot"), { y: S * 0.12, autoAlpha: 0 }).set(cart, { y: -S * 0.75 }).set(q(".ld-screen"), { autoAlpha: 0 });
-      // the DMG slot rises (2 frames)
-      seq(tl, q(".ld-slot"), [{ y: S * 0.06, autoAlpha: 1 }, { y: 0 }]);
-      // the cart drops in (6 frames), then a 2px overshoot "click"
-      seq(tl, cart, [-0.62, -0.48, -0.34, -0.2, -0.08, 0].map((k) => ({ y: S * k })));
+      const body = q(".ld-console");
+      tl.set(body, { y: S * 0.14, autoAlpha: 0 }).set(cart, { y: -S * 0.62 }).set(q(".ld-screen"), { autoAlpha: 0 }).set(q(".ld-led"), { backgroundColor: "#3c3830", autoAlpha: 0 });
+      // the Game Boy rises into the lower glass (2 frames)
+      seq(tl, body, [{ y: S * 0.07, autoAlpha: 1 }, { y: 0 }]);
+      tl.set(q(".ld-led"), { autoAlpha: 1 }, "<");
+      // the cart drops into the slot behind its top edge (6 frames), then a 2px overshoot "click"
+      seq(tl, cart, [-0.5, -0.38, -0.27, -0.17, -0.08, 0].map((k) => ({ y: S * k })));
       seq(tl, cart, [{ y: 2 }, { y: 0 }]);
-      // the cart's own LED (GB palette, not the AI red), then the screen at integer scale
+      // the power LED (the cart's own GB red, not the AI's) and the screen at integer scale
       seq(tl, q(".ld-led"), [{ backgroundColor: "#bd502f" }]);
       seq(tl, q(".ld-screen"), [{ autoAlpha: 1, clipPath: "inset(0 0 50% 0)" }, { clipPath: "inset(0 0 0% 0)" }]);
       break;
     }
     case "gba-cart": {
       const cart = q(".ld-obj");
-      tl.set(cart, { x: S * 0.9 }).set(q(".ld-slot"), { autoAlpha: 1 });
-      seq(tl, cart, [{ x: S * 0.9, filter: "brightness(1.9)" }, { filter: "none" }]);
-      seq(tl, cart, [0.66, 0.48, 0.32, 0.2, 0.1, 0].map((k) => ({ x: S * k })));
-      seq(tl, cart, [{ x: -4 }, { x: 0 }]);
+      tl.set(cart, { x: S * 0.62, y: -S * 0.05 }).set(q(".ld-screen"), { autoAlpha: 0 });
+      // the label's logo flashes as it comes in, then it slides along the slot (6 frames)...
+      seq(tl, cart, [{ filter: "brightness(1.9)" }, { filter: "none" }]);
+      seq(tl, cart, [0.48, 0.34, 0.22, 0.12, 0.05, 0].map((k) => ({ x: S * k })));
+      // ...and settles down into it (2 frames)
+      seq(tl, cart, [{ y: -S * 0.02 }, { y: 0 }]);
+      seq(tl, q(".ld-screen"), [{ autoAlpha: 1, clipPath: "inset(0 0 50% 0)" }, { clipPath: "inset(0 0 0% 0)" }]);
       break;
     }
     case "cassette": {
       const tape = q(".ld-obj");
       const a = q(".ld-side-a");
       const b = q(".ld-side-b");
-      tl.set(b, { autoAlpha: 0 }).set(a, { autoAlpha: 1 }).set(tape, { y: -S * 0.28, scaleX: 1 }).set(q(".ld-deck"), { autoAlpha: 1 });
-      // A label → thinning edge → spine → edge → B label (5 frames, 15 fps)
+      tl.set(b, { autoAlpha: 0 }).set(a, { autoAlpha: 1 }).set(tape, { y: -S * 0.31, scaleX: 1 });
+      // A label → thinning edge → spine → edge → B label (15 fps)
       seq(
         tl,
         tape,
@@ -63,9 +69,9 @@ function buildTimeline(kind: ObjectKind, root: HTMLElement, S: number) {
         15,
       );
       tl.set(a, { autoAlpha: 0 }, `-=${3 / 15}`).set(b, { autoAlpha: 1 }, "<");
-      // drops into the deck window (3 frames)
-      seq(tl, tape, [{ y: -S * 0.17 }, { y: -S * 0.07 }, { y: 0 }]);
-      // reels turn: 4-frame stepped rotation, twice
+      // drops into the deck behind its window (3 frames)
+      seq(tl, tape, [{ y: -S * 0.19 }, { y: -S * 0.08 }, { y: 0 }]);
+      // the reels turn: 4-frame stepped rotation, twice
       const reels = root.querySelectorAll(".ld-side-b .obj-reel");
       for (let i = 1; i <= 8; i++) tl.set(reels, { rotation: i * 90, transformOrigin: "50% 50%" }, `+=${1 / 15}`);
       break;
@@ -74,14 +80,14 @@ function buildTimeline(kind: ObjectKind, root: HTMLElement, S: number) {
       const tray = q(".ld-tray");
       const disc = q(".ld-obj");
       const spin = root.querySelectorAll(".obj-cd-spin");
-      tl.set(tray, { x: 0 }).set(disc, { x: S * 0.42, y: -S * 0.7, autoAlpha: 1 }).set(spin, { rotation: 0 });
+      tl.set(tray, { x: 0 }).set(disc, { x: S * 0.5, y: -S * 0.7, autoAlpha: 1 }).set(spin, { rotation: 0 });
       // the tray ejects to the right (4 frames)
-      seq(tl, tray, [0.1, 0.2, 0.32, 0.42].map((k) => ({ x: S * k })));
+      seq(tl, tray, [0.13, 0.26, 0.38, 0.5].map((k) => ({ x: S * k })));
       // the disc drops onto it (2 frames)
       seq(tl, disc, [{ y: -S * 0.3 }, { y: 0 }]);
       // the tray closes with the disc (3 frames)
-      seq(tl, [...Array.from(tray), ...Array.from(disc)], [0.28, 0.12, 0].map((k) => ({ x: S * k })));
-      // 8-frame stepped spin, two revolutions, stopping on the crown upright (15 fps)
+      seq(tl, [...Array.from(tray), ...Array.from(disc)], [0.33, 0.15, 0].map((k) => ({ x: S * k })));
+      // 8-frame stepped spin under the lid window, two revolutions, stopping on the crown upright
       for (let i = 1; i <= 8; i++) tl.set(spin, { rotation: i * 90 }, `+=${1 / 15}`);
       break;
     }
@@ -90,12 +96,10 @@ function buildTimeline(kind: ObjectKind, root: HTMLElement, S: number) {
       const flap = q(".ld-flap");
       const base = q(".ld-obj");
       const cards = Array.from(q(".ld-card"));
-      const mat = q(".ld-mat");
       tl.set(tear, { clipPath: "inset(0 100% 0 0)", autoAlpha: 1 })
         .set(flap, { autoAlpha: 0, x: 0, y: 0, rotation: 0 })
         .set(base, { clipPath: "inset(0% 0 0 0)" })
-        .set(cards, { autoAlpha: 0 })
-        .set(mat, { clipPath: "inset(0 0 100% 0)", autoAlpha: 1 });
+        .set(cards, { autoAlpha: 0 });
       // the tear runs along the top crimp, left to right (4 frames)
       seq(tl, tear, [75, 50, 25, 0].map((r) => ({ clipPath: `inset(0 ${r}% 0 0)` })));
       // the flap flies off (3 frames)
@@ -105,12 +109,9 @@ function buildTimeline(kind: ObjectKind, root: HTMLElement, S: number) {
         { x: S * 0.2, y: -S * 0.22, rotation: 28 },
         { x: S * 0.34, y: -S * 0.3, rotation: 48, autoAlpha: 0 },
       ]);
-      // five card backs fan out (5 frames), the playmat unrolls behind them in 3 bands
-      const fan = gsap.timeline();
-      cards.forEach((c, i) => fan.set(c, { autoAlpha: 1 }, i / 12));
-      tl.add(fan, `+=${1 / 12}`);
-      seq(tl, mat, [{ clipPath: "inset(0 0 66% 0)" }, { clipPath: "inset(0 0 33% 0)" }, { clipPath: "inset(0 0 0% 0)" }], 12);
-      tl.set({}, {}, `+=${1 / 12}`);
+      // five card backs fan out onto the playmat (5 frames)
+      cards.forEach((c) => tl.set(c, { autoAlpha: 1 }, `+=${1 / 12}`));
+      tl.set({}, {}, `+=${2 / 12}`);
       break;
     }
   }
@@ -120,16 +121,20 @@ function buildTimeline(kind: ObjectKind, root: HTMLElement, S: number) {
 function Scene({ kind, S }: { kind: ObjectKind; S: number }) {
   switch (kind) {
     case "gb-cart": {
-      const k = Math.max(1, Math.floor((S * 0.56) / 160));
+      // the DMG screen window at integer scale (P1)
+      const k = Math.max(1, Math.floor(Math.min((S * 0.47) / 160, (S * 0.4) / 144)));
+      // never below the width where the label shows whole (the mini label is for thumbnails)
+      const cartW = Math.max(Math.round(S * 0.34), Math.min(gbMinWidth(), Math.round(S * 0.42)));
       return (
         <>
-          <span className="ld-obj ld-gb-cart">
-            <ObjectArt kind="gb-cart" width={Math.round(S * 0.34)} />
+          <span className="ld-obj ld-gb-cart" style={{ left: Math.round((S - cartW) / 2) }}>
+            <ObjectArt kind="gb-cart" width={cartW} />
           </span>
-          <span className="ld-slot ld-dmg">
-            <span className="ld-led" />
+          <span className="ld-console ld-dmg">
+            <Dmg />
           </span>
-          <span className="ld-screen">
+          <span className="ld-led" />
+          <span className="ld-screen ld-gb-screen">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={`${RES}/galactic-news-cover.png`} alt="" width={160 * k} height={144 * k} />
           </span>
@@ -140,32 +145,47 @@ function Scene({ kind, S }: { kind: ObjectKind; S: number }) {
       return (
         <>
           <span className="ld-obj ld-gba-cart">
-            <ObjectArt kind="gba-cart" width={Math.round(S * 0.5)} />
+            <ObjectArt kind="gba-cart" width={Math.round(S * 0.46)} />
           </span>
-          <span className="ld-slot ld-gba" />
+          <span className="ld-console ld-gba">
+            <Gba />
+          </span>
+          <span className="ld-screen ld-gba-screen">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={`${RES}/minamoto-logo.png`} alt="" />
+          </span>
         </>
       );
     case "cassette":
       return (
         <>
-          <span className="ld-deck" />
           <span className="ld-obj ld-tape">
             <span className="ld-side-a">
-              <ObjectArt kind="cassette" width={Math.round(S * 0.56)} side="A" />
+              <ObjectArt kind="cassette" width={Math.round(S * 0.54)} side="A" />
             </span>
             <span className="ld-side-b">
-              <ObjectArt kind="cassette" width={Math.round(S * 0.56)} side="B" />
+              <ObjectArt kind="cassette" width={Math.round(S * 0.54)} side="B" />
             </span>
+          </span>
+          <span className="ld-console ld-deck">
+            <Deck />
+          </span>
+          <span className="ld-console ld-deck ld-deck-glass">
+            <DeckGlass />
           </span>
         </>
       );
     case "cd":
       return (
         <>
-          <span className="ld-player" />
-          <span className="ld-tray" />
+          <span className="ld-tray">
+            <CdTray />
+          </span>
           <span className="ld-obj ld-disc">
-            <ObjectArt kind="cd" width={Math.round(S * 0.42)} />
+            <ObjectArt kind="cd" width={Math.round(S * 0.4)} />
+          </span>
+          <span className="ld-console ld-player">
+            <CdPlayer />
           </span>
         </>
       );
@@ -203,7 +223,7 @@ export default function Load({ slug, eject = false }: { slug: Slug; eject?: bool
     const el = root.current?.parentElement;
     if (!el) return;
     const r = el.getBoundingClientRect();
-    setS(Math.round(Math.min(r.width * 0.86, r.height * 0.9, 560)));
+    setS(Math.round(Math.min(r.width * 0.9, r.height * 0.92, 620)));
   }, []);
 
   useEffect(() => {

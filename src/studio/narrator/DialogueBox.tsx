@@ -95,7 +95,7 @@ export default function DialogueBox({ pos }: { pos: BoxPos }) {
       node.textContent = page.text;
       pageShown(page);
       if (pendingCount() > 0) {
-        hold.current = window.setTimeout(advance, 1300 + page.text.length * 28);
+        hold.current = window.setTimeout(advance, 900 + page.text.length * 22);
       }
     };
     if (quiet()) {
@@ -124,8 +124,23 @@ export default function DialogueBox({ pos }: { pos: BoxPos }) {
     if (!shown.current || typing.current || pendingCount() === 0) return;
     const p = currentPage();
     window.clearTimeout(hold.current);
-    hold.current = window.setTimeout(advance, 900 + (p?.text.length ?? 0) * 20);
+    hold.current = window.setTimeout(advance, 900 + (p?.text.length ?? 0) * 22);
   }, [version]);
+
+  // any input completes the line being typed (the box itself also advances)
+  useEffect(() => {
+    const complete = (e: Event) => {
+      if (e instanceof KeyboardEvent && (e.key === "Tab" || e.key === "Shift" || e.metaKey || e.ctrlKey || e.altKey)) return;
+      if (box.current && e.target instanceof Node && box.current.contains(e.target)) return;
+      typing.current?.progress(1);
+    };
+    window.addEventListener("keydown", complete);
+    window.addEventListener("pointerdown", complete);
+    return () => {
+      window.removeEventListener("keydown", complete);
+      window.removeEventListener("pointerdown", complete);
+    };
+  }, []);
 
   const onPress = () => {
     if (typing.current) {
@@ -169,8 +184,18 @@ export default function DialogueBox({ pos }: { pos: BoxPos }) {
   return (
     <div className="box" ref={box} data-pos={pos} data-voice={voice}>
       {pos !== "tab" && <NameTag />}
-      <button type="button" className="box-body" onClick={onPress} aria-label="Next line" aria-describedby="box-live">
-        <span className="box-text" ref={text} aria-hidden="true" />
+      <button
+        type="button"
+        className="box-body"
+        onClick={onPress}
+        aria-label={pendingCount() > 0 ? `Next line (${pendingCount()} more)` : "Show the whole line"}
+        aria-describedby="box-live"
+      >
+        {/* the whole line, invisible, reserves the box's size so words never jump lines while typing */}
+        <span className="box-lines" aria-hidden="true">
+          <span className="box-text box-ghost">{page?.text ?? ""}</span>
+          <span className="box-text" ref={text} />
+        </span>
         {pendingCount() > 0 && (
           <span className="box-more" aria-hidden="true">
             ▼

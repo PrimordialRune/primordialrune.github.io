@@ -30,13 +30,13 @@ function Shell() {
             <a href="#works" className="strip-btn">
               <span className="lbl">
                 <span className="lbl-en">WORK</span>
-                <span className="lbl-jp" lang="ja">ワーク</span>
+                <span className="lbl-jp" lang="ja" aria-hidden="true">ワーク</span>
               </span>
             </a>
             <a href="#contact" className="strip-btn">
               <span className="lbl">
                 <span className="lbl-en">CONTACT</span>
-                <span className="lbl-jp" lang="ja">コンタクト</span>
+                <span className="lbl-jp" lang="ja" aria-hidden="true">コンタクト</span>
               </span>
             </a>
           </nav>

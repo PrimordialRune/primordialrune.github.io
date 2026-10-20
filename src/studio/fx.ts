@@ -111,8 +111,8 @@ export function glitch(kind: GlitchKind): Promise<void> {
       });
       tl.set(content, { filter: "drop-shadow(4px 0 0 rgba(215,38,61,.85)) drop-shadow(-4px 0 0 rgba(51,153,153,.85))" })
         .set(tear, { autoAlpha: 1, y: () => gsap.utils.random(-120, 120) })
-        .to(content, { keyframes: [{ x: -16 }, { x: 11 }, { x: -6 }, { x: 0 }], ...frames(4, 13) })
-        .to(tear, { keyframes: [{ y: "+=40" }, { y: "-=90" }, { y: "+=30" }], ...frames(3, 10) }, 0)
+        .to(content, { keyframes: [{ x: -16 }, { x: 11 }, { x: -6 }, { x: 0 }], ...frames(4, 15) })
+        .to(tear, { keyframes: [{ y: "+=40" }, { y: "-=90" }, { y: "+=30" }], ...frames(3, 12) }, 0)
         .set(tear, { autoAlpha: 0 });
       return;
     }

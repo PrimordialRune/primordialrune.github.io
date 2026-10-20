@@ -65,7 +65,6 @@ const AiLogo = forwardRef<SVGSVGElement, Props>(function AiLogo({ fill, classNam
         </clipPath>
         {grid && (["o", "i"] as const).map((part) => (
           <mask id={`${id}${part}`} key={part} maskUnits="userSpaceOnUse" x="0" y="0" width="555" height="555">
-            <rect width="555" height="555" fill="#000" />
             {GRID.map((c, i) => (
               <rect key={i} className={`cell cell-${part}`} data-g={c.g} x={c.x} y={c.y} width={CELL + 0.6} height={CELL + 0.6} fill="#fff" />
             ))}

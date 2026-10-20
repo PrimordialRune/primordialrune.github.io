@@ -87,7 +87,7 @@ export default function Title({ peek }: { peek: boolean }) {
         <h1 className="title-name v-machine" tabIndex={-1} ref={headingRef}>
           STILL HERE
         </h1>
-        <p className="v-sub title-jp" lang="ja">
+        <p className="v-sub title-jp" lang="ja" aria-hidden="true">
           まだここ
         </p>
       </div>

@@ -111,14 +111,37 @@ function Cassette({ side = "A" }: { side?: "A" | "B" }) {
 }
 
 // The label is pixel art (160×144, 4 tones), so it sits in HTML at an integer scale of
-// device pixels with nearest-neighbour sampling (P1), cropped by its sticker if needed.
+// device pixels with nearest-neighbour sampling (P1), whole inside its sticker window: the scale
+// is floored, never rounded up. Where even 1× doesn't fit (thumbnails), the sticker shows a
+// composed mini label in the same 4 tones instead of an accidental crop.
+const GB = ["#291f23", "#bd502f", "#34d1af", "#f7ecb9"];
+function MiniLabel() {
+  return (
+    <svg viewBox="0 0 40 36" className="obj-gb-mini" aria-hidden="true" shapeRendering="crispEdges">
+      <rect width="40" height="36" fill={GB[0]} />
+      {[[5, 4], [33, 7], [9, 29], [30, 30], [20, 3]].map(([x, y]) => (
+        <rect key={`${x}-${y}`} x={x} y={y} width="1" height="1" fill={GB[2]} />
+      ))}
+      <rect x="0" y="12" width="40" height="12" fill={GB[1]} />
+      <text x="20" y="21.5" textAnchor="middle" fontSize="10" className="obj-svg-black" fill={GB[3]}>
+        GN
+      </text>
+    </svg>
+  );
+}
+
+/** Width a Game Boy cart needs so its label shows whole at 1× on this screen */
+export const gbMinWidth = () =>
+  Math.ceil(Math.max(160 / (49.4 / 64 - 0.064), 144 / (45.4 / 64 - 0.064)) / (typeof window === "undefined" ? 1 : window.devicePixelRatio || 1)) + 1;
+
 function GbCart({ scale }: { scale: number }) {
   const id = useSvgId();
   const dpr = useSyncExternalStore(noSubscribe, readDpr, () => 1);
-  const innerW = 46 * scale;
-  // round up when the sticker would crop less than a fifth (only dark sky at the edges)
-  const fit = (innerW * dpr) / 160;
-  const k = Math.max(1, Math.ceil(fit) <= fit * 1.2 ? Math.ceil(fit) : Math.floor(fit));
+  const W = 64 * scale;
+  // the sticker window: 49.4 / 64 of the cart, minus the paper border on each side
+  const innerW = W * (49.4 / 64 - 0.064);
+  const innerH = W * ((45.4 / 64) - 0.064);
+  const k = Math.floor(Math.min((innerW * dpr) / 160, (innerH * dpr) / 144));
   const imgW = (160 * k) / dpr;
   return (
     <>
@@ -158,8 +181,12 @@ function GbCart({ scale }: { scale: number }) {
       </svg>
       <span className="obj-gb-sticker" style={{ left: `${(7.3 / 64) * 100}%`, top: `${(13.8 / 72) * 100}%`, width: `${(49.4 / 64) * 100}%`, height: `${(45.4 / 72) * 100}%` }}>
         <span className="obj-gb-screen">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={`${RES}/galactic-news-cover.png`} alt="" width={imgW} height={(imgW * 144) / 160} draggable={false} />
+          {k >= 1 ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={`${RES}/galactic-news-cover.png`} alt="" width={imgW} height={(imgW * 144) / 160} draggable={false} />
+          ) : (
+            <MiniLabel />
+          )}
         </span>
       </span>
     </>

@@ -45,8 +45,8 @@ export default function Hub({ ending = false }: { ending?: boolean }) {
         say("contact.enter");
         return;
       case "question":
-        say("question");
-        dispatch({ type: "QUESTION" });
+        // the question is asked first; the truth follows once it is on screen
+        say("question", { onShown: () => dispatch({ type: "QUESTION" }) });
         return;
       case "yes":
         dispatch({ type: "CHOICE", choice: "yes" });
@@ -102,7 +102,7 @@ export default function Hub({ ending = false }: { ending?: boolean }) {
       if (quiet()) {
         // first frame → last frame
         tl.set(objs, { autoAlpha: 0 }, 0.16).set(items, { autoAlpha: 0 }, 0.16);
-        tl.set([cellsI, cellsO], { attr: { fill: "#000" } }, 0.32);
+        tl.set([cellsI, cellsO], { attr: { fill: "none" } }, 0.32);
         return;
       }
       // each object put away in its own medium, in stepped frames (≤ 300 ms each)
@@ -126,7 +126,7 @@ export default function Hub({ ending = false }: { ending?: boolean }) {
       for (const cells of [cellsI, cellsO]) {
         for (let g = 0; g < 4; g++) {
           const group = Array.from(cells ?? []).filter((c) => c.dataset.g === String(g));
-          tl.set(group, { attr: { fill: "#000" } }, `+=${1 / 12}`);
+          tl.set(group, { attr: { fill: "none" } }, `+=${1 / 12}`);
         }
       }
     };
@@ -165,7 +165,7 @@ export default function Hub({ ending = false }: { ending?: boolean }) {
             <li key={c.id} className="cmd-item">
               <button type="button" className="cmd" onClick={() => run(c)} disabled={ending} data-id={c.id}>
                 <span className="cmd-en v-machine">{c.en}</span>
-                <span className="cmd-jp v-sub" lang="ja">
+                <span className="cmd-jp v-sub" lang="ja" aria-hidden="true">
                   {c.jp}
                 </span>
               </button>

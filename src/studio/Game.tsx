@@ -15,7 +15,7 @@ import {
   type View,
 } from "./story";
 import { consumeResetParam, readPowered, readStory, writePowered, writeStory } from "./persist";
-import { configureNarrator, say, clearNarrator, currentPage } from "./narrator/narrator";
+import { configureNarrator, say, clearNarrator, currentPage, flushContext } from "./narrator/narrator";
 import { glitch } from "./fx";
 import Frame from "./Frame";
 import Tube from "./Tube";
@@ -84,7 +84,20 @@ function boot(): Boot {
     writePowered(true);
     if (story.act === 4 && fromHash.kind === "hub") return { story, view: { kind: "void" }, line: null };
     const view = fromHash.kind === "about" && story.act === 3 ? { kind: "about" as const, side: "utsushi" as const } : fromHash;
-    return { story, view, line: null };
+    // the AI greets the view it was opened on, so the box never sits there empty
+    const line =
+      view.kind === "contact"
+        ? "contact.enter"
+        : view.kind === "about"
+          ? view.side === "utsushi"
+            ? "about.utsushi"
+            : "about.enter"
+          : view.kind === "record"
+            ? "record.enter"
+            : view.kind === "hub"
+              ? "hub.enter"
+              : null; // a manual says its own line
+    return { story, view, line };
   }
   if (story.act === 4) return { story, view: powered ? { kind: "void" } : { kind: "power" }, line: null };
   if (story.mode === "direct") {
@@ -140,6 +153,7 @@ export default function Game() {
   // ---------- views ----------
 
   const go = useCallback((v: View, opts: { replace?: boolean } = {}) => {
+    if (viewRef.current.kind !== v.kind || JSON.stringify(viewRef.current) !== JSON.stringify(v)) flushContext();
     viewRef.current = v;
     focusOnView.current = true;
     setView(v);
@@ -194,6 +208,8 @@ export default function Game() {
 
   const loadProject = useCallback(
     (slug: Slug) => {
+      // the view first, so the lines below belong to it
+      go({ kind: "load", slug });
       const before = storyRef.current;
       dispatch({ type: "OPEN", slug });
       // act.N (queued by the act change) plays before the object's own line
@@ -202,7 +218,6 @@ export default function Game() {
         if (!(before.act < 2 && s.act === 2 && slug === "haunt-record")) say(`open:${slug}`);
         say(`load:${slug}`);
       }
-      go({ kind: "load", slug });
     },
     [dispatch, go],
   );
@@ -235,7 +250,9 @@ export default function Game() {
         return;
       }
       if (next > prev) {
-        void glitch("act").then(() => (next === 2 ? glitch("bezel") : undefined));
+        // the tear and (on the first escape) the bezel tear run together: ≤ 300 ms in all
+        void glitch("act");
+        if (next === 2) void glitch("bezel");
         if (next === 3) {
           if (v.kind === "hub") reveal();
         } else {
@@ -262,13 +279,13 @@ export default function Game() {
     });
     if (initial.line) {
       say(initial.line);
-      if (storyRef.current.act === 3 && !storyRef.current.flags.includes("revealPlayed")) {
+      if (initial.view.kind === "hub" && storyRef.current.act === 3 && !storyRef.current.flags.includes("revealPlayed")) {
         say("act.3");
         say("act.3.ask", { onShown: () => dispatch({ type: "FLAG", flag: "revealPlayed" }) });
       }
     }
     return () => clearNarrator();
-  }, [initial.line, dispatch]);
+  }, [initial.line, initial.view.kind, dispatch]);
 
   // a WORK / CONTACT click on the static first paint can land between boot and mount
   useEffect(() => {
@@ -281,6 +298,14 @@ export default function Game() {
     });
     return () => cancelAnimationFrame(id);
   }, [go]);
+
+  // twist 3, the frame won't obey: act 2, once, about 4 s after the hub is on screen (however it got there)
+  const refused = story.flags.includes("frameRefused");
+  useEffect(() => {
+    if (view.kind !== "hub" || story.act !== 2 || story.mode !== "story" || refused) return;
+    const id = window.setTimeout(() => window.dispatchEvent(new Event("studio:refuse")), 4000);
+    return () => window.clearTimeout(id);
+  }, [view.kind, story.act, story.mode, refused]);
 
   // DIRECT mode: the AI keeps to its single-line tab
   useEffect(() => {
@@ -302,6 +327,7 @@ export default function Game() {
         else enterHub();
         return;
       }
+      flushContext();
       viewRef.current = v;
       focusOnView.current = true;
       setView(v.kind === "about" && s.act === 3 ? { kind: "about", side: "utsushi" } : v);

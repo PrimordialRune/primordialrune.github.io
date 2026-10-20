@@ -10,7 +10,7 @@ import { useGame } from "../ctx";
 import { getProject, neighbour, PROJECTS, projectIndex } from "../projects";
 import { MANUALS } from "../script";
 import { loadLabel, type Slug } from "../story";
-import ObjectArt, { ART_SIZE } from "../objects/art";
+import ObjectArt, { ART_SIZE, gbMinWidth } from "../objects/art";
 import { frames, quiet } from "../fx";
 import { Label } from "../Frame";
 
@@ -44,7 +44,9 @@ export default function Record({ focus }: { focus: Slug }) {
   const art = ART_SIZE[p.kind];
   const maxH = narrow ? Math.min(h * 0.34, 240) : Math.min(h * 0.56, 340);
   const maxW = narrow ? w * 0.78 : Math.min(w * 0.42, 440);
-  const heldW = Math.max(80, Math.min(maxW, (maxH * art.w) / art.h));
+  const fitW = Math.max(80, Math.min(maxW, (maxH * art.w) / art.h));
+  // the Game Boy label must show whole at 1× (P1), so that cart may grow a little
+  const heldW = p.kind === "gb-cart" ? Math.min(Math.max(fitW, gbMinWidth()), w * 0.9) : fitW;
   const smallFor = (kind: keyof typeof ART_SIZE) => {
     const a = ART_SIZE[kind];
     const cap = narrow ? Math.min(w / 4 - 18, 64) : 96;
@@ -120,7 +122,7 @@ export default function Record({ focus }: { focus: Slug }) {
           </p>
           <h1 className="rec-title" tabIndex={-1} ref={headingRef}>
             {man.title}
-            <span className="rec-jp v-sub" lang="ja">
+            <span className="rec-jp v-sub" lang="ja" aria-hidden="true">
               {man.titleJp}
             </span>
           </h1>

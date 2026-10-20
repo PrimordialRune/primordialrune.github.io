@@ -9,7 +9,7 @@ import { useGame } from "../ctx";
 import { getProject, neighbour, OMAR_TODO } from "../projects";
 import { MANUALS } from "../script";
 import type { Slug } from "../story";
-import ObjectArt from "../objects/art";
+import ObjectArt, { gbMinWidth } from "../objects/art";
 import { spring } from "../fx";
 import { say } from "../narrator/narrator";
 
@@ -43,8 +43,8 @@ export default function Manual({ slug }: { slug: Slug }) {
       if (closing.current) return;
       closing.current = true;
       const done = () => {
-        say(`close:${slug}`);
         go({ kind: "load", slug, eject: true });
+        say(`close:${slug}`);
       };
       if (!panel.current) return done();
       gsap.killTweensOf(panel.current);
@@ -72,13 +72,13 @@ export default function Manual({ slug }: { slug: Slug }) {
       <article className="booklet" ref={panel} aria-labelledby="mn-title">
         <header className="mn-cover">
           <div className="mn-obj">
-            <ObjectArt kind={p.kind} width={p.kind === "gb-cart" ? 128 : p.kind === "gba-cart" ? 216 : 200} />
+            <ObjectArt kind={p.kind} width={p.kind === "gb-cart" ? Math.max(160, gbMinWidth()) : p.kind === "gba-cart" ? 216 : 200} />
           </div>
           <div className="mn-head">
             <p className="mn-kicker">Instruction manual</p>
             <h1 id="mn-title" tabIndex={-1} ref={headingRef}>
               {m.title}
-              <span className="mn-jp v-sub" lang="ja">
+              <span className="mn-jp v-sub" lang="ja" aria-hidden="true">
                 {m.titleJp}
               </span>
             </h1>

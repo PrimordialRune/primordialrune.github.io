@@ -64,8 +64,14 @@ export function useFourthWall({ story, view, dispatch, storyRef }: Args) {
 
   // title + favicon follow the act
   useEffect(() => {
-    if (document.visibilityState !== "hidden") document.title = baseTitle(story);
+    const apply = () => {
+      if (document.visibilityState !== "hidden") document.title = baseTitle(story);
+    };
+    apply();
     setFavicon(story.mode === "direct" ? 0 : story.act);
+    // Next's metadata can land after the first effect; set it again once things settle
+    const t = window.setTimeout(apply, 400);
+    return () => window.clearTimeout(t);
   }, [story]);
 
   // tab hidden / returned
@@ -134,7 +140,11 @@ export function useFourthWall({ story, view, dispatch, storyRef }: Args) {
     const h = new Date().getHours();
     if (h < 5) say("time.night");
     else if (h < 9) say("time.morning");
-    if (story.visits > 1 && story.act > 0) say("visit.return");
+    // the visit count: once per page load, not once per act
+    if (story.visits > 1 && !firedPerAct.current.has("visit")) {
+      firedPerAct.current.add("visit");
+      say("visit.return");
+    }
   }, [view.kind, story.act, story.mode, story.visits]);
 
   // pointer leaving through the top edge, once per act; resize > 25%, once; copy from contact

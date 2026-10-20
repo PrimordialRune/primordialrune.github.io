@@ -83,13 +83,17 @@ body {
 :focus {
   outline: none;
 }
-:focus-visible {
+:focus-visible,
+.studio :focus-visible,
+.studio a:focus-visible,
+.studio button:focus-visible {
   outline: 2px solid var(--blood-orange);
   outline-offset: 3px;
   box-shadow: 0 0 0 4px rgba(236, 86, 59, 0.25), 0 0 14px rgba(236, 86, 59, 0.45);
   transition: outline-color 0.12s, box-shadow 0.12s;
 }
-[tabindex="-1"]:focus-visible {
+[tabindex="-1"]:focus-visible,
+.studio [tabindex="-1"]:focus-visible {
   outline: none;
   box-shadow: none;
 }

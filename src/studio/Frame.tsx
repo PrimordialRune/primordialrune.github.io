@@ -4,6 +4,8 @@
 // WORK and CONTACT are always one click away, in every act, even after the ending.
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { gsap } from "gsap";
+import { quiet } from "./fx";
 import { useGame } from "./ctx";
 import { FrameLogo } from "./Logo";
 import {
@@ -13,7 +15,7 @@ import {
   writeMotionSetting,
   type MotionSetting,
 } from "@/lib/motion";
-import { say } from "./narrator/narrator";
+import { say, clearNarrator } from "./narrator/narrator";
 import { eraseAll } from "./persist";
 import { SLUGS } from "./story";
 
@@ -41,6 +43,11 @@ export function FrameIdentity() {
       <p className="strip-name">
         <span className="strip-omar" data-frame-name>
           Omar Golinelli
+          {/* twist 3: the AI tries to type over the frame and the frame refuses. Visual only */}
+          <span className="refuse" aria-hidden="true">
+            <span className="refuse-glyph">0</span>
+            <span className="refuse-caret" />
+          </span>
         </span>
         <span className="strip-role"> · Game designer &amp; developer</span>
       </p>
@@ -52,7 +59,7 @@ export function Label({ en, jp }: { en: string; jp: string }) {
   return (
     <span className="lbl">
       <span className="lbl-en">{en}</span>
-      <span className="lbl-jp" lang="ja">
+      <span className="lbl-jp" lang="ja" aria-hidden="true">
         {jp}
       </span>
     </span>
@@ -78,6 +85,7 @@ export default function Frame() {
   const toggleStory = () => {
     const mode = direct ? "story" : "direct";
     dispatch({ type: "SET_MODE", mode });
+    clearNarrator();
     say(mode === "direct" ? "story.off" : "story.on", { force: true, interrupt: true });
   };
 
@@ -109,6 +117,51 @@ export default function Frame() {
       window.removeEventListener("keydown", close);
     };
   }, [menu]);
+
+  // twist 3 (act 2): a caret tries to write 0 over the O of Omar's name; the frame won't take it
+  useEffect(() => {
+    const run = () => {
+      const name = document.querySelector<HTMLElement>(".frame .strip-omar");
+      const glyph = name?.querySelector<HTMLElement>(".refuse-glyph");
+      const caret = name?.querySelector<HTMLElement>(".refuse-caret");
+      const text = name?.firstChild;
+      if (!name || !glyph || !caret || !text) return;
+      const r = document.createRange();
+      r.setStart(text, 0);
+      r.setEnd(text, 4);
+      const base = name.getBoundingClientRect().left;
+      const endOfOmar = r.getBoundingClientRect().right - base;
+      r.setEnd(text, 1);
+      const oWidth = r.getBoundingClientRect().width;
+      const done = () => {
+        gsap.set([glyph, caret], { autoAlpha: 0, x: 0, y: 0 });
+        dispatch({ type: "FLAG", flag: "frameRefused" });
+        say("frame.refuse");
+      };
+      gsap.set(glyph, { width: oWidth });
+      if (quiet()) {
+        gsap.timeline({ onComplete: done }).set(glyph, { autoAlpha: 1 }).set(glyph, { autoAlpha: 0 }, 0.16);
+        return;
+      }
+      const f = 1 / 12;
+      gsap
+        .timeline({ onComplete: done })
+        // the caret blinks after "Omar" (stepped), then jumps to the O
+        .set(caret, { autoAlpha: 1, x: endOfOmar })
+        .set(caret, { autoAlpha: 0 }, f * 3)
+        .set(caret, { autoAlpha: 1 }, f * 6)
+        .set(caret, { x: 0 }, f * 9)
+        // it types 0 over the O...
+        .set(glyph, { autoAlpha: 1 }, f * 12)
+        .set(caret, { x: oWidth }, f * 12)
+        // ...and the frame refuses: the character bounces back out in 2 frames
+        .set(glyph, { y: -5 }, f * 20)
+        .set(glyph, { y: -10, autoAlpha: 0 }, f * 21)
+        .set(caret, { autoAlpha: 0 }, f * 24);
+    };
+    window.addEventListener("studio:refuse", run);
+    return () => window.removeEventListener("studio:refuse", run);
+  }, [dispatch]);
 
   const erase = () => {
     eraseAll();
