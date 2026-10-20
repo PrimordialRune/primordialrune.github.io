@@ -231,7 +231,9 @@ export default function Home() {
         </div>
       </header>
 
+      {/* The TV: plastic housing with a chin, a recessed dark surround, then the tube */}
       <main className="console-screen">
+        <div className="tv-recess">
         <CRTScreen>
           {powered && !voidPeek && (
             <Navigation
@@ -252,6 +254,12 @@ export default function Home() {
             </div>
           )}
         </CRTScreen>
+        </div>
+        <div className="tv-chin" aria-hidden="true">
+          <span className="tv-grille" />
+          <span className="tv-badge">PRIMORDIAL RUNE</span>
+          <span className="tv-led" />
+        </div>
       </main>
 
       <div className="nes-stripe nes-stripe-bottom" />
