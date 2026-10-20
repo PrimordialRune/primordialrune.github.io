@@ -1,13 +1,14 @@
 "use client";
 
-// Crossfader's cassette, redrawn from the desk object with both sides printed: side A
+// Crossfader's cassette: the desk object's art (desk/DeskArt.tsx Cassette, copied line for
+// line so the tape you clicked is the tape in the walkman) with both sides printed: side A
 // "The Game", side B "Making Of". Drawn in its own 100 x 64 space as an SVG group so a
 // walkman can hold two copies (one in the hand, one in the well). Every label face is
 // a named group the timeline swaps; the mirrored faces (Am, Bm) read correctly while the
 // tape is turned over on Y (scaleX < 0), because a tape flips, it never fades (P3).
 import { asset } from "../../asset";
 import type { Side } from "../../types";
-import { FONT_BLACK, GrainFilter, useSvgId } from "./shared";
+import { FONT_BLACK, FONT_MACHINE, useSvgId } from "./shared";
 
 export const REELS = [
   { cx: 37, cy: 32.4 },
@@ -19,10 +20,10 @@ const FACE = {
   B: { letter: "B", ink: "#53b3c9", top: "#53b3c9", bottom: "#e0459b", line: "SIDE B ◆ MAKING OF" },
 } as const;
 
-function Label({ side, grain }: { side: Side; grain: string }) {
+function Label({ side }: { side: Side }) {
   const f = FACE[side];
   return (
-    <g filter={`url(#${grain})`}>
+    <g>
       <rect x="6" y="4.6" width="88" height="40.4" rx="2" fill="#f1ead6" />
       <rect x="6" y="21" width="88" height="2.2" fill={f.top} />
       <rect x="6" y="23.2" width="88" height="1.1" fill={f.bottom} />
@@ -30,7 +31,7 @@ function Label({ side, grain }: { side: Side; grain: string }) {
         {f.letter}
       </text>
       <image href={asset("resources/desk/crossfader-logo.png")} x="19.5" y="6" width="68" height="14" preserveAspectRatio="xMidYMid meet" />
-      <text x="50" y="43" style={FONT_BLACK} fontSize="2.6" fill="#2e2828" textAnchor="middle" letterSpacing=".3">
+      <text x="50" y="43.2" style={FONT_MACHINE} fontSize="2.5" fill="#2e2828" textAnchor="middle" letterSpacing=".25">
         {f.line}
       </text>
     </g>
@@ -65,22 +66,21 @@ export function CassetteArt({ name, side }: { name: string; side: Side }) {
         <clipPath id={`${id}c`}>
           <rect x="27" y="26.4" width="46" height="12" rx="6" />
         </clipPath>
-        <GrainFilter id={`${id}n`} opacity={0.14} scale={2.6} />
       </defs>
       <rect x=".5" y=".5" width="99" height="63" rx="4" fill={`url(#${id}s)`} stroke="#8a6c17" strokeWidth=".8" />
       <rect x="5.2" y="3.9" width="89.6" height="42" rx="2.6" fill="#b8962a" opacity=".55" />
 
       <g data-p={`${name}-A`} visibility={vis(side === "A")}>
-        <Label side="A" grain={`${id}n`} />
+        <Label side="A" />
       </g>
       <g data-p={`${name}-B`} visibility={vis(side === "B")}>
-        <Label side="B" grain={`${id}n`} />
+        <Label side="B" />
       </g>
       <g data-p={`${name}-Am`} visibility="hidden" transform="translate(100 0) scale(-1 1)">
-        <Label side="A" grain={`${id}n`} />
+        <Label side="A" />
       </g>
       <g data-p={`${name}-Bm`} visibility="hidden" transform="translate(100 0) scale(-1 1)">
-        <Label side="B" grain={`${id}n`} />
+        <Label side="B" />
       </g>
 
       {/* tape window: purple frame, smoked plastic, two reels */}

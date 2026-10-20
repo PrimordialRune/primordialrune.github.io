@@ -6,7 +6,7 @@
 // left and a specular edge (P3), dressed in each project's real label art and palette (P4).
 // Lighting gradients live only on the objects; interface surfaces stay flat.
 
-import { useId, useSyncExternalStore } from "react";
+import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import type { ArtKind as DeskObjectKind } from "../content/layout";
 import { asset } from "../asset";
 import s from "./DeskArt.module.css";
@@ -105,15 +105,34 @@ function Cassette() {
   );
 }
 
+/** The GB label window is this fraction of the cart's width (sticker geometry below) */
+export const GB_WINDOW_FRACTION = 49.4 / 64 - 2 * 0.032;
+
+/**
+ * Label window width in CSS px for a wanted width: 160 art px at an integer number of device
+ * pixels each, never less than one (P1). The cart is then sized from this, so the cover is whole.
+ */
+export function gbWindowPx(wanted: number, dpr: number): number {
+  const k = Math.max(1, Math.ceil((wanted * dpr) / 160 - 0.05));
+  return (160 * k) / dpr;
+}
+
 // The label is pixel art (160×144, 4 tones), so it sits in HTML at an integer scale of
-// device pixels with nearest-neighbour sampling (P1), cropped by its sticker if needed.
-function GbCart({ scale }: { scale: number }) {
+// device pixels with nearest-neighbour sampling (P1). The cart is sized so it shows whole.
+function GbCart() {
   const id = useSvgId();
   const dpr = useSyncExternalStore(noSubscribe, readDpr, () => 1);
-  const innerW = 46 * scale;
-  // round up when the sticker would crop less than a fifth (only dark sky at the edges)
-  const fit = (innerW * dpr) / 160;
-  const k = Math.max(1, Math.ceil(fit) <= fit * 1.2 ? Math.ceil(fit) : Math.floor(fit));
+  const screenRef = useRef<HTMLSpanElement>(null);
+  const [boxW, setBoxW] = useState(160);
+  useEffect(() => {
+    const el = screenRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setBoxW(el.clientWidth || 160));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  // the largest integer device scale that fits the window: whole cover, never cropped
+  const k = Math.max(1, Math.floor((boxW * dpr + 0.5) / 160));
   const imgW = (160 * k) / dpr;
   return (
     <>
@@ -152,7 +171,7 @@ function GbCart({ scale }: { scale: number }) {
         <path d="M1.25 3.5 V68" stroke="#fbf9f4" strokeWidth=".5" strokeLinecap="round" opacity=".7" />
       </svg>
       <span className={s.gbSticker} style={{ left: `${(7.3 / 64) * 100}%`, top: `${(13.8 / 72) * 100}%`, width: `${(49.4 / 64) * 100}%`, height: `${(45.4 / 72) * 100}%` }}>
-        <span className={s.gbScreen}>
+        <span className={s.gbScreen} ref={screenRef}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={`${RES}/galactic-news-cover.png`} alt="" width={imgW} height={(imgW * 144) / 160} draggable={false} />
         </span>
@@ -330,12 +349,12 @@ function Booster() {
   );
 }
 
-export default function DeskArt({ kind, scale }: { kind: DeskObjectKind; scale: number }) {
+export default function DeskArt({ kind }: { kind: DeskObjectKind }) {
   switch (kind) {
     case "cassette":
       return <Cassette />;
     case "gb-cart":
-      return <GbCart scale={scale} />;
+      return <GbCart />;
     case "gba-cart":
       return <GbaCart />;
     case "cd":

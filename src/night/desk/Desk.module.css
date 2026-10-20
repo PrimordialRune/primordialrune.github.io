@@ -37,6 +37,9 @@
   padding: 0;
   list-style: none;
   z-index: 3;
+  /* the list spans the mat, but only the objects take the pointer: the Trinitron (save
+     select, narrator box) sits under it and must stay clickable */
+  pointer-events: none;
 }
 
 .item {
@@ -46,7 +49,12 @@
   left: calc(var(--x) * 1%);
   top: calc(var(--y) * 1%);
   width: calc(var(--aw) * var(--u));
+  pointer-events: auto;
 }
+/* the GB cart is sized from its 160x144 label (DeskObject), so the cover shows whole */
+.item[data-kind="gb-cart"] { width: var(--gbw, 228px); }
+/* the object is in the device right now: hidden here, layout kept for the way back */
+.item[data-away] { visibility: hidden; }
 @supports (left: round(nearest, 10%, 8px)) {
   .item {
     left: round(nearest, calc(var(--x) * 1%), 8px);
@@ -128,10 +136,12 @@
 }
 .capJp {
   font-family: var(--f-kana);
-  font-size: 10px;
+  font-size: 13px;
   line-height: 1;
+  letter-spacing: 0.04em;
   white-space: nowrap;
-  color: rgba(51, 153, 153, 0.8);
+  color: var(--aquamarine);
+  /* no drop shadow or transform on text: it stays on whole pixels */
 }
 .obj:hover .capEn,
 .obj:focus-visible .capEn { opacity: 1; }
@@ -156,7 +166,8 @@
     left: auto;
     top: var(--bar-h, 96px);
     width: 100%;
-    height: 88px;
+    /* tall enough for the save select to keep its SELECT FILE title */
+    height: 120px;
     aspect-ratio: auto;
     z-index: 6;
   }
@@ -183,6 +194,8 @@
     max-width: 320px;
   }
   .obj[data-kind="notebook"] { width: 44vw; }
+  .item[data-kind="gb-cart"] { width: auto; }
+  .obj[data-kind="gb-cart"] { width: var(--gbw, 228px); max-width: none; }
   .art { transform: none; }
   .obj:hover .art,
   .obj:focus-visible .art { transform: translateY(-4px); }

@@ -65,7 +65,9 @@
 }
 .arrow {
   flex: 0 0 auto;
-  font-size: 12px;
+  font-size: 16px;
+  line-height: 1;
+  display: inline-flex;
   color: #fadb68;
   visibility: hidden;
 }
@@ -92,24 +94,32 @@
     display: none;
   }
 }
-/* The phone strip is only 88px tall: the files sit in a row */
-@container night-screen (max-height: 140px) {
+/* The phone strip is a short band (88-120px): the title on one line, the files in a row
+   under it. Kana drops out here (it never stands alone, and it can't sit under the title
+   at this height); so do the name tag and counts. */
+@container night-screen (max-height: 160px) and (min-aspect-ratio: 5 / 2) {
   .screen {
-    flex-direction: row;
-    align-items: center;
-    padding: 8px 12px;
-    gap: 12px;
+    justify-content: center;
+    padding: 6px 12px;
+    gap: 4px;
   }
-  .head {
+  .kana {
     display: none;
   }
   .list {
     flex-direction: row;
-    flex: 1;
+    gap: 4px;
+  }
+  .list > li {
+    flex: 1 1 0;
+    min-width: 0;
   }
   .row {
     min-height: 44px;
+    padding: 0 6px;
+    gap: 6px;
   }
+  .extra,
   .meta {
     display: none;
   }

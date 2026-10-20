@@ -58,6 +58,27 @@
   position: absolute;
   right: 12px;
   bottom: 6px;
-  font-size: 10px;
+  font-size: 16px;
+  line-height: 1;
   color: #fadb68;
+}
+/* Docked on the dead set (no clear spot on the mat, i.e. a phone): one compact row */
+.box[data-docked="1"] {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+}
+.box[data-docked="1"] .head {
+  flex-direction: column;
+  gap: 2px;
+  flex: 0 0 auto;
+}
+.box[data-docked="1"] .logo {
+  width: 28px;
+  height: 28px;
+}
+.box[data-docked="1"] .line {
+  flex: 1;
+  min-width: 0;
 }

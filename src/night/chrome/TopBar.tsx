@@ -3,6 +3,7 @@
 // The one flat strip: wordmark, WORK / ABOUT / CONTACT, MOTION, and the CRT power switch.
 // Neutral and quiet (P3): the objects carry the period detail, not the chrome.
 import type { Ref } from "react";
+import { LOGO_INNER, LOGO_OUTER } from "@/lib/logo";
 import MotionToggle from "./MotionToggle";
 import PowerButton from "./PowerButton";
 import s from "./TopBar.module.css";
@@ -30,6 +31,10 @@ export default function TopBar({ indexOpen, workRef, powered, onWork, onAbout, o
         }}
         aria-label="PrimordialRune, Omar Golinelli: back to the desk"
       >
+        <svg className={s.mark} viewBox="0 0 554.72 555" width="28" height="28" aria-hidden="true">
+          <path d={LOGO_OUTER} fill="var(--cream)" />
+          <path d={LOGO_INNER} fill="var(--blood-orange)" />
+        </svg>
         <span className={s.wmA}>PRIMORDIAL</span>
         <span className={s.wmB}>RUNE</span>
       </a>

@@ -24,6 +24,13 @@ body {
   outline-offset: 3px;
 }
 
+/* A view's title takes focus programmatically (deep link, open, close). Its ring only shows
+   when the visitor is using the keyboard; html[data-input] is set by NightDesk. */
+html:not([data-input="keyboard"]) [tabindex="-1"]:focus,
+html:not([data-input="keyboard"]) [tabindex="-1"]:focus-visible {
+  outline: none;
+}
+
 .nd-sr-only {
   position: absolute !important;
   width: 1px;
@@ -46,7 +53,7 @@ body {
 .nd-omar { font-family: var(--f-omar); font-weight: 300; }
 .nd-omar-black { font-family: var(--f-omar); font-weight: 900; }
 .nd-machine { font-family: var(--f-machine); font-weight: 400; font-size: 16px; line-height: 1; white-space: nowrap; }
-.nd-kana { font-family: var(--f-kana); color: rgba(51, 153, 153, 0.8); }
+.nd-kana { font-family: var(--f-kana); color: var(--aquamarine); }
 
 /* Skip link */
 .nd-skip {

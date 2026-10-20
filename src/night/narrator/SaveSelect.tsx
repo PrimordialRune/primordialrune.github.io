@@ -6,6 +6,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { emitStory } from "../bus";
 import { glitch } from "./glitch";
+import { PixelText } from "./Speaker";
 import { noteSaveSelectShown, useSaveSelect, useStory } from "./story";
 import styles from "./saveSelect.module.css";
 
@@ -82,19 +83,23 @@ export default function SaveSelect() {
               onClick={() => choose(key)}
             >
               <span className={styles.arrow} aria-hidden="true">
-                ▶
+                <PixelText text="▶" />
               </span>
               {key === "continue" && (
                 <span className={styles.body} aria-hidden="true">
                   <span>FILE 1</span>
-                  <span>{nameTag}</span>
+                  <span className={styles.extra}>
+                    <PixelText text={nameTag} />
+                  </span>
                   <span className={styles.meta}>{openedCount}/5</span>
                 </span>
               )}
               {key === "corrupt" && (
                 <span className={styles.body} aria-hidden="true">
                   <span>FILE ?</span>
-                  <span>▓▒░▒</span>
+                  <span className={styles.extra}>
+                    <PixelText text="▓▒░▒" />
+                  </span>
                   <span className={styles.meta}>?/5</span>
                 </span>
               )}

@@ -28,8 +28,31 @@ export default function MotionToggle() {
     refs.current[n]?.focus();
   };
 
+  // phone: one button that cycles AUTO -> FULL -> QUIET, its value always printed on it
+  const at = OPTIONS.findIndex((o) => o.id === setting);
+  const cur = OPTIONS[at < 0 ? 0 : at];
+  const next = OPTIONS[(at + 1) % OPTIONS.length];
+  const cycle = (
+    <button
+      type="button"
+      className={s.motionCycle}
+      data-suggest={autoQuiet ? "" : undefined}
+      aria-label={`Motion: ${cur.label}${autoQuiet ? ", quiet because your system asked for less motion" : ""}. Press to switch to ${next.label}.`}
+      onClick={() => writeMotionSetting(next.id)}
+    >
+      <span className={s.cycleLabel} aria-hidden="true">
+        {autoQuiet ? "SYSTEM: LESS" : "MOTION"}
+      </span>
+      <span className={s.cycleValue} aria-hidden="true">
+        {cur.label}
+        <span className={s.cycleNext}>›</span>
+      </span>
+    </button>
+  );
+
   return (
     <div className={s.motion}>
+      {cycle}
       <span className={s.motionLabel} id="nd-motion-label">
         <span>MOTION</span>
         <span className={s.kana}>モーション</span>

@@ -6,13 +6,14 @@
 import { asset } from "../asset";
 import type { ManualImage, ManualSection, NightProject } from "../content/projects";
 import { useIntScaleWidth } from "./hooks";
+import MarginNote from "./MarginNote";
 import s from "./Manual.module.css";
 
 export const sectionId = (projectId: string, i: number) => `nm-${projectId}-${i}`;
 
 function Figure({ img }: { img: ManualImage }) {
   const native = img.w ?? 640;
-  const { box, width } = useIntScaleWidth(native, !!img.pixel);
+  const { box, width } = useIntScaleWidth(native, img.pixel ? "pixel" : (img.fit ?? "shrink"));
   return (
     <figure className={s.figure} ref={box}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -72,6 +73,9 @@ export default function ManualBody({ project, sections }: { project: NightProjec
     ...(project.credits ? ([["Credits", project.credits]] as [string, string][]) : []),
   ];
   const images = project.images ?? [];
+  // the AI's note sits beside Design Notes (or after the last section when there are none)
+  const notesAt = sections.findIndex((x) => x.en === "Design Notes");
+  const noteAt = notesAt >= 0 ? notesAt : sections.length - 1;
 
   return (
     <div className={s.body}>
@@ -99,6 +103,7 @@ export default function ManualBody({ project, sections }: { project: NightProjec
             </p>
           ))}
           {i === 0 && images.map((img) => <Figure key={img.src} img={img} />)}
+          {i === noteAt && <MarginNote id={project.id} />}
         </section>
       ))}
     </div>

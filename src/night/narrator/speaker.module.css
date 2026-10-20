@@ -54,3 +54,10 @@
 .ghost {
   visibility: hidden;
 }
+/* A pixel glyph the face lacks, drawn in blocks (see PixelText) */
+.glyph {
+  display: inline-block;
+  fill: currentColor;
+  margin: 0 0.0625em;
+  overflow: visible;
+}

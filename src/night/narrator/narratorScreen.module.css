@@ -79,12 +79,13 @@
   position: absolute;
   right: 10px;
   bottom: 6px;
-  font-size: 10px;
+  font-size: 16px;
+  line-height: 1;
   color: #fadb68;
 }
 
 /* Phone: the screen is an 88px strip across the top. Logo, tag and line in one row. */
-@container night-screen (max-height: 140px) {
+@container night-screen (max-height: 160px) and (min-aspect-ratio: 5 / 2) {
   .speaker {
     flex-direction: row;
     align-items: center;

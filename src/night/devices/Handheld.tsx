@@ -4,6 +4,8 @@
 //   GB   Galactic News: portrait handheld, 160x144 screen in the game's 4 tones
 //   GBA  Project Minamoto: landscape handheld, 240x160 screen in 6 tones from the logo
 // Beats (full mode, 12fps frames, F = 83ms):
+//   F0-F2     the cart you clicked leaves its slot on the mat (FLIP from the desk rect) and the
+//             camera spring carries it over the handheld; every beat below then runs 2F later
 //   F1        the cart lifts (its shadow grows), the camera springs toward the mat corner
 //   F1-F4     the handheld steps in from the lower right
 //   F5-F7     the cart steps into the slot; F7 is the clack (impact marks, 1-unit jolt)
@@ -18,13 +20,21 @@ import { useCeremony } from "../motion/ceremony";
 import { FRAME as F, stepFrames, stepTo } from "../motion/stepped";
 import { SCREEN_PALETTES } from "../content/palettes";
 import type { DeviceProps } from "../types";
-import { GB_CART, GBA_CART, GbCartArt, GbaCartArt } from "./art/Carts";
+import DeskArt from "../desk/DeskArt";
+import { deskPose, flipFromDesk, FLIP_REST } from "./flip";
 import { GB_BODY, GBA_BODY, GbShellArt, GbaShellArt } from "./art/Handhelds";
 import { DEVICE_CLOSING_DESCRIPTIONS, DEVICE_DESCRIPTIONS } from "./descriptions";
-import { Stage, pixelUnit, snap, useStageSize } from "./Stage";
+import { layoutKey, Stage, pixelUnit, snap, useStageSize } from "./Stage";
 import s from "./devices.module.css";
 
 type Skin = "gb" | "gba";
+
+// the carts are the desk's own art (desk/DeskArt), at the desk's aspect ratios (64x72,
+// 80x52), measured in the handheld's units (one unit = one screen pixel)
+const GB_CART = { w: 208, h: 234 } as const;
+const GBA_CART = { w: 230, h: 149.5 } as const;
+/** frames the travel from the mat gets before the insertion beats start */
+const TRAVEL = 2 * F;
 
 const SKIN = {
   gb: { body: GB_BODY, cart: GB_CART, screen: { w: 160, h: 144 }, lift: 250 },
@@ -64,6 +74,7 @@ function Handheld({ skin, ...props }: DeviceProps & { skin: Skin }) {
       const [rig] = q("[data-p=rig]");
       const [body] = q("[data-p=body]");
       const [cart] = q("[data-p=cart]");
+      const [fly] = q("[data-p=fly]");
       const knob = q("[data-p=knob]");
       const led = q("[data-p=led-on]");
       const clack = q("[data-p=clack]");
@@ -77,6 +88,8 @@ function Handheld({ skin, ...props }: DeviceProps & { skin: Skin }) {
       gsap.set(rig, { xPercent: -8, yPercent: wideY - 6, scale: s0 * 0.92, transformOrigin: `${(fx / k.body.w) * 100}% ${(fy / k.body.h) * 100}%` });
       gsap.set(body, { xPercent: 240, yPercent: 64 });
       gsap.set(cart, { y: -k.lift * u, filter: SHADOW_REST });
+      // the very cart from the mat: measured in this start pose, before any beat renders
+      const flip = flipFromDesk(deskPose(props.id), cart, k.cart.w * u);
 
       // F1: lift, and the camera moves toward the open corner of the mat
       tl.set(cart, { filter: SHADOW_LIFT }, F);
@@ -96,8 +109,18 @@ function Handheld({ skin, ...props }: DeviceProps & { skin: Skin }) {
 
       if (skin === "gb") buildGbBoot(tl, q, u);
       else buildGbaBoot(tl, q, u);
+
+      // it starts where it lay on the mat and the camera brings it over
+      if (flip) {
+        tl.shiftChildren(TRAVEL, true);
+        const ox = (k.body.cartX + k.cart.w / 2) * u;
+        const oy = (k.body.cartY - k.lift + k.cart.h / 2) * u;
+        gsap.set(fly, { transformOrigin: `${ox}px ${oy}px` });
+        gsap.set(cart, { filter: SHADOW_LIFT });
+        tl.fromTo(fly, flip, { ...FLIP_REST, duration: SPRING_UI.duration, ease: SPRING_UI.ease, immediateRender: true }, 0);
+      }
     },
-    !!size,
+    layoutKey(size),
   );
 
   const label = (props.reverse ? DEVICE_CLOSING_DESCRIPTIONS : DEVICE_DESCRIPTIONS)[props.id];
@@ -111,8 +134,10 @@ function Handheld({ skin, ...props }: DeviceProps & { skin: Skin }) {
           className={s.rig}
           style={{ left, top, width: px(k.body.w), height: px(k.body.h), ["--u" as string]: `${u}px` }}
         >
-          <div data-p="cart" className={s.part} style={{ left: px(k.body.cartX), top: px(k.body.cartY), width: px(k.cart.w), height: px(k.cart.h) }}>
-            {skin === "gb" ? <GbCartArt /> : <GbaCartArt />}
+          <div data-p="fly" className={s.fly}>
+            <div data-p="cart" className={s.part} style={{ left: px(k.body.cartX), top: px(k.body.cartY), width: px(k.cart.w), height: px(k.cart.h) }}>
+              <DeskArt kind={skin === "gb" ? "gb-cart" : "gba-cart"} />
+            </div>
           </div>
           <div data-p="body" className={s.part} style={{ left: 0, top: 0, width: "100%", height: "100%", filter: SHADOW_REST }}>
             {skin === "gb" ? <GbShellArt /> : <GbaShellArt />}
@@ -133,9 +158,9 @@ function Handheld({ skin, ...props }: DeviceProps & { skin: Skin }) {
               ) : (
                 <>
                   <canvas data-p="scene" ref={canvasRef} width={240} height={160} className={s.pixel} style={{ left: 0, top: 0, width: px(240), height: px(160), visibility: "hidden" }} />
-                  <div data-p="white" className={s.flat} style={{ background: MI[0], visibility: "hidden" }} />
+                  <div data-p="white" className={s.flat} style={{ background: MI[1], visibility: "hidden" }} />
                   <div data-p="bar" className={s.bar} style={{ width: px(4), background: MI[2], visibility: "hidden" }} />
-                  <div data-p="bar2" className={s.bar} style={{ width: px(2), background: MI[1], visibility: "hidden" }} />
+                  <div data-p="bar2" className={s.bar} style={{ width: px(2), background: MI[0], visibility: "hidden" }} />
                 </>
               )}
               <div data-p="flash" className={s.flat} style={{ visibility: "hidden" }} />
@@ -169,7 +194,8 @@ function buildGbBoot(tl: gsap.core.Timeline, q: Q, u: number) {
   tl.set({}, {}, 21 * F);
 }
 
-// Project Minamoto: the screen powers on white, a magenta edge sweeps across in 8 frames
+// Project Minamoto: the screen powers on in the palette's soft lilac (never a full frame of
+// pure white: too harsh after the dark desk), a magenta edge sweeps across in 8 frames
 // leaving the logo in its six tones behind it.
 function buildGbaBoot(tl: gsap.core.Timeline, q: Q, u: number) {
   const white = q("[data-p=white]");

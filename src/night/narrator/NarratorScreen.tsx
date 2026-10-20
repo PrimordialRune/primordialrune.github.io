@@ -11,7 +11,7 @@ import { emitStory } from "../bus";
 import { glitch } from "./glitch";
 import { NAME_TAG_LABELS, cleanLine } from "./lines";
 import SaveSelect from "./SaveSelect";
-import { LineText, NarratorLogo } from "./Speaker";
+import { LineText, NarratorLogo, PixelText } from "./Speaker";
 import { getSaveSelect, usePoweredOff, useSaveSelect, useStageShift, useStory } from "./story";
 import { useLine } from "./useLine";
 import styles from "./narratorScreen.module.css";
@@ -99,7 +99,7 @@ export default function NarratorScreen() {
   const showSpeaker = mounted && !off && !saveOpen && story.inCrt;
 
   return (
-    <div className={styles.root} data-off={off || !mounted || !story.inCrt ? "1" : undefined}>
+    <div className={styles.root} data-night-screen="" data-off={off || !mounted || !story.inCrt ? "1" : undefined}>
       {showSave && <SaveSelect />}
       {showSpeaker && (
         <div className={styles.speaker}>
@@ -108,7 +108,9 @@ export default function NarratorScreen() {
               <NarratorLogo inner={story.inner} />
             </span>
             <span ref={tagRef} className={styles.tag} role="img" aria-label={NAME_TAG_LABELS[story.stage]}>
-              <span aria-hidden="true">{story.nameTag}</span>
+              <span aria-hidden="true">
+                <PixelText text={story.nameTag} />
+              </span>
             </span>
           </div>
           <button
@@ -122,7 +124,7 @@ export default function NarratorScreen() {
             <LineText chunk={play.chunk} shown={play.shown} machine={story.voice === "machine"} />
             {play.more && !play.typing && (
               <span className={styles.more} aria-hidden="true">
-                ▼
+                <PixelText text="▼" />
               </span>
             )}
           </button>

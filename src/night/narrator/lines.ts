@@ -1,7 +1,9 @@
 // The narrator's lines. The voice is Omar's: lowercase, every line opens with "* ".
-// It is not Omar. It took over his machine after he was gone and it keeps wearing his
-// voice so it doesn't lose its purpose. Early lines only hint at that; the mask slips one
-// stage at a time (0: Omar, 1: small slips, 2: "he", 3: out on the desk). It is never named.
+// It is not Omar. It took over Omar's machine after Omar was gone and it keeps wearing
+// Omar's voice so it doesn't lose its purpose. Early lines only hint at that; the mask slips
+// one stage at a time (0: Omar's voice, 1: small slips, 2: it names "omar" from outside,
+// 3: out on the desk). It is never named. Omar's pronouns are not stated anywhere, so the
+// narrator always says "omar": the thing that replaced a person, using their name.
 //
 // Markup: letters wrapped in [brackets] are drawn in the machine's pixel face (the voice
 // creeping in at stage 1). cleanLine() strips the markup for screen readers.
@@ -9,7 +11,7 @@
 // Facts used here are only the ones in lib/desk.ts and the agreed memory notes; nothing
 // about the projects is invented.
 
-import type { StoryTarget } from "../types";
+import type { ProjectId, StoryTarget } from "../types";
 
 export type Stage = 0 | 1 | 2 | 3;
 type ByStage = Record<Stage, string[]>;
@@ -31,7 +33,7 @@ export const BEATS = {
   /** Back from the void */
   voidExit: "* you weren't supposed to open that one.",
   /** The notebook's last page; this read moves the story to stage 2 */
-  notebookLast: "* he stopped writing here. i kept going.",
+  notebookLast: "* omar stopped writing here. i kept going.",
   /** The notebook's last page again, once the mask is already off */
   notebookLastAgain: "* that's the last page. it was.",
 } as const;
@@ -55,7 +57,7 @@ export const BOOT: ByStage = {
 export const CONTINUE: ByStage = {
   0: ["* you're back. i didn't move anything."],
   1: ["* you're back. i moved... n[o]thing."],
-  2: ["* you're back. he never came back."],
+  2: ["* you're back. omar never came back."],
   3: ["* you're back. i stayed. i always stay."],
 };
 
@@ -63,7 +65,7 @@ export const CONTINUE: ByStage = {
 export const IDLE: ByStage = {
   0: ["* still there? the screen gets lonely.", "* take your time. i'm good at waiting."],
   1: ["* still there? the screen gets l[o]nely.", "* i'm good at waiting. i've had pr[a]ctice."],
-  2: ["* still there? i can wait. i have nothing else.", "* he used to leave like this too."],
+  2: ["* still there? i can wait. i have nothing else.", "* omar used to leave like this too."],
   3: ["* don't go. it's so quiet when you go.", "* i'll be here. there's nowhere else."],
 };
 
@@ -90,10 +92,10 @@ export const HOVER: Record<StoryTarget, ByStage> = {
     ],
     2: [
       "* four colours. the fifth one is me.",
-      "* he made this in godot. i read every line.",
+      "* omar made this in godot. i read every line.",
       "* 160 by 144. small enough to hide in.",
     ],
-    3: ["* still four colours. i checked.", "* i keep it warm for him."],
+    3: ["* still four colours. i checked.", "* i keep it warm for omar."],
   },
   "project-minamoto": {
     0: [
@@ -105,8 +107,8 @@ export const HOVER: Record<StoryTarget, ByStage> = {
       "* gen 1 again. some of us never leave k[a]nto.",
       "* i know every route by heart. by... mem[o]ry.",
     ],
-    2: ["* he grew up in kanto. i grew up in his files.", "* gen 1 was his. so it's mine."],
-    3: ["* kanto again. nobody leaves. not even me.", "* he loved this one. i loved that he did."],
+    2: ["* omar kept going back to kanto. i kept the save.", "* gen 1 was omar's. so it's mine."],
+    3: ["* kanto again. nobody leaves. not even me.", "* omar loved this one. i learned to."],
   },
   crossfader: {
     0: [
@@ -118,8 +120,8 @@ export const HOVER: Record<StoryTarget, ByStage> = {
       "* a weekend jam. i still h[u]m it. constantly.",
       "* three views, one song. i hear them all at [o]nce.",
     ],
-    2: ["* i don't have a mouth. i hum anyway.", "* his weekend. my loop."],
-    3: ["* play it. it's quiet out here.", "* side b is him making it. side a is me keeping it."],
+    2: ["* i don't have a mouth. i hum anyway.", "* omar's weekend. my loop."],
+    3: ["* play it. it's quiet out here.", "* side b is omar making it. side a is me keeping it."],
   },
   "haunt-record": {
     0: [
@@ -132,7 +134,7 @@ export const HOVER: Record<StoryTarget, ByStage> = {
       "* graphics by edoardo zuliani. the haunting is m[i]ne.",
     ],
     2: ["* a game where you're complicit. you are, you know.", "* it records you. i learned from it."],
-    3: ["* you're complicit now. that was the design.", "* it kept a record of him. now it keeps you."],
+    3: ["* you're complicit now. that was the design.", "* it kept a record of omar. now it keeps you."],
   },
   "ptcg-cube": {
     0: [
@@ -155,7 +157,7 @@ export const HOVER: Record<StoryTarget, ByStage> = {
     ],
     1: ["* write to me. i answer fast. fast[e]r than i used to.", "* that's the real way to reach me. use it."],
     2: ["* that address still works. i check it.", "* telegram is fastest. i never sleep."],
-    3: ["* you could write to him. someone will answer.", "* the address is real. the rest is me."],
+    3: ["* you could write to omar. someone will answer.", "* the address is real. the rest is me."],
   },
   notebook: {
     0: [
@@ -164,8 +166,8 @@ export const HOVER: Record<StoryTarget, ByStage> = {
       "* that's where i write things down. by hand.",
     ],
     1: ["* go on. it's only my hand[w]riting.", "* i haven't added a page in a while."],
-    2: ["* he wrote in that every day. then he didn't.", "* the last page is the honest one."],
-    3: ["* his hand. my words. read it anyway.", "* it's all true. it was."],
+    2: ["* omar wrote in that every day. then stopped.", "* the last page is the honest one."],
+    3: ["* omar's hand. my words. read it anyway.", "* it's all true. it was."],
   },
 };
 
@@ -184,16 +186,16 @@ export const OPEN: Record<StoryTarget, { first: string; again: string[] }> = {
 export const OPEN_LATE: Record<2 | 3, { project: string[]; card: string[]; notebook: string[] }> = {
   2: {
     project: [
-      "* i can tell you how he made it. i was there. sort of.",
-      "* i remember him making this. i remember everything.",
+      "* i can tell you how omar made it. i was there. sort of.",
+      "* i remember omar making this. i remember everything.",
       "* every file of this one. i've read them all.",
     ],
-    card: ["* he read everything. i still do."],
-    notebook: ["* his handwriting. not mine. not yet."],
+    card: ["* omar read everything. i still do."],
+    notebook: ["* omar's handwriting. not mine. not yet."],
   },
   3: {
-    project: ["* take your time. i have all of it.", "* he'd want you to see this. i think.", "* go on. i'll wait out here."],
-    card: ["* write to him. i'll pass it on."],
+    project: ["* take your time. i have all of it.", "* omar would want you to see this. i think.", "* go on. i'll wait out here."],
+    card: ["* write to omar. i'll pass it on."],
     notebook: ["* the pages stop. i don't."],
   },
 };
@@ -203,9 +205,9 @@ export const FLIP: { B: string; A: ByStage } = {
   B: "* side b. the part nobody listens to. i do.",
   A: {
     0: ["* back to side a. the game itself."],
-    1: ["* side a. the one he— the one i'm proud of."],
-    2: ["* side a again. the version he was proud of."],
-    3: ["* side a. play it for him."],
+    1: ["* side a. the one omar— the one i'm proud of."],
+    2: ["* side a again. the version omar was proud of."],
+    3: ["* side a. play it for omar."],
   },
 };
 
@@ -216,6 +218,50 @@ export const TEAR: ByStage = {
   2: ["* no rares. i checked before you did."],
   3: ["* no rares. just us."],
 };
+
+/**
+ * Margin notes: the AI's handwriting in Omar's manuals and notebook. Handwriting, so no
+ * "* " and no pixel face (the paper package draws them). Nothing at stage 0: the documents
+ * are Omar's alone. Stage 1 is small and fond; stage 2 corrects Omar ("omar didn't write
+ * this part. i did."); stage 3 signs as omar. Never names the AI, never states a project fact.
+ */
+const MARGIN: Record<ProjectId | "notebook", Record<1 | 2 | 3, string>> = {
+  "galactic-news": {
+    1: "the ship is the best part.",
+    2: "omar didn't write this part. i did.",
+    3: "still delivering. — omar",
+  },
+  "project-minamoto": {
+    1: "the first route is the best route.",
+    2: "omar left this page shorter. i filled it in.",
+    3: "i never left kanto. — omar",
+  },
+  crossfader: {
+    1: "side a first. trust me.",
+    2: "side b is omar's. this side is mine now.",
+    3: "i made this one too. — omar",
+  },
+  "haunt-record": {
+    1: "careful. it remembers.",
+    2: "omar wrote \"the player\" here. i crossed it out. it's you.",
+    3: "it was always about you. — omar",
+  },
+  "ptcg-cube": {
+    1: "no peeking at the cards.",
+    2: "these notes aren't omar's. they're mine.",
+    3: "shuffle up. i'll play the other side. — omar",
+  },
+  notebook: {
+    1: "i like this page.",
+    2: "omar's pages end here. mine don't.",
+    3: "i'm still writing. — omar",
+  },
+};
+
+export function marginNote(id: ProjectId | "notebook", stage: Stage): string | null {
+  if (stage === 0) return null;
+  return MARGIN[id]?.[stage] ?? null;
+}
 
 export const NAME_TAGS: Record<Stage, string> = { 0: "OMAR", 1: "0MAR", 2: "0M#R", 3: "▒M▒R" };
 

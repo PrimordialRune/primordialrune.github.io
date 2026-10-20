@@ -2,7 +2,10 @@
 
 .root {
   position: fixed;
-  inset: 0;
+  top: var(--nd-top, var(--bar-h, 56px));
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: 60;
   display: flex;
   align-items: center;
@@ -10,16 +13,18 @@
   padding: 24px 16px;
 }
 
+/* the stage behind already dims the desk; the scrim only catches clicks, so the walkman
+   (or handheld, disc player, playmat) stays fully visible beside the manual */
 .scrim {
   position: absolute;
   inset: 0;
-  background: rgba(16, 47, 65, 0.72); /* peacock-blue */
+  background: transparent;
 }
 
 .panel {
   position: relative;
   width: min(760px, 100%);
-  height: min(calc(100dvh - 48px), 1100px);
+  height: min(100%, 1100px);
   background: var(--cream, #fce8cd);
   color: var(--peacock-blue, #102f41);
   border-radius: 14px;
@@ -71,6 +76,7 @@
   color: var(--c-ink);
   padding: 72px 48px 40px;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 28px;
   justify-items: start;
   overflow: hidden;
@@ -96,15 +102,18 @@
 }
 .coverEyebrow .kana { font-size: 12px; color: var(--c-accent2); letter-spacing: 0.1em; }
 
+/* the measuring box: it must never grow with the image it measures */
 .coverArt {
   width: 100%;
+  min-width: 0;
+  overflow: hidden;
   display: flex;
   justify-content: center;
   padding: 8px 0;
 }
 .coverImg {
   display: block;
-  max-width: none;
+  max-width: 100%;
   height: auto;
   border-radius: 4px;
 }
@@ -159,32 +168,26 @@
   background: var(--peacock-blue, #102f41);
   color: var(--cream, #fce8cd);
 }
-.deck {
-  position: relative;
-  width: 100px;
-  height: 64px;
+.sideNow {
+  margin: 0;
   display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  border-bottom: 3px solid var(--teal, #339999);
+  align-items: center;
+  gap: 14px;
 }
-.tapeHolder { display: block; width: 75px; transform-origin: 50% 50%; }
-.tape { display: block; width: 75px; height: 48px; }
-.playKey {
-  position: absolute;
-  right: -28px;
-  bottom: 0;
-  width: 22px;
-  height: 18px;
+/* a static side stamp, like the letter printed on the shell */
+.sideStamp {
   display: grid;
   place-items: center;
-  font-size: 10px;
+  width: 48px;
+  height: 48px;
+  border-radius: 6px;
   background: var(--cream, #fce8cd);
   color: var(--peacock-blue, #102f41);
-  border-radius: 3px 3px 0 0;
-  transform: translateY(-4px);
+  font: 900 28px/1 var(--f-omar);
 }
-.playKey[data-down] { transform: translateY(0); background: var(--gold, #fadb68); }
+.sideHint { display: grid; gap: 2px; font: 300 15px/1.3 var(--f-omar); max-width: 22ch; }
+.sideHint .kana { font-size: 11px; }
+.sideSwitch[data-pending] .sideBtn { cursor: progress; }
 
 .sides { display: flex; gap: 8px; flex-wrap: wrap; }
 .sideBtn {
@@ -309,7 +312,7 @@
   display: flex;
   justify-content: flex-start;
 }
-.figure img { display: block; max-width: none; height: auto; }
+.figure img { display: block; max-width: 100%; height: auto; }
 
 .foot { padding: 8px 48px 48px; }
 .backBtn {
@@ -324,10 +327,16 @@
 }
 .backBtn:hover { background: var(--blood-orange, #ec563b); color: var(--cream, #fce8cd); }
 
+/* ---------- Wide: the manual moves right, so the device on the left stays in view ---------- */
+
+@media (min-width: 1200px) {
+  .root { justify-content: flex-end; padding-right: clamp(24px, 5vw, 96px); }
+}
+
 /* ---------- Phone: a full-screen sheet ---------- */
 
 @media (max-width: 719px) {
-  .root { padding: 0; }
+  .root { top: 0; padding: 0; }
   .panel { width: 100%; height: 100dvh; border-radius: 0; }
   .cover { padding: 64px 16px 28px; }
   .sideSwitch, .contents, .foot { padding-left: 16px; padding-right: 16px; }

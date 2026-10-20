@@ -4,22 +4,25 @@
 // elastic #2b2a29, cream page edges #f1ead6, a teal ribbon #339999.
 import type { CSSProperties, Ref } from "react";
 import { ART_SIZE, DESK_SPOTS } from "../content/layout";
+import { registerOrigin } from "./originRect";
 import s from "./Desk.module.css";
 
 interface Props {
   tabIndex: number;
+  /** open right now: hidden on the mat, layout kept */
+  away: boolean;
   buttonRef: Ref<HTMLButtonElement>;
   onOpen(): void;
   onHover(el: HTMLElement): void;
   onFocusSpot(id: string, el: HTMLElement): void;
 }
 
-export default function NotebookObject({ tabIndex, buttonRef, onOpen, onHover, onFocusSpot }: Props) {
+export default function NotebookObject({ tabIndex, away, buttonRef, onOpen, onHover, onFocusSpot }: Props) {
   const spot = DESK_SPOTS.notebook;
   const size = ART_SIZE.notebook;
   const style = { "--x": spot.x, "--y": spot.y, "--rot": `${spot.rot}deg`, "--aw": size.w, "--ah": size.h } as CSSProperties;
   return (
-    <li className={s.item} style={style} data-light>
+    <li className={s.item} style={style} data-light data-away={away ? "" : undefined}>
       <button
         ref={buttonRef}
         type="button"
@@ -32,7 +35,7 @@ export default function NotebookObject({ tabIndex, buttonRef, onOpen, onHover, o
         onPointerEnter={(e) => e.pointerType !== "touch" && onHover(e.currentTarget)}
         onFocus={(e) => onFocusSpot("notebook", e.currentTarget)}
       >
-        <span className={s.art} style={{ aspectRatio: `${size.w} / ${size.h}` }}>
+        <span className={s.art} ref={(el) => registerOrigin("notebook", el)} style={{ aspectRatio: `${size.w} / ${size.h}` }}>
           <span className={s.artInner}>
             <svg viewBox="0 0 104 136" className={s.svg} aria-hidden="true">
               <defs>

@@ -59,15 +59,25 @@ type Build = (tl: gsap.core.Timeline, ctx: { reverse: boolean; q: (sel: string) 
 
 /**
  * Runs a device ceremony inside gsap.context (reverted on cleanup). `build` sets the
- * opening pose with gsap.set and fills `tl` with the beats. `ready` gates the run until
- * the device has laid itself out.
+ * opening pose with gsap.set and fills `tl` with the beats. `layout` gates the run until
+ * the device has laid itself out (falsy = not yet), and is a key of that layout: when it
+ * changes (the stage resized, e.g. the device stepping aside for the manual or back), the
+ * ceremony is rebuilt for the new layout. A run that already finished is rebuilt straight
+ * at its end state, without calling onReady again.
  */
-export function useCeremony(scope: RefObject<HTMLElement | null>, props: Pick<DeviceProps, "mode" | "reverse" | "skipToken" | "onReady">, build: Build, ready = true) {
+export function useCeremony(
+  scope: RefObject<HTMLElement | null>,
+  props: Pick<DeviceProps, "mode" | "reverse" | "skipToken" | "onReady">,
+  build: Build,
+  layout: string | number | boolean = true,
+) {
   const { mode, reverse = false, skipToken, onReady } = props;
+  const ready = !!layout;
   const onReadyRef = useRef(onReady);
   const buildRef = useRef(build);
   const skipRef = useRef<() => void>(() => {});
   const lastSkip = useRef(skipToken);
+  const doneRun = useRef<string | null>(null);
 
   useLayoutEffect(() => {
     onReadyRef.current = onReady;
@@ -76,11 +86,14 @@ export function useCeremony(scope: RefObject<HTMLElement | null>, props: Pick<De
 
   useLayoutEffect(() => {
     if (!ready || !scope.current) return;
-    let fired = false;
+    const runKey = `${mode}|${reverse}`;
+    const already = doneRun.current === runKey;
+    let fired = already;
     let raf = 0;
     const finish = () => {
       if (fired) return;
       fired = true;
+      doneRun.current = runKey;
       onReadyRef.current();
     };
     let run: ReturnType<typeof makeCeremony> | null = null;
@@ -89,6 +102,11 @@ export function useCeremony(scope: RefObject<HTMLElement | null>, props: Pick<De
       const q = (sel: string) => (self.selector ? (self.selector(sel) as Element[]) : []);
       buildRef.current(run.tl, { reverse, q });
       run.tl.progress(1, true).progress(0, true);
+      if (already) {
+        // relaid out after the run ended: just its end state
+        run.tl.progress(reverse ? 0 : 1, true);
+        return;
+      }
       run.start(() => {
         if (run?.cut) raf = requestAnimationFrame(finish);
         else finish();
@@ -104,7 +122,7 @@ export function useCeremony(scope: RefObject<HTMLElement | null>, props: Pick<De
       skipRef.current = () => {};
       ctx.revert();
     };
-  }, [mode, reverse, ready, scope]);
+  }, [mode, reverse, ready, layout, scope]);
 
   useEffect(() => {
     if (skipToken === lastSkip.current) return;

@@ -1,7 +1,7 @@
 "use client";
 // The pieces the narrator is drawn with: Omar's logo on its plate, and a line of text
 // that can carry the machine's letters inside Omar's.
-import { forwardRef } from "react";
+import { forwardRef, type ReactNode } from "react";
 import { LOGO_INNER, LOGO_OUTER } from "@/lib/logo";
 import { parseLine } from "./lines";
 import styles from "./speaker.module.css";
@@ -30,6 +30,67 @@ export function NarratorLogo({ inner, flicker, className }: LogoProps) {
   );
 }
 
+// ---- pixel glyphs the face doesn't have ------------------------------------------------
+// 8bitDarling has no * ' # - — or block shades, so the browser would fall back to a smooth
+// font in the middle of pixel text. These are drawn as tiny SVG blocks instead, on a grid of
+// 1/8 em (2px at the 16px base, 6px at 48px), so they stay crisp at every integer multiple.
+
+interface Glyph {
+  rows: string[];
+  /** cells above the baseline the glyph's bottom sits */
+  raise: number;
+}
+const GLYPHS: Record<string, Glyph> = {
+  "*": { rows: ["..x..", "x.x.x", ".xxx.", "x.x.x", "..x.."], raise: 0 },
+  "'": { rows: ["x", "x"], raise: 3 },
+  "-": { rows: ["xxx"], raise: 2 },
+  "—": { rows: ["xxxxx"], raise: 2 },
+  "#": { rows: [".x.x.", "xxxxx", ".x.x.", "xxxxx", ".x.x."], raise: 0 },
+  "░": { rows: ["x...x", "..x..", "x...x", "..x..", "x...x"], raise: 0 },
+  "▒": { rows: ["x.x.x", ".x.x.", "x.x.x", ".x.x.", "x.x.x"], raise: 0 },
+  "▓": { rows: ["xx.xx", "x.xxx", "xxx.x", ".xxxx", "xx.xx"], raise: 0 },
+  "█": { rows: ["xxxxx", "xxxxx", "xxxxx", "xxxxx", "xxxxx"], raise: 0 },
+  "▶": { rows: ["x..", "xx.", "xxx", "xx.", "x.."], raise: 0 },
+  "▼": { rows: ["xxxxx", ".xxx.", "..x.."], raise: 1 },
+};
+const GLYPH_RE = /([*'#\-—░▒▓█▶▼])/;
+const CELL = 0.125; // em
+
+function PixelGlyph({ g }: { g: Glyph }) {
+  const w = g.rows[0].length;
+  const h = g.rows.length;
+  const cells: ReactNode[] = [];
+  g.rows.forEach((row, y) =>
+    [...row].forEach((c, x) => c === "x" && cells.push(<rect key={`${x}-${y}`} x={x} y={y} width={1} height={1} />))
+  );
+  return (
+    <svg
+      className={styles.glyph}
+      viewBox={`0 0 ${w} ${h}`}
+      width={`${w * CELL}em`}
+      height={`${h * CELL}em`}
+      style={{ verticalAlign: `${g.raise * CELL}em` }}
+      shapeRendering="crispEdges"
+      aria-hidden="true"
+      focusable="false"
+    >
+      {cells}
+    </svg>
+  );
+}
+
+/** Text in the pixel face, with the glyphs it lacks drawn as pixel blocks (always aria-hidden: give the parent a label) */
+export function PixelText({ text }: { text: string }) {
+  if (!GLYPH_RE.test(text)) return <>{text}</>;
+  return (
+    <>
+      {text.split(GLYPH_RE).map((part, i) =>
+        GLYPHS[part] ? <PixelGlyph key={i} g={GLYPHS[part]} /> : part ? <span key={i}>{part}</span> : null
+      )}
+    </>
+  );
+}
+
 interface LineTextProps {
   chunk: string;
   shown: number;
@@ -48,10 +109,11 @@ export const LineText = forwardRef<HTMLSpanElement, LineTextProps>(function Line
     const vis = seg.text.slice(0, Math.max(0, shown - starts[i]));
     const ghost = seg.text.slice(vis.length);
     const cls = seg.machine && !machine ? styles.creep : undefined;
+    const pixel = machine || seg.machine;
     return (
       <span key={i} className={cls}>
-        {vis}
-        {ghost && <span className={styles.ghost}>{ghost}</span>}
+        {pixel ? <PixelText text={vis} /> : vis}
+        {ghost && <span className={styles.ghost}>{pixel ? <PixelText text={ghost} /> : ghost}</span>}
       </span>
     );
   });

@@ -5,6 +5,10 @@
 // "night:notebook-last"). The stage is derived from it, but during a visit it only moves
 // at a calm moment: when the visitor closes what they opened (or after a short fallback),
 // so they come back to the desk and find the name tag changed.
+//
+// Stage 3 (the AI leaves the screen) needs all five projects opened AND one more sign the
+// visitor has really stayed: the notebook's last page read, a later visit, or more than
+// three minutes on the site. Five quick clicks in one sitting stop at stage 2.
 import { useSyncExternalStore } from "react";
 import { emitStory, onStory } from "../bus";
 import { PROJECT_IDS, type ProjectId, type StoryEvent, type StoryState, type StoryTarget } from "../types";
@@ -18,6 +22,10 @@ const OPENED_KEY = "night:opened";
 const NOTEBOOK_KEY = "night:notebook-last";
 const FILE_KEY = "night:file";
 const SESSION_KEY = "night:file-picked";
+const VISITS_KEY = "night:visits";
+const VISIT_INDEX_KEY = "night:visit-index";
+/** Time on the site that counts as having stayed (for stage 3) */
+const LONG_STAY_MS = 3 * 60 * 1000;
 
 /** A line stays at least this long before a hover line may replace it */
 const MIN_HOLD = 2200;
@@ -65,8 +73,22 @@ function writeFlag(store: "local" | "session", key: string, on: boolean) {
 
 const isProject = (id: StoryTarget): id is ProjectId => PROJECT_IDS.includes(id as ProjectId);
 
-function deriveStage(opened: number, notebookLast: boolean): Stage {
-  if (opened >= 5) return 3;
+/** Which visit this browser session is (1 = first ever), counted once per session */
+function countVisit(): number {
+  try {
+    const known = Number(sessionStorage.getItem(VISIT_INDEX_KEY));
+    if (known > 0) return known;
+    const n = (Number(localStorage.getItem(VISITS_KEY)) || 0) + 1;
+    localStorage.setItem(VISITS_KEY, String(n));
+    sessionStorage.setItem(VISIT_INDEX_KEY, String(n));
+    return n;
+  } catch {
+    return 1;
+  }
+}
+
+function deriveStage(opened: number, notebookLast: boolean, stayed: boolean): Stage {
+  if (opened >= 5 && (notebookLast || stayed)) return 3;
   if (opened >= 4 || notebookLast) return 2;
   if (opened >= 3) return 1;
   return 0;
@@ -117,6 +139,10 @@ const m = {
   bootDone: false,
   firstHoverDone: false,
   motionSaid: false,
+  /** The motion line waits until the visitor has been greeted */
+  motionPending: false,
+  laterVisit: false,
+  longStay: false,
   lastIdleAt: 0,
   flips: 0,
   cardFirst: true,
@@ -185,7 +211,7 @@ function applyStage(stage: Stage) {
 
 /** Progress moved: the stage catches up at the next close, or after a fallback */
 function progressChanged() {
-  const derived = deriveStage(m.opened.size, m.notebookLast);
+  const derived = deriveStage(m.opened.size, m.notebookLast, m.laterVisit || m.longStay);
   if (derived <= m.stage) return;
   m.pendingStage = derived;
   clearTimeout(m.stageTimer);
@@ -221,6 +247,23 @@ function startFile(fresh: boolean) {
   }
 }
 
+/** The quiet-motion line, once, and never before the greeting */
+function motionLine() {
+  if (m.motionSaid) return;
+  if (m.saveOpen || !m.bootDone) {
+    m.motionPending = true;
+    return;
+  }
+  m.motionSaid = true;
+  m.motionPending = false;
+  sayAfter(BEATS.motionQuietAuto);
+}
+
+/** After a greeting: say the motion line if it was waiting */
+function greeted() {
+  if (m.motionPending) motionLine();
+}
+
 function handle(ev: StoryEvent) {
   // Power first: while the screen is off the narrator is silent, but progress still counts
   if (ev.type === "power-off") {
@@ -244,21 +287,18 @@ function handle(ev: StoryEvent) {
       m.bootDone = true;
       // First power-on this session: the save select speaks for itself
       if (!m.saveOpen) say(pick(BOOT[m.stage], `boot:${m.stage}`));
-      if (!m.motionSaid && readMotionSetting() === "auto" && systemReducesMotion()) {
-        m.motionSaid = true;
-        sayAfter(BEATS.motionQuietAuto);
-      }
+      if (readMotionSetting() === "auto" && systemReducesMotion()) motionLine();
+      if (!m.saveOpen) greeted();
       return;
     }
     case "motion-quiet-auto": {
-      if (m.motionSaid) return;
-      m.motionSaid = true;
-      sayAfter(BEATS.motionQuietAuto);
+      motionLine();
       return;
     }
     case "continue": {
       startFile(false);
       say(pick(CONTINUE[m.stage], `continue:${m.stage}`));
+      greeted();
       return;
     }
     case "newgame": {
@@ -266,6 +306,7 @@ function handle(ev: StoryEvent) {
       startFile(true);
       m.hasSave = true;
       say(hadSave ? BEATS.newGame : BEATS.firstBoot);
+      greeted();
       return;
     }
     case "corrupt": {
@@ -278,6 +319,7 @@ function handle(ev: StoryEvent) {
     }
     case "void-exit": {
       say(BEATS.voidExit);
+      greeted();
       return;
     }
     case "idle": {
@@ -374,8 +416,13 @@ function init() {
   m.opened = readOpened();
   m.notebookLast = readFlag("local", NOTEBOOK_KEY);
   m.hasSave = readFlag("local", FILE_KEY) || m.opened.size > 0;
-  m.stage = deriveStage(m.opened.size, m.notebookLast);
+  m.laterVisit = countVisit() > 1;
+  m.stage = deriveStage(m.opened.size, m.notebookLast, m.laterVisit);
   m.saveOpen = !readFlag("session", SESSION_KEY);
+  setTimeout(() => {
+    m.longStay = true;
+    progressChanged();
+  }, LONG_STAY_MS);
   onStory(handle);
   startIdleWatch();
   publish();

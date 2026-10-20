@@ -13,6 +13,7 @@ import { PROJECT_IDS, type ProjectId, type StoryState } from "../types";
 import { emitStory } from "../bus";
 import NarratorScreen from "../narrator/NarratorScreen";
 import Card from "../paper/Card";
+import { registerOrigin } from "./originRect";
 import s from "./Desk.module.css";
 
 interface Props {
@@ -20,6 +21,8 @@ interface Props {
   powered: boolean;
   /** the void: the desk empties (objects, card and CRT light gone) */
   empty: boolean;
+  /** the object that is in a device / open right now: hidden on the mat, layout kept */
+  away: string | null;
   /** each item's element, so focus can return to it */
   register(id: string, el: HTMLElement | null): void;
   onOpen(id: ProjectId): void;
@@ -29,7 +32,7 @@ interface Props {
   onAnchor(el: HTMLElement): void;
 }
 
-export default function Desk({ story, powered, empty, register, onOpen, onNotebook, onCard, onAnchor }: Props) {
+export default function Desk({ story, powered, empty, away, register, onOpen, onNotebook, onCard, onAnchor }: Props) {
   const matRef = useRef<HTMLDivElement>(null);
   const crtRef = useRef<HTMLDivElement>(null);
   const { active, setActive, onKeyDown } = useSpatialFocus(matRef);
@@ -88,6 +91,7 @@ export default function Desk({ story, powered, empty, register, onOpen, onNotebo
               key={id}
               id={id}
               tabIndex={active === id ? 0 : -1}
+              away={away === id}
               buttonRef={(el) => register(id, el)}
               onOpen={onOpen}
               onHover={hover}
@@ -96,6 +100,7 @@ export default function Desk({ story, powered, empty, register, onOpen, onNotebo
           ))}
           <NotebookObject
             tabIndex={active === "notebook" ? 0 : -1}
+            away={away === "notebook"}
             buttonRef={(el) => register("notebook", el)}
             onOpen={onNotebook}
             onHover={(el) => hover("notebook", el)}
@@ -106,7 +111,11 @@ export default function Desk({ story, powered, empty, register, onOpen, onNotebo
             style={cardStyle}
             data-light
             data-spot="card"
-            ref={(el) => register("card", el)}
+            data-away={away === "card" ? "" : undefined}
+            ref={(el) => {
+              register("card", el);
+              registerOrigin("card", el);
+            }}
             onPointerEnter={(e) => e.pointerType !== "touch" && hover("card", e.currentTarget)}
             onFocus={(e) => touch("card", e.currentTarget)}
           >

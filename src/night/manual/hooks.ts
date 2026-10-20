@@ -67,12 +67,17 @@ export function useFocusOnMount(id: string, enabled = true) {
 
 export const focusById = (id: string) => document.getElementById(id)?.focus({ preventScroll: true });
 
+export type ScaleFit = "pixel" | "halves" | "shrink";
+
 /**
- * Integer scale for pixel art: the largest whole multiple of the native width, in device
- * pixels, that fits the box. Other images: native size, shrunk only to fit. Returns the CSS
- * width to set (never a percentage).
+ * How wide to draw an image (CSS px, never a percentage), measured against the box it
+ * sits in (the box must not grow with the image: give it width:100%, min-width:0).
+ *  - pixel: the largest whole multiple of the native width, in device pixels, that fits (P1)
+ *  - halves: anti-aliased art with a pixel-styled part: native size, or exactly 1/2, 1/3...
+ *  - shrink: photographs and vector-made art: native size at most, shrunk to fit
  */
-export function useIntScaleWidth(native: number, pixel: boolean, max?: number) {
+export function useIntScaleWidth(native: number, fit: ScaleFit | boolean, max?: number) {
+  const mode: ScaleFit = fit === true ? "pixel" : fit === false ? "shrink" : fit;
   const box = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(native);
   useIsoLayoutEffect(() => {
@@ -80,21 +85,49 @@ export function useIntScaleWidth(native: number, pixel: boolean, max?: number) {
     if (!el) return;
     const measure = () => {
       const dpr = window.devicePixelRatio || 1;
-      const avail = Math.min(el.clientWidth, max ?? Infinity);
-      if (!pixel) {
-        // photographs and vector-made art: their own size at most, shrunk to fit
-        setWidth(Math.min(native, avail));
-        return;
+      const cs = getComputedStyle(el);
+      const inner = el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+      const avail = Math.max(1, Math.min(inner, max ?? Infinity));
+      if (mode === "shrink") setWidth(Math.min(native, avail));
+      else if (mode === "halves") setWidth(native / Math.max(1, Math.ceil(native / avail)));
+      else {
+        const k = Math.max(1, Math.floor((avail * dpr) / native));
+        setWidth((native * k) / dpr);
       }
-      const k = Math.max(1, Math.floor((avail * dpr) / native));
-      setWidth((native * k) / dpr);
     };
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [native, pixel, max]);
+  }, [native, mode, max]);
   return { box, width };
+}
+
+/**
+ * Overlays (notebook, card, manual) sit below the top bar, whatever height it has today:
+ * the bar's bottom edge is written to --nd-top on the overlay's root.
+ */
+export function useTopInset(ref: RefObject<HTMLElement | null>) {
+  useIsoLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const measure = () => {
+      const bar = document.querySelector("header");
+      const r = bar?.getBoundingClientRect();
+      const bottom = r && r.height > 0 && r.top <= 1 ? Math.max(0, Math.round(r.bottom)) : null;
+      if (bottom !== null) el.style.setProperty("--nd-top", `${bottom}px`);
+      else el.style.removeProperty("--nd-top");
+    };
+    measure();
+    const bar = document.querySelector("header");
+    const ro = new ResizeObserver(measure);
+    if (bar) ro.observe(bar);
+    window.addEventListener("resize", measure);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [ref]);
 }
 
 /** 12fps, the frame rate of every diegetic object (P6) */

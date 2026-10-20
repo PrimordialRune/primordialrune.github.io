@@ -13,7 +13,7 @@ import type { ManualProps } from "../types";
 import ManualBody, { Contents } from "./ManualBody";
 import ManualCover from "./ManualCover";
 import SideSwitch from "./SideSwitch";
-import { useDialogKeys, useFocusOnMount, useIsoLayoutEffect, useQuiet } from "./hooks";
+import { useDialogKeys, useFocusOnMount, useIsoLayoutEffect, useQuiet, useTopInset } from "./hooks";
 import s from "./Manual.module.css";
 
 const OPEN = springEase(170, 22);
@@ -28,6 +28,7 @@ export default function Manual({ id, side, onClose, onSide, titleRef }: ManualPr
   const scrollRef = useRef<HTMLDivElement>(null);
   const onKeyDown = useDialogKeys(panelRef, onClose);
   useFocusOnMount(titleId);
+  useTopInset(rootRef);
 
   const effSide = project.sideB ? side : "A";
   const sections = effSide === "B" && project.sideB ? project.sideB : project.sections;

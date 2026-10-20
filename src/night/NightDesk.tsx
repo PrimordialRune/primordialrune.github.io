@@ -6,6 +6,8 @@ import { useCallback, useEffect, useLayoutEffect, useReducer, useRef, useState }
 import gsap from "gsap";
 import Desk from "./desk/Desk";
 import TopBar from "./chrome/TopBar";
+import MotionToast from "./chrome/MotionToast";
+import { captureOrigin } from "./desk/originRect";
 import ProjectIndex from "./chrome/ProjectIndex";
 import { INITIAL_VIEW, isOverlay, parseHash, viewHash, viewReducer } from "./state/view";
 import { markSeen, readProgress, resetProgress } from "./state/progress";
@@ -13,7 +15,6 @@ import { emitStory, onStory } from "./bus";
 import { useMotionLevel } from "./useMotionLevel";
 import { isQuiet } from "@/lib/motion";
 import { SPRING_UI } from "./motion/spring";
-import { PROJECTS } from "./content/projects";
 import { DEVICES } from "./devices";
 import Manual from "./manual/Manual";
 import Notebook from "./paper/Notebook";
@@ -72,6 +73,7 @@ export default function NightDesk() {
     (id: ProjectId, opts: { deep?: boolean; side?: Side } = {}) => {
       setIndexOpen(false);
       lastSpot.current = id;
+      captureOrigin(id);
       emitStory({ type: "open", id });
       dispatch({ type: "open", id, mode: modeFor(id, !!opts.deep), side: opts.side });
     },
@@ -80,12 +82,14 @@ export default function NightDesk() {
   const openNotebook = useCallback(() => {
     setIndexOpen(false);
     lastSpot.current = "notebook";
+    captureOrigin("notebook");
     emitStory({ type: "open", id: "notebook" });
     dispatch({ type: "show", view: { kind: "notebook" } });
   }, []);
   const openCard = useCallback(() => {
     setIndexOpen(false);
     lastSpot.current = "card";
+    captureOrigin("card");
     emitStory({ type: "open", id: "card" });
     dispatch({ type: "show", view: { kind: "card" } });
   }, []);
@@ -120,16 +124,22 @@ export default function NightDesk() {
       }
       if (target.kind === "manual") {
         if (v.kind === "manual" && v.id === target.id) dispatch({ type: "side", side: target.side });
-        else if (v.kind === "desk") {
+        else if (v.kind === "ceremony" && v.id === target.id && !v.reverse) return;
+        else if (v.kind === "desk" || isOverlay(v) || v.kind === "ceremony") {
+          // desk, another manual, the notebook or the card: this hash wins (manual -> manual too)
           lastSpot.current = target.id;
+          captureOrigin(target.id);
           emitStory({ type: "open", id: target.id });
           dispatch({ type: "open", id: target.id, mode: modeFor(target.id, deep), side: target.side });
         }
         return;
       }
-      if (v.kind === "desk" || isOverlay(v)) {
-        lastSpot.current = target.kind === "notebook" ? "notebook" : "card";
-        emitStory({ type: "open", id: lastSpot.current as "notebook" | "card" });
+      const spot = target.kind === "notebook" ? "notebook" : "card";
+      if (v.kind === target.kind) return;
+      if (v.kind === "desk" || isOverlay(v) || v.kind === "ceremony") {
+        lastSpot.current = spot;
+        captureOrigin(spot);
+        emitStory({ type: "open", id: spot });
         dispatch({ type: "show", view: target });
       }
     };
@@ -167,6 +177,24 @@ export default function NightDesk() {
       else el.querySelector<HTMLElement>("button, a[href]")?.focus({ preventScroll: true });
     }
   }, [view.kind]);
+
+  // ---- input modality: a programmatic focus (deep link, view title) only draws its ring when
+  // the visitor is on the keyboard; html[data-input] drives that in night.css
+  useEffect(() => {
+    const root = document.documentElement;
+    const kbd = (e: KeyboardEvent) => {
+      if (!e.metaKey && !e.ctrlKey && !e.altKey) root.dataset.input = "keyboard";
+    };
+    const ptr = () => {
+      root.dataset.input = "pointer";
+    };
+    window.addEventListener("keydown", kbd, true);
+    window.addEventListener("pointerdown", ptr, true);
+    return () => {
+      window.removeEventListener("keydown", kbd, true);
+      window.removeEventListener("pointerdown", ptr, true);
+    };
+  }, []);
 
   // ---- skip: any key or click during a ceremony jumps to its end; Esc closes ---------
   useEffect(() => {
@@ -264,10 +292,13 @@ export default function NightDesk() {
   const ceremonyId = view.kind === "ceremony" || view.kind === "manual" ? view.id : null;
   const Device = ceremonyId ? DEVICES[ceremonyId] : null;
   const covered = view.kind !== "desk";
-  const announce =
-    view.kind === "ceremony" && !view.reverse
-      ? `Opening ${PROJECTS[view.id].title}: the ${PROJECTS[view.id].medium.toLowerCase()} goes into the ${PROJECTS[view.id].deviceName}. Press Escape to skip.`
-      : "";
+  // the clicked object is the one in the device: its original leaves the mat meanwhile
+  const away =
+    view.kind === "ceremony" || view.kind === "manual"
+      ? view.id
+      : view.kind === "notebook" || view.kind === "card"
+        ? view.kind
+        : null;
 
   return (
     <div className={s.root} data-view={view.kind}>
@@ -285,6 +316,7 @@ export default function NightDesk() {
           onPower={togglePower}
           onHome={() => setIndexOpen(false)}
         />
+        <MotionToast />
         {indexOpen && (
           <ProjectIndex
             onClose={() => {
@@ -304,6 +336,7 @@ export default function NightDesk() {
           story={story}
           powered={powered}
           empty={view.kind === "void"}
+          away={away}
           register={register}
           onOpen={(id) => openProject(id)}
           onNotebook={openNotebook}
@@ -342,10 +375,7 @@ export default function NightDesk() {
       {view.kind === "notebook" && <Notebook onClose={requestClose} titleRef={titleRef} />}
       {view.kind === "card" && <Card variant="open" onClose={requestClose} titleRef={titleRef} />}
       {view.kind === "void" && <Void onExit={exitVoid} />}
-
-      <p className="nd-sr-only" aria-live="polite">
-        {announce}
-      </p>
+      {/* ceremonies are announced by their device (one announcer) */}
     </div>
   );
 }

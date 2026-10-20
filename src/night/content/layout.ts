@@ -13,7 +13,10 @@ export const ART_KIND: Record<ProjectId, ArtKind> = {
   "ptcg-cube": "booster",
 };
 
-/** Each object's footprint in desk units (roughly millimetres, idealised) */
+/**
+ * Each object's footprint in desk units (roughly millimetres, idealised). The GB cart's width
+ * is overridden at render: it is sized from its 160x144 label so the cover shows whole (P1).
+ */
 export const ART_SIZE: Record<ArtKind | "notebook" | "card", { w: number; h: number }> = {
   cassette: { w: 100, h: 64 },
   "gb-cart": { w: 64, h: 72 },
@@ -34,10 +37,10 @@ export interface Spot {
 
 /** Desktop (>= 720px): the objects loosely across the centre and right */
 export const DESK_SPOTS: Record<ProjectId | "notebook" | "card", Spot> = {
-  "galactic-news": { x: 35, y: 9, rot: 0 },
+  "galactic-news": { x: 32, y: 6, rot: 0 },
   "project-minamoto": { x: 55, y: 7, rot: 4 },
   crossfader: { x: 75, y: 17, rot: -3 },
-  "haunt-record": { x: 37, y: 47, rot: 0 },
+  "haunt-record": { x: 37, y: 56, rot: 0 },
   "ptcg-cube": { x: 57, y: 41, rot: 3 },
   notebook: { x: 7, y: 54, rot: -2 },
   card: { x: 74, y: 64, rot: 0 },

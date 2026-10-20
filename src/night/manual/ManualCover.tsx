@@ -24,8 +24,10 @@ export default function ManualCover({
 }) {
   const { cover, coverPalette: pal } = project;
   const native = cover.w ?? 320;
-  // pixel art takes the largest whole multiple; other art is shown at most at its own size
-  const { box, width } = useIntScaleWidth(native, !!cover.pixel, 480);
+  // pixel art takes the largest whole multiple; the Crossfader logo 1x or exactly 1/2;
+  // other art is shown at most at its own size
+  const fit = cover.pixel ? "pixel" : (cover.fit ?? "shrink");
+  const { box, width } = useIntScaleWidth(native, fit, fit === "halves" ? undefined : 480);
   const vars = {
     "--c-paper": pal.paper,
     "--c-ink": pal.ink,

@@ -1,0 +1,64 @@
+/* The AI's margin note (package C). Scene text: rotated, small, never in the reading path. */
+
+.note {
+  position: relative;
+  width: fit-content;
+  max-width: min(100%, 360px);
+  margin: 8px 0 40px auto;
+  padding: 14px 18px 12px;
+  background: var(--peacock-blue, #102f41);
+  color: var(--aquamarine, #4eb99f);
+  border-radius: 2px;
+  transform: rotate(-2deg);
+  box-shadow: 0 6px 14px rgba(16, 47, 65, 0.28);
+}
+/* a strip of tape holding the slip */
+.note::before {
+  content: "";
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  width: 72px;
+  height: 18px;
+  margin-left: -36px;
+  background: rgba(250, 219, 104, 0.55); /* gold, translucent */
+  transform: rotate(3deg);
+}
+
+.text {
+  margin: 0;
+  font: 300 17px/1.45 var(--f-omar);
+}
+.creep {
+  font: 400 16px/1 var(--f-machine);
+  color: var(--cream, #fce8cd);
+}
+.sign {
+  margin: 6px 0 0;
+  font: 400 16px/1 var(--f-machine);
+  white-space: nowrap;
+  color: var(--cream, #fce8cd);
+  text-align: right;
+}
+
+/* stage 2 and later: no slip any more; the machine writes on the paper itself */
+.note[data-machine] {
+  background: none;
+  box-shadow: none;
+  padding: 4px 0;
+  color: var(--ai-red, #d4182b);
+  transform: rotate(-1.5deg);
+}
+.note[data-machine]::before { display: none; }
+.note[data-machine] .sign { color: var(--ai-red, #d4182b); }
+.pixelText {
+  margin: 0;
+  display: grid;
+  gap: 8px;
+  justify-items: end;
+}
+.pixelLine {
+  display: block;
+  font: 400 16px/1 var(--f-machine);
+  white-space: nowrap;
+}

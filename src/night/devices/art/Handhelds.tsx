@@ -1,7 +1,10 @@
 "use client";
 
-// Two generic handhelds, remembered rather than copied (P1): a portrait one for the GB
-// cart and a landscape one for the GBA cart. No wordmarks, no boot logos: the only mark
+// Two generic handhelds, remembered rather than copied (P1): a portrait one for the small
+// cart and a landscape one for the wide cart. The portrait one keeps the memory (the tall
+// shell, the big rounded corner, the d-pad left of two buttons) but not the layout: level
+// A/B keys, round select/start, a hole grille low on the left, one stripe. No wordmarks,
+// no boot logos: the only mark
 // on the plastic is Omar's own logo, pressed in. Units are screen pixels, so the screen
 // window sits on whole units and the HTML screen inside lands on whole device pixels.
 import { FONT_BLACK, LogoEmboss, useSvgId } from "./shared";
@@ -60,10 +63,9 @@ export function GbShellArt() {
         OFF · ON
       </text>
 
-      {/* screen bezel, the game's stripes, the power LED */}
+      {/* screen bezel, one stripe in the game's teal, the power LED */}
       <path d={bezel} fill={`url(#${id}b)`} />
-      <path d="M40 42 H262" stroke="#bd502f" strokeWidth="2.4" />
-      <path d="M40 47 H262" stroke="#34d1af" strokeWidth="2.4" />
+      <path d="M66 222 H234" stroke="#34d1af" strokeWidth="2.4" />
       <rect x="66" y="56" width="168" height="152" rx="2" fill="#1d1a1f" />
       <circle cx="45" cy="118" r="4.5" fill="#4a2a26" />
       <g data-p="led-on" visibility="hidden">
@@ -74,7 +76,8 @@ export function GbShellArt() {
       {/* glass over the bezel only: the screen pixels stay inside their palette */}
       <path d={`${bezel} M66 56 V208 H234 V56 Z`} fillRule="evenodd" fill={`url(#${id}glass)`} />
 
-      <LogoEmboss x={28} y={266} size={24} fill="#c3bcaf" light="#efebe3" />
+      {/* the only mark on the plastic: Omar's logo, pressed in, centred under the screen */}
+      <LogoEmboss x={136} y={264} size={30} fill="#c3bcaf" light="#efebe3" />
 
       {/* d-pad in its dish */}
       <circle cx="74" cy="342" r="42" fill="#c6bfb2" />
@@ -82,44 +85,44 @@ export function GbShellArt() {
       <path d="M64 310 h20 M42 332 h20" stroke="#5a5260" strokeWidth="1.6" strokeLinecap="round" />
       <circle cx="74" cy="342" r="6" fill="#221e27" />
 
-      {/* A and B in the game's own red */}
-      <rect x="176" y="316" width="96" height="44" rx="22" transform="rotate(-28 224 338)" fill="#c6bfb2" />
+      {/* A and B side by side on a level bar, in the game's own red */}
+      <rect x="170" y="318" width="112" height="48" rx="24" fill="#c6bfb2" />
       {[
-        [244, 326, "A"],
-        [202, 350, "B"],
-      ].map(([cx, cy, l]) => (
+        [254, "A"],
+        [198, "B"],
+      ].map(([cx, l]) => (
         <g key={l as string}>
-          <circle cx={cx as number} cy={(cy as number) + 1.6} r="17" fill="#8a3a22" />
-          <circle cx={cx as number} cy={cy as number} r="17" fill="#bd502f" />
-          <circle cx={cx as number} cy={cy as number} r="17" fill={`url(#${id}btn)`} />
-          <text x={cx as number} y={(cy as number) + 32} style={FONT_BLACK} fontSize="10" fill="#7d766a" textAnchor="middle">
+          <circle cx={cx as number} cy={343.6} r="17" fill="#8a3a22" />
+          <circle cx={cx as number} cy={342} r="17" fill="#bd502f" />
+          <circle cx={cx as number} cy={342} r="17" fill={`url(#${id}btn)`} />
+          <text x={cx as number} y={380} style={FONT_BLACK} fontSize="10" fill="#7d766a" textAnchor="middle">
             {l}
           </text>
         </g>
       ))}
 
-      {/* select / start */}
+      {/* select / start: two small round keys, level, centred */}
       {[
-        [112, "SELECT"],
-        [158, "START"],
+        [126, "SELECT"],
+        [174, "START"],
       ].map(([x, l]) => (
-        <g key={l as string} transform={`rotate(-26 ${x} 418)`}>
-          <rect x={(x as number) - 19} y="410" width="38" height="16" rx="8" fill="#c6bfb2" />
-          <rect x={(x as number) - 14} y="414" width="28" height="8" rx="4" fill="#7d766a" />
-          <text x={x as number} y="438" style={FONT_BLACK} fontSize="6.5" fill="#7d766a" textAnchor="middle" letterSpacing=".6">
+        <g key={l as string}>
+          <circle cx={x as number} cy="412" r="8" fill="#c6bfb2" />
+          <circle cx={x as number} cy="412" r="5.2" fill="#7d766a" />
+          <text x={x as number} y="432" style={FONT_BLACK} fontSize="6.5" fill="#7d766a" textAnchor="middle" letterSpacing=".6">
             {l}
           </text>
         </g>
       ))}
 
-      {/* speaker slots */}
-      {Array.from({ length: 6 }, (_, i) => {
-        const cx = 194 + i * 12;
-        const cy = 450 - i * 4;
+      {/* speaker: a grille of round holes, low on the left */}
+      {Array.from({ length: 18 }, (_, i) => {
+        const cx = 34 + (i % 6) * 12;
+        const cy = 448 + Math.floor(i / 6) * 12;
         return (
-          <g key={i} transform={`rotate(-30 ${cx} ${cy})`}>
-            <rect x={cx - 2.6} y={cy - 18} width="5.2" height="36" rx="2.6" fill="#8f887b" />
-            <rect x={cx - 2.6} y={cy - 18} width="1.4" height="36" rx=".7" fill="#6f685a" />
+          <g key={i}>
+            <circle cx={cx} cy={cy} r="3.4" fill="#8f887b" />
+            <circle cx={cx - 0.6} cy={cy - 0.6} r="2.2" fill="#6f685a" />
           </g>
         );
       })}

@@ -38,7 +38,7 @@
 }
 
 @media (max-width: 719.98px) {
-  .root { --bar-h: 96px; }
+  .root { --bar-h: 56px; }
   .stage { top: 0; z-index: 55; }
   .dim { background: rgba(16, 47, 65, 0.94); }
   .deviceBox,

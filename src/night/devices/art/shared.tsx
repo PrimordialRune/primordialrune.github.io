@@ -58,3 +58,4 @@ export function LogoEmboss({ x, y, size, fill, light }: { x: number; y: number; 
 
 export const FONT_BLACK = { fontFamily: "var(--f-omar), sans-serif", fontWeight: 900 } as const;
 export const FONT_KANA = { fontFamily: "var(--f-kana), sans-serif" } as const;
+export const FONT_MACHINE = { fontFamily: "var(--f-machine), monospace" } as const;

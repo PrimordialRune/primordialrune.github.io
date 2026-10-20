@@ -27,6 +27,7 @@ export const SCREEN_PALETTES: Record<"galactic-news" | "project-minamoto", Decla
     name: "Project Minamoto boot screen, 240x160",
     // six tones sampled from the logo: white, lilac highlight, magenta rim, the two
     // purples of the katakana fill, and the brown-black outline
+    // The boot field powers on in the lilac (tones[1]), never a full frame of pure white.
     tones: ["#ffffff", "#e6cdec", "#f500b8", "#85079d", "#55008b", "#40110a"],
     source: "public/resources/desk/minamoto-logo.png (median of each colour cluster)",
   },
@@ -35,12 +36,12 @@ export const SCREEN_PALETTES: Record<"galactic-news" | "project-minamoto", Decla
 export const OBJECT_PALETTES: Record<ProjectId, Record<string, DeclaredPalette>> = {
   "galactic-news": {
     cart: {
-      name: "GB-style cartridge shell",
+      name: "Small handheld cartridge shell",
       tones: ["#d3cdc2", "#aba496", "#958e80", "#6f685a", "#fbf9f4"],
-      source: "src/components/desk/DeskArt.tsx (desk object)",
+      source: "src/night/desk/DeskArt.tsx (the desk object itself travels into the handheld)",
     },
     handheld: {
-      name: "Generic portrait handheld (no wordmarks)",
+      name: "Generic portrait handheld (no wordmarks; own layout, Omar's logo pressed in)",
       // warm grey shell, charcoal bezel, buttons in the game's own red, stripes in its teal
       tones: ["#d9d3c7", "#b7b0a2", "#7d766a", "#3b3540", "#2a2530", "#bd502f", "#34d1af", "#1d1a1f"],
       source: "Shell drawn for the Night Desk; accents from the Galactic News screen palette",
@@ -48,9 +49,9 @@ export const OBJECT_PALETTES: Record<ProjectId, Record<string, DeclaredPalette>>
   },
   "project-minamoto": {
     cart: {
-      name: "GBA-style cartridge, label in the logo's palette",
-      tones: ["#62636e", "#3a3b43", "#28292e", "#ffffff", "#85079d", "#f500b8"],
-      source: "src/components/desk/DeskArt.tsx; label tones from the Minamoto screen palette",
+      name: "Widescreen handheld cartridge, label in the logo's palette",
+      tones: ["#62636e", "#3a3b43", "#28292e", "#1f2025", "#fbf8fb", "#7a0a96", "#e020c0"],
+      source: "src/night/desk/DeskArt.tsx (the desk object itself travels into the handheld)",
     },
     handheld: {
       name: "Generic landscape handheld (no wordmarks)",
@@ -62,8 +63,8 @@ export const OBJECT_PALETTES: Record<ProjectId, Record<string, DeclaredPalette>>
   crossfader: {
     cassette: {
       name: "Cassette shell and J-label",
-      tones: ["#ebc84a", "#d2a92f", "#8a6c17", "#f1ead6", "#e0459b", "#53b3c9", "#8233c4", "#2e2828", "#4a3226"],
-      source: "src/components/desk/DeskArt.tsx; label stripes from crossfader-logo.png",
+      tones: ["#f8df72", "#ebc84a", "#d2a92f", "#8a6c17", "#f1ead6", "#e0459b", "#53b3c9", "#8233c4", "#2e2828", "#4a3226"],
+      source: "src/night/desk/DeskArt.tsx Cassette (copied line for line, plus side B); label stripes from crossfader-logo.png",
     },
     walkman: {
       name: "Walkman body, lid and keys",
@@ -73,10 +74,16 @@ export const OBJECT_PALETTES: Record<ProjectId, Record<string, DeclaredPalette>>
   },
   "haunt-record": {
     print: {
-      name: "Disc print and booklet",
-      // the exact four tones of the crown and logo art (counted pixel by pixel)
-      tones: ["#1f2c39", "#eb5e54", "#fbde9c", "#48a9a6"],
-      source: "haunt-record-crown.png and haunt-record-logo.png",
+      name: "Disc print (the desk disc)",
+      // the exact four tones of the crown and logo art (counted pixel by pixel), and the
+      // desk disc's DISC 1 print
+      tones: ["#1f2c39", "#eb5e54", "#fbde9c", "#48a9a6", "#48a8a0"],
+      source: "haunt-record-crown.png and haunt-record-logo.png; src/night/desk/DeskArt.tsx Cd",
+    },
+    disc: {
+      name: "Disc data side (the desk disc's rainbow)",
+      tones: ["#c3ccd1", "#eef2f4", "#b9c3c9", "#e7d3ef", "#c4e5f0", "#d6efcc", "#f3eac6"],
+      source: "src/night/desk/DeskArt.module.css .cdDisc conic gradient",
     },
     deck: {
       name: "CD deck, jewel case and tray",
@@ -86,9 +93,19 @@ export const OBJECT_PALETTES: Record<ProjectId, Record<string, DeclaredPalette>>
   },
   "ptcg-cube": {
     pack: {
-      name: "Booster pack, cards and foil (monochrome, like the playmat)",
-      tones: ["#0b0b0b", "#151515", "#1f1f1f", "#2e2e2e", "#5a5a5a", "#8c8c8c", "#d8d8d8", "#ffffff"],
-      source: "ptcg-cube-playmat.jpg (black field, white line art, grey motifs); the playmat photo itself appears as artwork",
+      name: "The desk's blue holo booster pack",
+      tones: ["#1e3f8f", "#2b62a6", "#4eb99f", "#24509a", "#1a3678", "#0b1a3a", "#102f41", "#f2cf3f", "#13234f", "#fce8cd", "#b9ab92", "#ded3bd", "#b2a48a", "#9a8d74"],
+      source: "src/night/desk/DeskArt.tsx Booster (copied line for line); the playmat photo appears as its window art",
+    },
+    card: {
+      name: "The pulled card (WotC era) and the four dealt with it",
+      tones: ["#f2cf3f", "#b8932c", "#efe9d6", "#1b1b1b", "#c4392b", "#c9a640", "#d9bd5c", "#b9ab88", "#3a3a3a", "#fff6cf"],
+      source: "src/night/desk/DeskArt.tsx Booster (pulled card)",
+    },
+    mat: {
+      name: "Playmat edge",
+      tones: ["#151515", "#2e2e2e"],
+      source: "ptcg-cube-playmat.jpg (black field); the playmat photo itself appears as artwork",
     },
   },
 };

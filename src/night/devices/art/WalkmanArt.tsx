@@ -136,10 +136,13 @@ export function WalkmanArt({ side, loaded = true }: { side: Side; loaded?: boole
       <rect x="10" y="24" width="340" height="266" rx="18" fill={`url(#${id}g)`} pointerEvents="none" />
       <path d="M28 25.4 H332" stroke="#fff" strokeOpacity=".35" strokeWidth="1.4" strokeLinecap="round" />
 
-      {/* the tape in the hand, above everything */}
-      <g data-p="held" visibility={loaded ? "hidden" : "visible"} filter={`url(#${id}sh0)`} data-sh0={`url(#${id}sh0)`} data-sh1={`url(#${id}sh1)`}>
-        <g transform={`translate(${TAPE_AT.x} ${TAPE_AT.y}) scale(${TAPE_AT.k})`}>
-          <CassetteArt name="held" side={side} />
+      {/* the tape in the hand, above everything; `fly` carries it in from the desk (FLIP) */}
+      <g data-p="fly">
+        <g data-p="held" visibility={loaded ? "hidden" : "visible"} filter={`url(#${id}sh0)`} data-sh0={`url(#${id}sh0)`} data-sh1={`url(#${id}sh1)`}>
+          <g transform={`translate(${TAPE_AT.x} ${TAPE_AT.y}) scale(${TAPE_AT.k})`}>
+            <CassetteArt name="held" side={side} />
+            <rect data-p="box" x="0" y="0" width="100" height="64" fill="none" />
+          </g>
         </g>
       </g>
     </svg>

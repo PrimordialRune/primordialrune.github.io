@@ -27,6 +27,7 @@
   text-decoration: none;
   padding: 8px 0;
 }
+.mark { display: none; }
 .wmA { color: var(--blood-orange); font-style: italic; }
 .wmB { color: var(--cream); }
 
@@ -60,11 +61,11 @@
 .kana {
   font-family: var(--f-kana);
   font-weight: 400;
-  font-size: 9px;
+  font-size: 12px;
   letter-spacing: 0.04em;
-  color: rgba(51, 153, 153, 0.8);
+  color: var(--aquamarine);
 }
-.navItem .kana { color: rgba(78, 185, 159, 0.85); }
+.navItem .kana { color: var(--aquamarine); }
 
 .right {
   justify-self: end;
@@ -134,6 +135,64 @@
   border-radius: 4px;
   border: 1px solid rgba(250, 219, 104, 0.4);
 }
+
+/* phone only: one MOTION button that cycles AUTO -> FULL -> QUIET */
+.motionCycle { display: none; }
+
+/* first visit, system asks for less: the toast that makes FULL impossible to miss */
+.toast {
+  position: fixed;
+  z-index: 45;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 10px 10px 16px;
+  background: var(--peacock-blue);
+  border: 1px solid var(--gold);
+  border-radius: 10px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+  font-family: var(--f-omar);
+  color: var(--cream);
+}
+.toastText { margin: 0; font-weight: 300; font-size: 15px; line-height: 1.3; }
+.toastFull {
+  all: unset;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  min-height: 40px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 6px;
+  background: var(--gold);
+  color: var(--peacock-blue);
+  font-weight: 900;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+.toastFull:hover { background: var(--cream); }
+.toastClose {
+  all: unset;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  color: var(--cream);
+  cursor: pointer;
+}
+.toastClose:hover { background: rgba(51, 153, 153, 0.2); }
+.toastFull:focus-visible,
+.toastClose:focus-visible { outline: 2px solid var(--blood-orange); outline-offset: 2px; }
 
 .power {
   all: unset;
@@ -211,31 +270,55 @@
 }
 
 @media (max-width: 719.98px) {
+  /* one compact row: mark, WORK / ABOUT / CONTACT, MOTION, power */
   .bar {
-    grid-template-columns: auto 1fr;
-    grid-template-rows: 48px 44px;
-    gap: 0 8px;
-    padding: 0 12px;
+    grid-template-columns: auto 1fr auto;
+    gap: 6px;
+    padding: 0 8px 0 12px;
   }
-  .wordmark { font-size: 13px; }
-  .nav { justify-self: end; gap: 0; }
-  .navItem { padding: 4px 8px; font-size: 12px; letter-spacing: 0.05em; }
-  .right { grid-column: 1 / -1; justify-self: stretch; justify-content: space-between; padding-bottom: 4px; }
-  .motionLabel { display: inline-flex; align-items: flex-start; }
-  .segment { min-height: 36px; padding: 0 12px; }
-  /* the system asked for less motion: say so where the label was */
-  .motion:has(.motionNote) .motionLabel { display: none; }
-  .motionNote {
-    position: static;
-    order: -1;
-    max-width: 120px;
-    white-space: normal;
-    font-size: 11px;
-    line-height: 1.15;
-    padding: 0;
-    border: 0;
-    background: none;
+  .wordmark { padding: 6px 0; }
+  .mark { display: block; }
+  .wmA, .wmB { display: none; }
+  .nav { justify-self: center; gap: 0; }
+  .navItem { min-width: 0; padding: 4px 6px; font-size: 12px; letter-spacing: 0.04em; gap: 3px; }
+  .right { gap: 6px; }
+  .motionLabel, .segments, .motionNote { display: none; }
+  .motionCycle {
+    all: unset;
+    box-sizing: border-box;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-width: 64px;
+    min-height: 44px;
+    padding: 4px 8px;
+    border: 1px solid var(--teal);
+    border-radius: 6px;
+    color: var(--cream);
+    font-family: var(--f-omar);
+    font-weight: 900;
+    line-height: 1;
+    cursor: pointer;
   }
+  .motionCycle[data-suggest] { border-color: var(--gold); box-shadow: inset 0 0 0 1px var(--gold); }
+  .motionCycle:focus-visible { outline: 2px solid var(--blood-orange); outline-offset: 2px; }
+  .cycleLabel { font-size: 9px; letter-spacing: 0.1em; color: rgba(252, 232, 205, 0.8); white-space: nowrap; }
+  .motionCycle[data-suggest] .cycleLabel { color: var(--gold); }
+  .cycleValue { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; letter-spacing: 0.08em; }
+  .cycleNext { color: var(--aquamarine); font-size: 14px; }
   .power { width: 40px; height: 40px; }
   .indexMedium { display: none; }
+  .toast {
+    bottom: 16px;
+    width: calc(100vw - 32px);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px 8px;
+    padding: 10px 6px 12px 14px;
+  }
+  .toastText { grid-column: 1; grid-row: 1; align-self: center; font-size: 14px; }
+  .toastClose { grid-column: 2; grid-row: 1; }
+  .toastFull { grid-column: 1 / -1; grid-row: 2; justify-content: center; margin-right: 8px; }
 }

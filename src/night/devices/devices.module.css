@@ -1,11 +1,11 @@
 /* Ceremony layer (package B). Lighting gradients live inside the object art only. */
 
+/* not clipped: the clicked object travels in from wherever it lay on the mat */
 .stage {
   position: absolute;
   inset: 0;
-  overflow: hidden;
   pointer-events: none;
-  contain: layout paint;
+  contain: layout;
 }
 
 .live {
@@ -26,6 +26,16 @@
 /* the camera: a box in device units, moved on springs only */
 .rig {
   position: absolute;
+  will-change: transform;
+}
+
+/* the wrapper that carries an object from its desk rect into the scene (FLIP) */
+.fly {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
   will-change: transform;
 }
 
