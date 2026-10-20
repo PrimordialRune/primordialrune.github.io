@@ -1,12 +1,15 @@
 "use client";
 
-import { useState, useEffect, useCallback, useSyncExternalStore } from "react";
+import { useState, useEffect, useCallback, useRef, useSyncExternalStore } from "react";
 import PauseMenu, { PauseMotion } from "@/components/PauseMenu";
 import CRTScreen from "@/components/CRTScreen";
 import PowerOn from "@/components/PowerOn";
-import TitleScreen, { EmblemKind } from "@/components/TitleScreen";
-import type { EmblemBackend } from "@/components/Emblem3D";
+import SaveSelect from "@/components/SaveSelect";
+import HeroScreen from "@/components/HeroScreen";
+import Narrator from "@/components/Narrator";
 import { gsap } from "gsap";
+import { narrate } from "@/lib/narrator";
+import { readMotionSetting, subscribeMotion, systemReducesMotion, writeMotionSetting } from "@/lib/motion";
 import DiscoverButton from "@/components/DiscoverButton";
 import ProjectGrid from "@/components/ProjectGrid";
 import FloatingProjects from "@/components/FloatingProjects";
@@ -16,7 +19,7 @@ import { Project } from "@/types/project";
 import { getProjectsByCategory, getAllProjects } from "@/lib/projects";
 import { sections, getSection } from "@/lib/sections";
 import { triggerBurst } from "@/lib/crt";
-import { writeSave, addPlayTime, readPowered, writePowered } from "@/lib/save";
+import { writeSave, readSave, addPlayTime, readPowered, writePowered, readFilePicked, writeFilePicked } from "@/lib/save";
 import { useGamepadKeys } from "@/lib/useGamepadKeys";
 
 const PLAY_TICK_SECONDS = 15;
@@ -26,11 +29,6 @@ const MOTIONS: { id: PauseMotion; label: string }[] = [
   { id: "ribbon", label: "RIBBON" },
 ];
 const MOTION_KEY = "primordialrune:pause-motion";
-const EMBLEMS: { id: EmblemKind; label: string }[] = [
-  { id: "flat", label: "FLAT" },
-  { id: "3d", label: "3D" },
-];
-const EMBLEM_KEY = "primordialrune:emblem";
 const SPEEDS = [1, 0.5, 0.2];
 const VOID_PEEK_MS = 2600;
 const noSubscribe = () => () => {};
@@ -46,15 +44,6 @@ function readMotion(): PauseMotion {
     if (isMotion(saved)) return saved;
   } catch {}
   return "slash";
-}
-function readEmblem(): EmblemKind {
-  const fromUrl = new URLSearchParams(window.location.search).get("emblem");
-  if (fromUrl === "flat" || fromUrl === "3d") return fromUrl;
-  try {
-    const saved = localStorage.getItem(EMBLEM_KEY);
-    if (saved === "flat" || saved === "3d") return saved;
-  } catch {}
-  return "flat";
 }
 const readShowAB = () =>
   process.env.NEXT_PUBLIC_SHOW_AB === "1" || new URLSearchParams(window.location.search).has("ab");
@@ -95,11 +84,16 @@ export default function Home() {
   const pauseMotion = useSyncExternalStore(noSubscribe, readMotion, () => "slash" as PauseMotion);
   const navMotion = motionPick ?? pauseMotion;
   const showAB = useSyncExternalStore(noSubscribe, readShowAB, () => false);
-  const [emblemPick, setEmblemPick] = useState<EmblemKind | null>(null);
-  const savedEmblem = useSyncExternalStore(noSubscribe, readEmblem, () => "flat" as EmblemKind);
-  const emblem = emblemPick ?? savedEmblem;
-  const [backend, setBackend] = useState<EmblemBackend | null>(null);
   const [speed, setSpeed] = useState(1);
+  // The save select shows once per power-on; picking a file starts the session
+  const pickedEarlier = useSyncExternalStore(noSubscribe, readFilePicked, () => false);
+  const [pickedNow, setPickedNow] = useState(false);
+  const filePicked = pickedEarlier || pickedNow;
+  const [hasSave] = useState(() => (typeof window === "undefined" ? false : Boolean(readSave())));
+  const motionSetting = useSyncExternalStore(subscribeMotion, readMotionSetting, () => "auto" as const);
+  const systemQuiet = useSyncExternalStore(subscribeMotion, systemReducesMotion, () => false);
+  const visited = useRef(new Set<string>(["hero"]));
+  const pauses = useRef(0);
   useGamepadKeys();
 
   useEffect(() => {
@@ -118,14 +112,6 @@ export default function Home() {
     } catch {}
   };
 
-  const pickEmblem = (id: EmblemKind) => {
-    setEmblemPick(id);
-    setBackend(null);
-    try {
-      localStorage.setItem(EMBLEM_KEY, id);
-    } catch {}
-  };
-
   // Review only: slow every GSAP animation down to judge the motion
   const pickSpeed = (s: number) => {
     setSpeed(s);
@@ -135,7 +121,7 @@ export default function Home() {
   const powerOn = useCallback(() => {
     writePowered();
     setPoweredNow(true);
-    triggerBurst({ strength: 1.5, osd: "CH 01" });
+    triggerBurst({ strength: 1.5 });
   }, []);
 
   // Switching section is changing channel: a short tape burst with the channel number
@@ -149,6 +135,11 @@ export default function Home() {
       triggerBurst({ osd: `CH ${getSection(id).number}` });
       setActiveCategory(id);
       if (id !== "hero") writeSave({ lastSection: id });
+      // First visit to a section: the narrator says something about it
+      if (!visited.current.has(id)) {
+        visited.current.add(id);
+        narrate(id);
+      }
     },
     [powered, activeCategory]
   );
@@ -205,7 +196,33 @@ export default function Home() {
     setIsDiscoverMode(false);
   };
 
+  const pickFile = useCallback((id: string) => {
+    writeFilePicked();
+    setPickedNow(true);
+    triggerBurst({ osd: `CH ${getSection(id).number}` });
+    setActiveCategory(id);
+    if (id !== "hero") visited.current.add(id);
+  }, []);
+
+  const onPauseChange = useCallback((open: boolean) => {
+    setNavOpen(open);
+    if (open && pauses.current++ < 2) narrate("pause");
+  }, []);
+
+  // The header's logo and nickname are poked from outside the screen
+  useEffect(() => {
+    const onLogo = () => narrate("logo");
+    const onNick = () => narrate("nickname");
+    window.addEventListener("primordialrune:logo-clicked", onLogo);
+    window.addEventListener("primordialrune:nickname-clicked", onNick);
+    return () => {
+      window.removeEventListener("primordialrune:logo-clicked", onLogo);
+      window.removeEventListener("primordialrune:nickname-clicked", onNick);
+    };
+  }, []);
+
   const handleDiscoverAnimationStart = useCallback(() => {
+    narrate("discover");
     triggerBurst({ osd: "CH ??" });
     window.dispatchEvent(new CustomEvent("primordialrune:discover-triggered"));
   }, []);
@@ -225,6 +242,22 @@ export default function Home() {
     if (powered === null) return null;
     if (!powered) return <PowerOn onPowered={powerOn} />;
     if (voidPeek) return <div className="void-screen" />;
+    if (!filePicked) {
+      return (
+        <div className="screen-section" data-section="files">
+          <SaveSelect onContinue={pickFile} onNewGame={() => pickFile("hero")} onCorrupt={peekVoid} />
+          {motionSetting === "auto" && systemQuiet && (
+            <div className="motion-note">
+              <span>
+                MOTION <b>QUIET</b>
+                <small>Your system asks for less motion, so animations are off.</small>
+              </span>
+              <button onClick={() => writeMotionSetting("full")}>TURN ON</button>
+            </div>
+          )}
+        </div>
+      );
+    }
     return (
       <AnimatePresence mode="wait">
         <motion.div
@@ -237,13 +270,7 @@ export default function Home() {
           data-section={activeCategory}
         >
           {activeCategory === "hero" && (
-            <TitleScreen
-              emblem={emblem}
-              onContinue={goTo}
-              onNewGame={() => goTo("systems")}
-              onCorrupt={peekVoid}
-              onBackend={setBackend}
-            />
+            <HeroScreen hasSave={hasSave} />
           )}
           {activeCategory === "archives" && (
             <ProjectGrid projects={projects} onProjectClick={handleProjectClick} />
@@ -287,13 +314,13 @@ export default function Home() {
       <main className="console-screen">
         <div className="tv-recess">
         <CRTScreen>
-          {powered && !voidPeek && (
+          {powered && filePicked && !voidPeek && (
             <PauseMenu
               key={navMotion}
               activeId={activeCategory}
               motion={navMotion}
               disabled={Boolean(selectedProject)}
-              onOpenChange={setNavOpen}
+              onOpenChange={onPauseChange}
               onCategoryChange={goTo}
             />
           )}
@@ -301,7 +328,8 @@ export default function Home() {
           <div className="screen-shift" data-paused={navOpen}>
             {renderScreen()}
           </div>
-          {powered && !voidPeek && (
+          {powered && filePicked && !voidPeek && <Narrator docked={activeCategory === "hero"} />}
+          {powered && filePicked && !voidPeek && activeCategory !== "hero" && (
             <div className="screen-signature" aria-hidden="true">
               原初のルーン
             </div>
@@ -323,14 +351,14 @@ export default function Home() {
               </button>
             ))}
           </div>
-          <div role="group" aria-label="Title emblem">
-            <span>EMBLEM</span>
-            {EMBLEMS.map((m) => (
-              <button key={m.id} aria-pressed={emblem === m.id} onClick={() => pickEmblem(m.id)}>
-                {m.label}
+          <div role="group" aria-label="Motion">
+            <span>MOTION</span>
+            <em>{systemQuiet ? "SYSTEM: REDUCED" : "SYSTEM: NORMAL"}</em>
+            {(["auto", "full", "quiet"] as const).map((m) => (
+              <button key={m} aria-pressed={motionSetting === m} onClick={() => writeMotionSetting(m)}>
+                {m.toUpperCase()}
               </button>
             ))}
-            {emblem === "3d" && backend && <em>{backend === "none" ? "NO GPU" : backend.toUpperCase()}</em>}
           </div>
           <div role="group" aria-label="Animation speed">
             <span>SPEED</span>
