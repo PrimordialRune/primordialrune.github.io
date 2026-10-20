@@ -117,3 +117,9 @@ export function narrate(topic: string, opts: { script?: boolean } = {}) {
   if (typeof window === "undefined") return;
   window.dispatchEvent(new CustomEvent(NARRATE_EVENT, { detail: { topic, script: Boolean(opts.script) } }));
 }
+
+// Say one specific line. `append` waits for whatever is being said to finish first.
+export function narrateLine(line: string, opts: { append?: boolean } = {}) {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent(NARRATE_EVENT, { detail: { line, append: Boolean(opts.append) } }));
+}

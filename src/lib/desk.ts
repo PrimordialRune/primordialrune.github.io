@@ -2,6 +2,8 @@
 // project arrives in its own medium, built from its own assets). Only facts we have are
 // written here; anything unknown (most years) is left out rather than guessed.
 
+import type { Project } from "@/types/project";
+
 export type DeskObjectKind = "cassette" | "gb-cart" | "cd" | "booster" | "gba-cart";
 
 export interface DeskProject {
@@ -102,4 +104,28 @@ export function deskMultiLine(count: number): string {
   if (count === 3) return "* three at once? greedy. i like that.";
   if (count === 4) return "* all four. you really want to get to know me.";
   return "* everything. okay. take your time.";
+}
+
+// The modal's view of a desk object until each project gets its own case study page
+const DESK_IMAGES: Record<string, string> = {
+  crossfader: "/resources/desk/crossfader-logo.png",
+  "galactic-news": "/resources/desk/galactic-news-cover.png",
+  "haunt-record": "/resources/desk/haunt-record-logo.png",
+  "project-minamoto": "/resources/desk/minamoto-logo.png",
+  "ptcg-cube": "/resources/desk/ptcg-cube-playmat.jpg",
+};
+
+export function deskProjectAsProject(p: DeskProject): Project {
+  return {
+    slug: p.slug,
+    title: p.title,
+    titleJp: p.titleJp,
+    shortDescription: p.pitch,
+    year: p.year ? String(p.year) : "",
+    role: "",
+    tools: [],
+    category: p.sectionId as Project["category"],
+    images: DESK_IMAGES[p.slug] ? [DESK_IMAGES[p.slug]] : [],
+    abstract: [p.medium, p.credits].filter(Boolean).join(". ") + ".",
+  };
 }

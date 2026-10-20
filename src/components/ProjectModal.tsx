@@ -11,9 +11,11 @@ interface ProjectModalProps {
   project: Project | null;
   onClose: () => void;
   isDiscoverMode?: boolean;
+  /** False for projects without a case study page yet (the desk's real projects) */
+  hasCaseStudy?: boolean;
 }
 
-export default function ProjectModal({ project, onClose, isDiscoverMode = false }: ProjectModalProps) {
+export default function ProjectModal({ project, onClose, isDiscoverMode = false, hasCaseStudy = true }: ProjectModalProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -300,7 +302,7 @@ export default function ProjectModal({ project, onClose, isDiscoverMode = false 
                   )}
                 </div>
                 {/* Year badge - now on the right after title */}
-                <span
+                {project.year && <span
                   className={`px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 rounded-lg sm:rounded-xl font-black text-sm sm:text-base md:text-lg flex-shrink-0 mt-1 ${
                     isDiscoverMode
                       ? "bg-gold text-peacock-blue"
@@ -309,11 +311,11 @@ export default function ProjectModal({ project, onClose, isDiscoverMode = false 
                   style={{ fontFamily: "var(--font-fk-grotesk-black)" }}
                 >
                   {project.year}
-                </span>
+                </span>}
               </div>
 
               {/* Meta Info */}
-              <div className="flex flex-wrap gap-2 sm:gap-4 mb-4 sm:mb-6">
+              {project.role && <div className="flex flex-wrap gap-2 sm:gap-4 mb-4 sm:mb-6">
                 <div>
                   <span
                     className="text-[10px] sm:text-xs font-black block mb-0.5 sm:mb-1"
@@ -352,7 +354,7 @@ export default function ProjectModal({ project, onClose, isDiscoverMode = false 
                     ))}
                   </div>
                 </div>
-              </div>
+              </div>}
 
               <p className="text-xs sm:text-sm md:text-base text-cream/70 leading-relaxed">
                 {project.shortDescription}
@@ -484,7 +486,7 @@ export default function ProjectModal({ project, onClose, isDiscoverMode = false 
             </div>
 
             {/* CTA Button */}
-            <Link
+            {hasCaseStudy && <Link
               href={`/projects/${project.slug}`}
               className={`inline-flex items-center gap-2 sm:gap-3 px-4 sm:px-5 md:px-6 py-2 sm:py-3 md:py-4 rounded-lg sm:rounded-xl font-black text-sm sm:text-base md:text-lg transition-all group ${
                 isDiscoverMode
@@ -509,7 +511,7 @@ export default function ProjectModal({ project, onClose, isDiscoverMode = false 
               >
                 <path d="M7 4l6 6-6 6" />
               </svg>
-            </Link>
+            </Link>}
           </div>
 
           {/* Scroll Progress Indicator */}

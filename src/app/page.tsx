@@ -11,12 +11,11 @@ import { gsap } from "gsap";
 import { narrate } from "@/lib/narrator";
 import { readMotionSetting, subscribeMotion, systemReducesMotion, writeMotionSetting } from "@/lib/motion";
 import DiscoverButton from "@/components/DiscoverButton";
-import ProjectGrid from "@/components/ProjectGrid";
-import FloatingProjects from "@/components/FloatingProjects";
+import Desk from "@/components/Desk";
+import { deskProjects, deskProjectAsProject } from "@/lib/desk";
 import ProjectModal from "@/components/ProjectModal";
 import { motion, AnimatePresence } from "framer-motion";
 import { Project } from "@/types/project";
-import { getProjectsByCategory, getAllProjects } from "@/lib/projects";
 import { sections, getSection } from "@/lib/sections";
 import { triggerBurst } from "@/lib/crt";
 import { writeSave, readSave, addPlayTime, readPowered, writePowered, readFilePicked, writeFilePicked } from "@/lib/save";
@@ -75,8 +74,6 @@ export default function Home() {
   const powered = poweredEarlier === null ? null : poweredEarlier || poweredNow;
   const [activeCategory, setActiveCategory] = useState<string>("hero");
   const [voidPeek, setVoidPeek] = useState(false);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [allProjects, setAllProjects] = useState<Project[]>([]);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isDiscoverMode, setIsDiscoverMode] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
@@ -95,15 +92,6 @@ export default function Home() {
   const visited = useRef(new Set<string>(["hero"]));
   const pauses = useRef(0);
   useGamepadKeys();
-
-  useEffect(() => {
-    getAllProjects().then(setAllProjects);
-  }, []);
-
-  useEffect(() => {
-    if (activeCategory === "hero") return;
-    getProjectsByCategory(activeCategory).then(setProjects);
-  }, [activeCategory]);
 
   const pickMotion = (id: PauseMotion) => {
     setMotionPick(id);
@@ -186,9 +174,12 @@ export default function Home() {
     }, VOID_PEEK_MS);
   }, []);
 
-  const handleProjectClick = (project: Project) => {
+  // The desk's objects open in the inspection modal until their case studies exist
+  const openDeskProject = (slug: string) => {
+    const found = deskProjects.find((p) => p.slug === slug);
+    if (!found) return;
     setIsDiscoverMode(false);
-    setSelectedProject(project);
+    setSelectedProject(deskProjectAsProject(found));
   };
 
   const closeModal = () => {
@@ -228,15 +219,14 @@ export default function Home() {
   }, []);
 
   const handleDiscover = useCallback(() => {
-    if (allProjects.length === 0) return;
     if (!powered) {
       writePowered();
       setPoweredNow(true);
     }
-    const randomProject = allProjects[Math.floor(Math.random() * allProjects.length)];
+    const randomProject = deskProjects[Math.floor(Math.random() * deskProjects.length)];
     setIsDiscoverMode(true);
-    setSelectedProject(randomProject);
-  }, [allProjects, powered]);
+    setSelectedProject(deskProjectAsProject(randomProject));
+  }, [powered]);
 
   const renderScreen = () => {
     if (powered === null) return null;
@@ -272,14 +262,7 @@ export default function Home() {
           {activeCategory === "hero" && (
             <HeroScreen hasSave={hasSave} />
           )}
-          {activeCategory === "archives" && (
-            <ProjectGrid projects={projects} onProjectClick={handleProjectClick} />
-          )}
-          {(activeCategory === "systems" ||
-            activeCategory === "worlds" ||
-            activeCategory === "interfaces") && (
-            <FloatingProjects projects={projects} onProjectClick={handleProjectClick} />
-          )}
+          {activeCategory !== "hero" && <Desk sectionId={activeCategory} onOpen={openDeskProject} />}
         </motion.div>
       </AnimatePresence>
     );
@@ -378,6 +361,7 @@ export default function Home() {
             project={selectedProject}
             onClose={closeModal}
             isDiscoverMode={isDiscoverMode}
+            hasCaseStudy={!deskProjects.some((p) => p.slug === selectedProject.slug)}
           />
         )}
       </AnimatePresence>

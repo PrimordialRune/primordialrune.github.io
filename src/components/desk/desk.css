@@ -211,21 +211,12 @@
 
 /* ---------- the narrator ---------- */
 
-.desk-say,
 .desk-empty {
   position: absolute;
   margin: 0;
   font-family: var(--font-fk-grotesk), sans-serif;
   color: var(--cream);
   pointer-events: none;
-}
-.desk-say {
-  left: max(16px, 4%);
-  right: max(96px, 16%);
-  bottom: max(18px, 4.5%);
-  font-size: clamp(14px, 1.9cqmin, 19px);
-  line-height: 1.3;
-  opacity: 0.85;
 }
 .desk-empty {
   left: 50%;

@@ -28,6 +28,9 @@ export default function Narrator({ docked }: { docked: boolean }) {
 
   const shown = quiet ? line : typed.line === line ? line.slice(0, typed.n) : "";
   const typing = visible && shown.length < line.length;
+  // Something is still being said (or queued): appended lines wait their turn
+  const busy = useRef(false);
+  busy.current = visible && (typing || queue.length > 0);
 
   const say = useCallback((lines: string[]) => {
     if (!lines.length) return;
@@ -40,8 +43,13 @@ export default function Narrator({ docked }: { docked: boolean }) {
   // Events from anywhere on the site
   useEffect(() => {
     const onNarrate = (e: Event) => {
-      const { topic, script } = (e as CustomEvent<{ topic: string; script: boolean }>).detail;
-      if (script) {
+      const { topic, script, line: given, append } = (e as CustomEvent<{ topic?: string; script?: boolean; line?: string; append?: boolean }>).detail;
+      if (given) {
+        if (append && busy.current) setQueue((q) => [...q, given]);
+        else say([given]);
+      } else if (!topic) {
+        return;
+      } else if (script) {
         const lines: string[] = [];
         for (let i = 0; i < (TOPICS[topic]?.numbered.length ?? 0); i++) {
           const l = nextLine(topic);

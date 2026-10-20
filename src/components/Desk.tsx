@@ -19,6 +19,7 @@ import {
   deskMultiLine,
   type DeskProject,
 } from "@/lib/desk";
+import { narrateLine } from "@/lib/narrator";
 import { seededRandom } from "@/lib/utils";
 import DeskArt, { ART_SIZE } from "./desk/DeskArt";
 
@@ -137,6 +138,8 @@ function layout(projects: DeskProject[], W: number, H: number) {
   return { placed, scale: s };
 }
 
+const introduced = new Set<string>();
+
 export default function Desk({ sectionId, onOpen }: DeskProps) {
   const projects = useMemo(() => getDeskProjects(sectionId), [sectionId]);
   const section = getSection(sectionId);
@@ -154,7 +157,6 @@ export default function Desk({ sectionId, onOpen }: DeskProps) {
   const [order, setOrder] = useState<string[]>(() => projects.map((p) => p.slug));
   const [selected, setSelected] = useState<string[]>([]);
   const [menu, setMenu] = useState<Menu | null>(null);
-  const [said, setSaid] = useState<string | null>(null);
   const [band, setBand] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
   const [dragging, setDragging] = useState(false);
 
@@ -198,9 +200,16 @@ export default function Desk({ sectionId, onOpen }: DeskProps) {
     objRefs.current.forEach((el) => gsap.set(el, { x: 0, y: 0 }));
   }, [centres]);
 
-  const say = useCallback((line: string) => {
-    setSaid(line);
-  }, []);
+  const say = useCallback((line: string) => narrateLine(line), []);
+
+  // Arriving at the desk: how to handle the objects, after whatever the narrator is saying
+  useEffect(() => {
+    const intro = deskIntro[sectionId];
+    if (intro && !introduced.has(sectionId)) {
+      introduced.add(sectionId);
+      narrateLine(coarse ? intro.touch : intro.pointer, { append: true });
+    }
+  }, [sectionId, coarse]);
 
   const menuState = useRef<Menu | null>(null);
   useEffect(() => {
@@ -535,8 +544,6 @@ export default function Desk({ sectionId, onOpen }: DeskProps) {
 
   const menuProject = menu?.slug ? projects.find((p) => p.slug === menu.slug) : null;
   const menuLine = !menu ? "" : !menuProject ? deskGlassLine : menu.count > 1 ? deskMultiLine(menu.count) : menuProject.narrator;
-  const intro = deskIntro[sectionId];
-  const line = said ?? (projects.length ? (intro ? (coarse ? intro.touch : intro.pointer) : "") : deskEmptyLine);
   const z = (slug: string) => order.indexOf(slug) + 1;
 
   return (
@@ -624,13 +631,7 @@ export default function Desk({ sectionId, onOpen }: DeskProps) {
         <div className="desk-band" style={{ left: band.x, top: band.y, width: band.w, height: band.h }} aria-hidden="true" />
       )}
 
-      {projects.length === 0 ? (
-        <p className="desk-empty">{deskEmptyLine}</p>
-      ) : (
-        <p className="desk-say" aria-live="polite">
-          {line}
-        </p>
-      )}
+      {projects.length === 0 && <p className="desk-empty">{deskEmptyLine}</p>}
 
       {menu && (
         <div
