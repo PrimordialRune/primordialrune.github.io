@@ -4,7 +4,9 @@ import { useState, useEffect, useCallback, useSyncExternalStore } from "react";
 import PauseMenu, { PauseMotion } from "@/components/PauseMenu";
 import CRTScreen from "@/components/CRTScreen";
 import PowerOn from "@/components/PowerOn";
-import SaveSelect from "@/components/SaveSelect";
+import TitleScreen, { EmblemKind } from "@/components/TitleScreen";
+import type { EmblemBackend } from "@/components/Emblem3D";
+import { gsap } from "gsap";
 import DiscoverButton from "@/components/DiscoverButton";
 import ProjectGrid from "@/components/ProjectGrid";
 import FloatingProjects from "@/components/FloatingProjects";
@@ -24,6 +26,12 @@ const MOTIONS: { id: PauseMotion; label: string }[] = [
   { id: "ribbon", label: "RIBBON" },
 ];
 const MOTION_KEY = "primordialrune:pause-motion";
+const EMBLEMS: { id: EmblemKind; label: string }[] = [
+  { id: "flat", label: "FLAT" },
+  { id: "3d", label: "3D" },
+];
+const EMBLEM_KEY = "primordialrune:emblem";
+const SPEEDS = [1, 0.5, 0.2];
 const VOID_PEEK_MS = 2600;
 const noSubscribe = () => () => {};
 
@@ -38,6 +46,15 @@ function readMotion(): PauseMotion {
     if (isMotion(saved)) return saved;
   } catch {}
   return "slash";
+}
+function readEmblem(): EmblemKind {
+  const fromUrl = new URLSearchParams(window.location.search).get("emblem");
+  if (fromUrl === "flat" || fromUrl === "3d") return fromUrl;
+  try {
+    const saved = localStorage.getItem(EMBLEM_KEY);
+    if (saved === "flat" || saved === "3d") return saved;
+  } catch {}
+  return "3d";
 }
 const readShowAB = () =>
   process.env.NEXT_PUBLIC_SHOW_AB === "1" || new URLSearchParams(window.location.search).has("ab");
@@ -78,6 +95,11 @@ export default function Home() {
   const pauseMotion = useSyncExternalStore(noSubscribe, readMotion, () => "slash" as PauseMotion);
   const navMotion = motionPick ?? pauseMotion;
   const showAB = useSyncExternalStore(noSubscribe, readShowAB, () => false);
+  const [emblemPick, setEmblemPick] = useState<EmblemKind | null>(null);
+  const savedEmblem = useSyncExternalStore(noSubscribe, readEmblem, () => "3d" as EmblemKind);
+  const emblem = emblemPick ?? savedEmblem;
+  const [backend, setBackend] = useState<EmblemBackend | null>(null);
+  const [speed, setSpeed] = useState(1);
   useGamepadKeys();
 
   useEffect(() => {
@@ -94,6 +116,20 @@ export default function Home() {
     try {
       localStorage.setItem(MOTION_KEY, id);
     } catch {}
+  };
+
+  const pickEmblem = (id: EmblemKind) => {
+    setEmblemPick(id);
+    setBackend(null);
+    try {
+      localStorage.setItem(EMBLEM_KEY, id);
+    } catch {}
+  };
+
+  // Review only: slow every GSAP animation down to judge the motion
+  const pickSpeed = (s: number) => {
+    setSpeed(s);
+    gsap.globalTimeline.timeScale(s);
   };
 
   const powerOn = useCallback(() => {
@@ -201,10 +237,12 @@ export default function Home() {
           data-section={activeCategory}
         >
           {activeCategory === "hero" && (
-            <SaveSelect
+            <TitleScreen
+              emblem={emblem}
               onContinue={goTo}
               onNewGame={() => goTo("systems")}
               onCorrupt={peekVoid}
+              onBackend={setBackend}
             />
           )}
           {activeCategory === "archives" && (
@@ -275,14 +313,34 @@ export default function Home() {
       <div className="nes-stripe nes-stripe-bottom" />
 
       {showAB && powered && (
-        <div className="ab-switch" role="group" aria-label="Pause menu motion">
-          <span>NAV</span>
-          {MOTIONS.map((m) => (
-            <button key={m.id} aria-pressed={navMotion === m.id} onClick={() => pickMotion(m.id)}>
-              {m.label}
-            </button>
-          ))}
-        </div>
+        <details className="ab-switch" open={!window.matchMedia("(max-width: 700px), (max-height: 500px)").matches}>
+          <summary>REVIEW</summary>
+          <div role="group" aria-label="Pause menu motion">
+            <span>NAV</span>
+            {MOTIONS.map((m) => (
+              <button key={m.id} aria-pressed={navMotion === m.id} onClick={() => pickMotion(m.id)}>
+                {m.label}
+              </button>
+            ))}
+          </div>
+          <div role="group" aria-label="Title emblem">
+            <span>EMBLEM</span>
+            {EMBLEMS.map((m) => (
+              <button key={m.id} aria-pressed={emblem === m.id} onClick={() => pickEmblem(m.id)}>
+                {m.label}
+              </button>
+            ))}
+            {emblem === "3d" && backend && <em>{backend === "none" ? "NO GPU" : backend.toUpperCase()}</em>}
+          </div>
+          <div role="group" aria-label="Animation speed">
+            <span>SPEED</span>
+            {SPEEDS.map((s) => (
+              <button key={s} aria-pressed={speed === s} onClick={() => pickSpeed(s)}>
+                {s === 1 ? "1×" : `${s}×`}
+              </button>
+            ))}
+          </div>
+        </details>
       )}
 
       <AnimatePresence>

@@ -13,7 +13,5 @@ export function triggerBurst(detail: CRTBurstDetail = {}) {
   window.dispatchEvent(new CustomEvent<CRTBurstDetail>(CRT_BURST_EVENT, { detail }));
 }
 
-export function prefersReducedMotion(): boolean {
-  if (typeof window === "undefined") return false;
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
+// Follows the site's motion setting (AUTO = the system preference, or FULL / QUIET)
+export { isQuiet as prefersReducedMotion } from "./motion";
