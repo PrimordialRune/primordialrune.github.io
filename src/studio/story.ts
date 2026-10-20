@@ -181,10 +181,10 @@ export function commands(s: Story): Command[] {
       { id: "yes", en: "YES", jp: "イエス" },
       { id: "stay", en: "STAY", jp: "ステイ" },
     ];
-  const his = s.act >= 2 && s.mode === "story";
+  const slipped = s.act >= 2 && s.mode === "story";
   const list: Command[] = [
-    { id: "works", en: his ? "HIS WORKS" : "MY WORKS", jp: "ワークス" },
-    { id: "about", en: his ? "ABOUT HIM" : "ABOUT ME", jp: "プロフィール" },
+    { id: "works", en: slipped ? "OMAR'S WORKS" : "MY WORKS", jp: "ワークス" },
+    { id: "about", en: slipped ? "ABOUT OMAR" : "ABOUT ME", jp: "プロフィール" },
     { id: "contact", en: "CONTACT", jp: "コンタクト" },
   ];
   if (s.act === 2 && s.mode === "story") list.push({ id: "question", en: "QUESTION", jp: "クエスチョン" });
@@ -195,7 +195,7 @@ export function commands(s: Story): Command[] {
 export type LogoFill = "original" | "rim" | "half" | "red" | "gone";
 export const logoFill = (act: Act): LogoFill => (["original", "rim", "half", "red", "gone"] as const)[act];
 
-export const loadLabel = (s: Story) => (s.act === 2 && s.mode === "story" ? "PLAY HIS GAME" : "LOAD");
+export const loadLabel = (s: Story) => (s.act === 2 && s.mode === "story" ? "PLAY OMAR'S GAME" : "LOAD");
 
 export function hasProgress(s: Story) {
   return s.act > 0 || s.opened.length > 0 || s.activeSeconds >= 20;

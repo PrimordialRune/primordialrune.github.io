@@ -66,6 +66,59 @@ export const PROJECTS: Project[] = [
   },
 ];
 
+/**
+ * The hardware each object loads into (LOAD view, objects/players.tsx). Like the objects, each
+ * player is lit and keeps to its own declared palette (P4); no player colour is used elsewhere.
+ */
+export const PLAYER_PALETTES = {
+  /** Game Boy (DMG): warm grey plastic, dark bezel, magenta A/B */
+  dmg: {
+    shellTop: "#d3cdc2",
+    shellBottom: "#aba496",
+    edge: "#6f685a",
+    slot: "#3c3830",
+    lip: "#f2eee6",
+    specular: "#fbf9f4",
+    screenOff: "#958e80",
+    screenLine: "#5e584c",
+    pad: "#3c3830",
+    buttons: "#8b1d48",
+    pill: "#958e80",
+    led: "#bd502f",
+  },
+  /** Game Boy Advance: dark grey shell, the cart's own purple on the buttons */
+  gba: {
+    shellTop: "#62636e",
+    shellBottom: "#3a3b43",
+    edge: "#1f2025",
+    shoulder: "#4b4c56",
+    glass: "#28292e",
+    slot: "#1f2025",
+    lip: "#c9cad3",
+    buttons: "#7a0a96",
+  },
+  /** Cassette deck: brown-black face, cream keys, the tape's purple on the window rim */
+  deck: {
+    faceTop: "#4a3f3f",
+    faceBottom: "#2e2828",
+    edge: "#1d1818",
+    rim: "#8233c4",
+    key: "#d9d2c4",
+    specular: "#a89c9c",
+  },
+  /** CD player: brushed silver lid, the disc's navy and teal on tray and display */
+  cd: {
+    lidLight: "#eef2f4",
+    lidMid: "#c3ccd1",
+    lidDark: "#b9c3c9",
+    edge: "#7d878d",
+    tray: "#1f2c39",
+    trayWell: "#18232e",
+    trayEdge: "#0f1820",
+    display: "#48a8a0",
+  },
+} as const;
+
 export const getProject = (slug: Slug) => PROJECTS.find((p) => p.slug === slug)!;
 export const projectIndex = (slug: Slug) => PROJECTS.findIndex((p) => p.slug === slug);
 export const neighbour = (slug: Slug, d: number) =>

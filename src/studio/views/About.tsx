@@ -196,8 +196,8 @@ export default function About({ side }: { side: "omar" | "utsushi" }) {
   }, [side]);
 
   const lastSeen = () => {
-    // the card turns now; the act changes once the AI has said its last act 2 line
-    say("about.lastseen", { onShown: () => dispatch({ type: "LAST_SEEN" }) });
+    // the card turns now; the act changes once its last act 2 line has been read
+    say("about.lastseen", { onRead: () => dispatch({ type: "LAST_SEEN" }) });
     flipTo("utsushi");
   };
 

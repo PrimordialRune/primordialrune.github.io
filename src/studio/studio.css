@@ -1037,8 +1037,8 @@
   display: block;
   border-radius: 50%;
   container-type: size;
-  -webkit-mask: radial-gradient(circle at 50% 50%, transparent 0 7.2%, #000 7.6%);
-  mask: radial-gradient(circle at 50% 50%, transparent 0 7.2%, #000 7.6%);
+  -webkit-mask: radial-gradient(circle at 50% 50%, transparent 0 7.2%, #fff 7.6%);
+  mask: radial-gradient(circle at 50% 50%, transparent 0 7.2%, #fff 7.6%);
 }
 .obj-cd span {
   position: absolute;
@@ -1057,8 +1057,8 @@
   inset: 2.6%;
   overflow: hidden;
   background: #1f2c39;
-  -webkit-mask: radial-gradient(circle at 50% 50%, transparent 0 17.5%, #000 18%);
-  mask: radial-gradient(circle at 50% 50%, transparent 0 17.5%, #000 18%);
+  -webkit-mask: radial-gradient(circle at 50% 50%, transparent 0 17.5%, #fff 18%);
+  mask: radial-gradient(circle at 50% 50%, transparent 0 17.5%, #fff 18%);
 }
 .obj-cd-logo {
   position: absolute;
@@ -1123,21 +1123,22 @@
   filter: drop-shadow(0 14px 18px rgba(0, 0, 0, 0.45));
 }
 /* Game Boy: the cart drops in behind the console's top edge */
+/* 100 × 130 units at 0.0062 S a unit: the whole DMG, its controls on the lower half */
 .ld-dmg {
   left: 17%;
   width: 66%;
-  top: 40%;
-  height: 62%;
+  top: 16%;
+  height: 80.6%;
   z-index: 2;
 }
 .ld-gb-cart {
   left: 33%;
-  top: calc(var(--S) * 0.19);
+  top: calc(var(--S) * -0.05);
   z-index: 1;
 }
 .ld-led {
   left: calc(var(--S) * 0.24);
-  top: calc(var(--S) * 0.5);
+  top: calc(var(--S) * 0.26);
   width: 8px;
   height: 8px;
   border-radius: 50%;
@@ -1153,7 +1154,7 @@
 .ld-gb-screen {
   left: calc(var(--S) * 0.2624);
   width: calc(var(--S) * 0.4752);
-  top: calc(var(--S) * 0.4992);
+  top: calc(var(--S) * 0.2592);
   height: calc(var(--S) * 0.4092);
   background: #291f23;
   box-shadow: 0 0 24px rgba(52, 209, 175, 0.18);

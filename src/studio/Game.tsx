@@ -185,7 +185,7 @@ export default function Game() {
     const s = dispatch({ type: "HUB_ENTER" });
     if (s.act === 4 && before.act === 3) {
       // STAY was chosen earlier: the ending starts now that we're back on the hub
-      say("end.afterStay", { interrupt: true });
+      say("end.afterStay", { interrupt: true, replace: true });
       startEnding();
       return;
     }
@@ -215,7 +215,12 @@ export default function Game() {
       // act.N (queued by the act change) plays before the object's own line
       const s = storyRef.current;
       if (s.mode === "story") {
-        if (!(before.act < 2 && s.act === 2 && slug === "haunt-record")) say(`open:${slug}`);
+        // open lines belong to the object in hand, except the two twist beats (first time only)
+        const twist =
+          (slug === "galactic-news" && s.act === 1) || (slug === "haunt-record" && s.act === 2);
+        const first = (s.seen[`open:${slug}#1`] ?? 0) === 0;
+        if (!(before.act < 2 && s.act === 2 && slug === "haunt-record"))
+          say(`open:${slug}`, { kind: twist && first ? "story" : "context" });
         say(`load:${slug}`);
       }
     },
@@ -244,7 +249,7 @@ export default function Game() {
       if (next === 4) {
         if (v.kind === "hub" && prev === 3) {
           // YES on the hub
-          say("choice.yes", { interrupt: true });
+          say("choice.yes", { interrupt: true, replace: true });
           startEnding();
         }
         return;

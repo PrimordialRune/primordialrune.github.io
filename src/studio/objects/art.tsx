@@ -262,7 +262,8 @@ function Cd() {
   );
 }
 
-function Booster() {
+/** `width` in CSS px: the printed katakana only shows where it reaches 10px */
+function Booster({ width }: { width: number }) {
   const id = useSvgId();
   const zig = Array.from({ length: 21 }, (_, i) => [i * 3, i % 2 ? 1.6 : 0]);
   return (
@@ -308,9 +309,11 @@ function Booster() {
         <text x="30" y="60" className="obj-svg-black" fontSize="7.8" fill="#f2cf3f" stroke="#13234f" strokeWidth="1.3" paintOrder="stroke" textAnchor="middle">
           PTCG CUBE
         </text>
-        <text x="30" y="68" className="obj-svg-jp" fontSize="4.4" fill="#fce8cd" textAnchor="middle">
-          ブースターパック
-        </text>
+        {(width * 4.4) / 104 >= 10 && (
+          <text x="30" y="68" className="obj-svg-jp" fontSize="4.4" fill="#fce8cd" textAnchor="middle">
+            ブースターパック
+          </text>
+        )}
         <text x="30" y="77" className="obj-svg-pixel" fontSize="3.4" fill="#fce8cd" textAnchor="middle" letterSpacing=".3">
           ROGUELIKE ◆ CO-OP
         </text>
@@ -374,7 +377,7 @@ export default function ObjectArt({ kind, width, side }: { kind: ObjectKind; wid
       {kind === "gb-cart" && <GbCart scale={scale} />}
       {kind === "gba-cart" && <GbaCart />}
       {kind === "cd" && <Cd />}
-      {kind === "booster" && <Booster />}
+      {kind === "booster" && <Booster width={width} />}
     </span>
   );
 }

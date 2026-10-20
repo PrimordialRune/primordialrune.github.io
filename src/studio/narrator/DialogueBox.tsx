@@ -11,6 +11,7 @@ import {
   advance,
   currentPage,
   narratorVersion,
+  pageRead,
   pageShown,
   pendingCount,
   subscribeNarrator,
@@ -94,9 +95,10 @@ export default function DialogueBox({ pos }: { pos: BoxPos }) {
       typing.current = null;
       node.textContent = page.text;
       pageShown(page);
-      if (pendingCount() > 0) {
-        hold.current = window.setTimeout(advance, 900 + page.text.length * 22);
-      }
+      const ms = 900 + page.text.length * 22;
+      if (pendingCount() > 0) hold.current = window.setTimeout(advance, ms);
+      // the last line of a sequence: its onRead (an act change, say) waits until it has been read
+      else if (page.onRead) hold.current = window.setTimeout(() => pageRead(page), ms);
     };
     if (quiet()) {
       done();

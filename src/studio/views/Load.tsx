@@ -15,7 +15,7 @@ import type { Slug } from "../story";
 import ObjectArt, { RES, gbMinWidth } from "../objects/art";
 import { CdPlayer, CdTray, Deck, DeckGlass, Dmg, Gba } from "../objects/players";
 import { quiet } from "../fx";
-import type { ObjectKind } from "../projects";
+import { PLAYER_PALETTES, type ObjectKind } from "../projects";
 
 const played = new Set<Slug>();
 
@@ -33,7 +33,7 @@ function buildTimeline(kind: ObjectKind, root: HTMLElement, S: number) {
     case "gb-cart": {
       const cart = q(".ld-obj");
       const body = q(".ld-console");
-      tl.set(body, { y: S * 0.14, autoAlpha: 0 }).set(cart, { y: -S * 0.62 }).set(q(".ld-screen"), { autoAlpha: 0 }).set(q(".ld-led"), { backgroundColor: "#3c3830", autoAlpha: 0 });
+      tl.set(body, { y: S * 0.14, autoAlpha: 0 }).set(cart, { y: -S * 0.62 }).set(q(".ld-screen"), { autoAlpha: 0 }).set(q(".ld-led"), { backgroundColor: PLAYER_PALETTES.dmg.slot, autoAlpha: 0 });
       // the Game Boy rises into the lower glass (2 frames)
       seq(tl, body, [{ y: S * 0.07, autoAlpha: 1 }, { y: 0 }]);
       tl.set(q(".ld-led"), { autoAlpha: 1 }, "<");
@@ -41,7 +41,7 @@ function buildTimeline(kind: ObjectKind, root: HTMLElement, S: number) {
       seq(tl, cart, [-0.5, -0.38, -0.27, -0.17, -0.08, 0].map((k) => ({ y: S * k })));
       seq(tl, cart, [{ y: 2 }, { y: 0 }]);
       // the power LED (the cart's own GB red, not the AI's) and the screen at integer scale
-      seq(tl, q(".ld-led"), [{ backgroundColor: "#bd502f" }]);
+      seq(tl, q(".ld-led"), [{ backgroundColor: PLAYER_PALETTES.dmg.led }]);
       seq(tl, q(".ld-screen"), [{ autoAlpha: 1, clipPath: "inset(0 0 50% 0)" }, { clipPath: "inset(0 0 0% 0)" }]);
       break;
     }

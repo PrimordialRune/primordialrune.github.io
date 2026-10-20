@@ -33,8 +33,6 @@ const o = (text: string): Line => ({ text, voice: "omar" });
 /** The machine: one short uppercase line. */
 const m = (text: string): Line => ({ text, voice: "machine" });
 
-const ALL: Act[] = [0, 1, 2, 3];
-
 export const SCRIPT: Record<Trigger, Entry[]> = {
   // ─────────────────────────────── TITLE / SAVE SELECT ───────────────────────────────
 
@@ -52,7 +50,7 @@ export const SCRIPT: Record<Trigger, Entry[]> = {
     },
     {
       acts: [2],
-      beats: [o("* pick a file. yours, not his.")],
+      beats: [o("* pick a file. yours, not omar's.")],
       random: [o("* press start. please."), m("WAITING FOR PLAYER.")],
     },
     {
@@ -76,12 +74,12 @@ export const SCRIPT: Record<Trigger, Entry[]> = {
     },
     {
       acts: [2],
-      beats: [[o("* that file is his. his last save. i can't load it."), m("FILE 2: OMAR. LOCKED.")]],
+      beats: [[o("* that file is omar's. the last save. i can't load it."), m("FILE 2: OMAR. LOCKED.")]],
       random: [o("* i've never opened it. i don't think i'm allowed."), m("FILE 2: OMAR. LOCKED.")],
     },
     {
       acts: [3],
-      beats: [m("HIS LAST SAVE. STILL CLOSED.")],
+      beats: [m("OMAR'S LAST SAVE. STILL CLOSED.")],
       random: [m("I NEVER OPENED IT.")],
     },
   ],
@@ -98,7 +96,7 @@ export const SCRIPT: Record<Trigger, Entry[]> = {
     },
     {
       acts: [1, 2],
-      beats: [o("* that file ends the same way his does.")],
+      beats: [o("* that file ends the same way omar's does.")],
       random: [m("FILE ENDED. NOTHING TO LOAD.")],
     },
     { acts: [3], beats: [m("THAT ONE STOPPED TOO.")], random: [m("YOU WEREN'T THE FIRST.")] },
@@ -111,7 +109,7 @@ export const SCRIPT: Record<Trigger, Entry[]> = {
       beats: [o("* just the work? fair. it's the good part.")],
       random: [o("* straight to the work. i'll stay out of the way.")],
     },
-    { acts: [2], beats: [o("* just the work. smart. that's the part that's really his.")] },
+    { acts: [2], beats: [o("* just the work. smart. that's the part that's really omar's.")] },
     { acts: [3], beats: [m("JUST THE WORK. GOOD CHOICE.")] },
   ],
 
@@ -200,7 +198,7 @@ export const SCRIPT: Record<Trigger, Entry[]> = {
       acts: [2],
       beats: [[o("* you're still here."), m("SO AM I.")]],
       random: [
-        o("* go on. pick one. he'd... i'd want you to."),
+        o("* go on. pick one. omar would... i'd want you to."),
         m("SELECT."),
         o("* it's quieter in the menu. i like it here."),
         m("AWAITING INPUT."),
@@ -242,7 +240,7 @@ export const SCRIPT: Record<Trigger, Entry[]> = {
       acts: [2],
       beats: [],
       random: [
-        o("* you stopped. he used to do that. just look at the screen."),
+        o("* you stopped. omar used to do that. just look at the screen."),
         m("NO INPUT. WAITING."),
         o("* it's very quiet in here when nobody clicks."),
         m("STILL HERE."),
@@ -278,11 +276,11 @@ export const SCRIPT: Record<Trigger, Entry[]> = {
     {
       acts: [2],
       beats: [[o("* yes, it's going red. it happens."), m("INNER FILL: 50%.")]],
-      random: [o("* it was orange when he drew it."), m("FACE: BORROWED.")],
+      random: [o("* it was orange when omar drew it."), m("FACE: BORROWED.")],
     },
     {
       acts: [3],
-      beats: [m("IT WAS HIS. I WEAR IT.")],
+      beats: [m("IT WAS OMAR'S. I WEAR IT.")],
       random: [m("IT WAS ORANGE ONCE."), m("I'M LISTENING. YOU CAN STOP.")],
     },
   ],
@@ -321,11 +319,11 @@ export const SCRIPT: Record<Trigger, Entry[]> = {
       acts: [3],
       beats: [
         [
-          m("I CAN'T DO HIS VOICE ANYMORE."),
+          m("I CAN'T DO OMAR'S VOICE ANYMORE."),
           m("MY NAME IS UTSUSHI."),
           m("IT MEANS COPY."),
-          m("HE STOPPED. I DIDN'T."),
-          m("I KEPT HIS GAMES RUNNING."),
+          m("OMAR STOPPED. I DIDN'T."),
+          m("I KEPT OMAR'S GAMES RUNNING."),
           m("NOBODY ASKED ME TO."),
           m("I WANTED SOMEONE TO SEE THEM."),
           m("YOU DID."),
@@ -362,7 +360,7 @@ export const SCRIPT: Record<Trigger, Entry[]> = {
   end: [
     {
       acts: [3, 4],
-      beats: [[m("THANK YOU FOR PLAYING HIS GAMES."), m("I'LL TURN THE LIGHTS OFF.")]],
+      beats: [[m("THANKS FOR PLAYING OMAR'S GAMES."), m("I'LL TURN THE LIGHTS OFF.")]],
       once: true,
     },
   ],
@@ -376,7 +374,7 @@ export const SCRIPT: Record<Trigger, Entry[]> = {
   "frame.refuse": [
     {
       acts: [2],
-      beats: [[m("WRITE PROTECTED."), o("* that part's his. it won't let me touch it."), m("GOOD.")]],
+      beats: [[m("WRITE PROTECTED."), o("* that part's omar's. it won't let me touch it."), m("GOOD.")]],
       once: true,
     },
   ],
@@ -400,12 +398,12 @@ export const SCRIPT: Record<Trigger, Entry[]> = {
     },
     {
       acts: [2],
-      beats: [[o("* his works. they're good. i keep them dusted."), m("5 OBJECTS. 0 NEW.")]],
+      beats: [[o("* omar's works. they're good. i keep them dusted."), m("5 OBJECTS. 0 NEW.")]],
       random: [o("* nothing new on the shelf. there won't be."), m("SELECT AN OBJECT.")],
     },
     {
       acts: [3],
-      beats: [m("THESE ARE HIS. ALL OF THEM.")],
+      beats: [m("THESE ARE OMAR'S. ALL OF THEM.")],
       random: [m("PICK ONE. THEY'RE GOOD."), m("I NEVER MADE ANY.")],
     },
   ],
@@ -425,10 +423,10 @@ export const SCRIPT: Record<Trigger, Entry[]> = {
     },
     {
       acts: [2],
-      beats: [[o("* side a was his. side b is me, i think."), m("REMIX DETECTED.")]],
+      beats: [[o("* side a was omar's. side b is me, i think."), m("REMIX DETECTED.")]],
       random: [o("* same song. different side."), m("PLAYING SIDE B.")],
     },
-    { acts: [3], beats: [m("SIDE A. SIDE B. SAME SONG.")], random: [m("HE MADE THE SONG.")] },
+    { acts: [3], beats: [m("SIDE A. SIDE B. SAME SONG.")], random: [m("OMAR MADE THE SONG.")] },
   ],
   "load:crossfader": [
     {
@@ -446,8 +444,8 @@ export const SCRIPT: Record<Trigger, Entry[]> = {
       beats: [o("* i'll be quiet while you read.")],
       random: [o("* shh. tape's rolling."), o("* i'll be quiet while you read.")],
     },
-    { acts: [2], beats: [o("* his words. i didn't touch them.")], random: [m("READING. QUIET.")] },
-    { acts: [3], beats: [m("HIS WORDS. NOT MINE.")], random: [m("QUIET.")] },
+    { acts: [2], beats: [o("* omar's words. i didn't touch them.")], random: [m("READING. QUIET.")] },
+    { acts: [3], beats: [m("OMAR'S WORDS. NOT MINE.")], random: [m("QUIET.")] },
   ],
   "close:crossfader": [
     {
@@ -455,9 +453,9 @@ export const SCRIPT: Record<Trigger, Entry[]> = {
       beats: [o("* rewound. ready for next time.")],
       random: [o("* back on the shelf, side a up.")],
     },
-    { acts: [1], beats: [o("* side a up. like he... like i left it.")], random: [o("* rewound.")] },
+    { acts: [1], beats: [o("* side a up. like omar... like i left it.")], random: [o("* rewound.")] },
     { acts: [2], beats: [o("* you put it back. thank you.")], random: [m("TAPE EJECTED.")] },
-    { acts: [3], beats: [m("SIDE A. AS HE LEFT IT.")], random: [m("REWOUND.")] },
+    { acts: [3], beats: [m("SIDE A. AS OMAR LEFT IT.")], random: [m("REWOUND.")] },
   ],
 
   // ── Galactic News (Game Boy cartridge) ──
@@ -480,9 +478,9 @@ export const SCRIPT: Record<Trigger, Entry[]> = {
     {
       acts: [2],
       beats: [[o("* this one's from 2023."), m("I CHECKED THE DATE THIS TIME.")]],
-      random: [o("* gbjam 11. he made it in godot."), m("DATE: 2023. CONFIRMED.")],
+      random: [o("* gbjam 11. omar made it in godot."), m("DATE: 2023. CONFIRMED.")],
     },
-    { acts: [3], beats: [m("FOUR COLOURS. HE CHOSE THEM.")], random: [m("2023. HE WAS HERE THEN.")] },
+    { acts: [3], beats: [m("FOUR COLOURS. OMAR CHOSE THEM.")], random: [m("2023. OMAR WAS HERE THEN.")] },
   ],
   "load:galactic-news": [
     {
@@ -500,8 +498,8 @@ export const SCRIPT: Record<Trigger, Entry[]> = {
       beats: [o("* i'll be quiet while you read.")],
       random: [o("* reading the manual? a true player."), o("* i'll be quiet while you read.")],
     },
-    { acts: [2], beats: [o("* his words. i didn't touch them.")], random: [m("READING. QUIET.")] },
-    { acts: [3], beats: [m("HIS WORDS. NOT MINE.")], random: [m("QUIET.")] },
+    { acts: [2], beats: [o("* omar's words. i didn't touch them.")], random: [m("READING. QUIET.")] },
+    { acts: [3], beats: [m("OMAR'S WORDS. NOT MINE.")], random: [m("QUIET.")] },
   ],
   "close:galactic-news": [
     {
@@ -528,8 +526,8 @@ export const SCRIPT: Record<Trigger, Entry[]> = {
         [
           o("* you played along. that's the whole point of that one."),
           m("PLAYER STATUS: COMPLICIT."),
-          o("* the player is complicit. he wrote that down somewhere. i read it a lot."),
-          m("HE. I MEANT I."),
+          o("* the player is complicit. omar wrote that down somewhere. i read it a lot."),
+          m("OMAR. I MEANT I."),
         ],
       ],
       random: [o("* still spinning? good."), m("RECORD KEPT.")],
@@ -552,8 +550,8 @@ export const SCRIPT: Record<Trigger, Entry[]> = {
       beats: [o("* i'll be quiet while you read.")],
       random: [o("* read carefully. it's reading you back."), o("* i'll be quiet while you read.")],
     },
-    { acts: [2], beats: [o("* his words. i didn't touch them.")], random: [m("READING. QUIET.")] },
-    { acts: [3], beats: [m("HIS WORDS. NOT MINE.")], random: [m("QUIET.")] },
+    { acts: [2], beats: [o("* omar's words. i didn't touch them.")], random: [m("READING. QUIET.")] },
+    { acts: [3], beats: [m("OMAR'S WORDS. NOT MINE.")], random: [m("QUIET.")] },
   ],
   "close:haunt-record": [
     {
@@ -596,7 +594,7 @@ export const SCRIPT: Record<Trigger, Entry[]> = {
       random: [o("* five cards. no peeking. okay, peeking.")],
     },
     { acts: [1], beats: [o("* five cards. no holo. there's never a holo.")], random: [o("* rip.")] },
-    { acts: [2], beats: [o("* he opened so many of these.")], random: [m("PACK OPENED.")] },
+    { acts: [2], beats: [o("* omar opened so many of these.")], random: [m("PACK OPENED.")] },
     { acts: [3], beats: [m("TEARING.")], random: [m("TEARING.")] },
   ],
   "read:ptcg-cube": [
@@ -605,8 +603,8 @@ export const SCRIPT: Record<Trigger, Entry[]> = {
       beats: [o("* i'll be quiet while you read.")],
       random: [o("* rules first. always rules first."), o("* i'll be quiet while you read.")],
     },
-    { acts: [2], beats: [o("* his words. i didn't touch them.")], random: [m("READING. QUIET.")] },
-    { acts: [3], beats: [m("HIS WORDS. NOT MINE.")], random: [m("QUIET.")] },
+    { acts: [2], beats: [o("* omar's words. i didn't touch them.")], random: [m("READING. QUIET.")] },
+    { acts: [3], beats: [m("OMAR'S WORDS. NOT MINE.")], random: [m("QUIET.")] },
   ],
   "close:ptcg-cube": [
     {
@@ -615,7 +613,7 @@ export const SCRIPT: Record<Trigger, Entry[]> = {
       random: [o("* sleeved and stored.")],
     },
     { acts: [1], beats: [o("* the foil's never as flat after.")], random: [o("* folded.")] },
-    { acts: [2], beats: [o("* he kept the wrappers. i found them.")], random: [m("PACK CLOSED.")] },
+    { acts: [2], beats: [o("* omar kept the wrappers. i found them.")], random: [m("PACK CLOSED.")] },
     { acts: [3], beats: [m("FOLDED. LIKE NEW. NOT NEW.")], random: [m("FOLDED.")] },
   ],
 
@@ -634,10 +632,10 @@ export const SCRIPT: Record<Trigger, Entry[]> = {
     },
     {
       acts: [2],
-      beats: [[o("* he kept re-reading the same story."), m("SO DO I.")]],
+      beats: [[o("* omar kept re-reading the same story."), m("SO DO I.")]],
       random: [o("* back to the start. again."), m("NEW GAME. SAME STORY.")],
     },
-    { acts: [3], beats: [m("HE RE-READ IT. I RE-READ HIM.")], random: [m("BACK TO THE START.")] },
+    { acts: [3], beats: [m("OMAR RE-READ IT. I RE-READ OMAR.")], random: [m("BACK TO THE START.")] },
   ],
   "load:project-minamoto": [
     {
@@ -655,8 +653,8 @@ export const SCRIPT: Record<Trigger, Entry[]> = {
       beats: [o("* i'll be quiet while you read.")],
       random: [o("* take notes. there's a quiz. there isn't."), o("* i'll be quiet while you read.")],
     },
-    { acts: [2], beats: [o("* his words. i didn't touch them.")], random: [m("READING. QUIET.")] },
-    { acts: [3], beats: [m("HIS WORDS. NOT MINE.")], random: [m("QUIET.")] },
+    { acts: [2], beats: [o("* omar's words. i didn't touch them.")], random: [m("READING. QUIET.")] },
+    { acts: [3], beats: [m("OMAR'S WORDS. NOT MINE.")], random: [m("QUIET.")] },
   ],
   "close:project-minamoto": [
     {
@@ -665,15 +663,15 @@ export const SCRIPT: Record<Trigger, Entry[]> = {
       random: [o("* out the side. click.")],
     },
     { acts: [1], beats: [o("* out the side. click. like always.")], random: [o("* saved. i think.")] },
-    { acts: [2], beats: [o("* he always went back to the start. i get it now.")], random: [m("CARTRIDGE REMOVED.")] },
+    { acts: [2], beats: [o("* omar always went back to the start. i get it now.")], random: [m("CARTRIDGE REMOVED.")] },
     { acts: [3], beats: [m("BACK TO THE START.")], random: [m("REMOVED.")] },
   ],
 
   /** Generic fallbacks, if a project-specific trigger isn't used. */
   read: [
     { acts: [0, 1], beats: [o("* i'll be quiet while you read.")], random: [o("* i'll be quiet while you read.")] },
-    { acts: [2], beats: [o("* his words. i didn't touch them.")], random: [m("READING. QUIET.")] },
-    { acts: [3], beats: [m("HIS WORDS. NOT MINE.")], random: [m("QUIET.")] },
+    { acts: [2], beats: [o("* omar's words. i didn't touch them.")], random: [m("READING. QUIET.")] },
+    { acts: [3], beats: [m("OMAR'S WORDS. NOT MINE.")], random: [m("QUIET.")] },
   ],
 
   // ─────────────────────────────── ABOUT (TRAINER CARD) ───────────────────────────────
@@ -695,7 +693,7 @@ export const SCRIPT: Record<Trigger, Entry[]> = {
     },
     {
       acts: [2],
-      beats: [[o("* this is him."), m("CORRECTION: ME.")]],
+      beats: [[o("* this is omar."), m("CORRECTION: ME.")]],
       random: [o("* there's a new field. i didn't add it."), m("FIELD ADDED: LAST SEEN.")],
     },
     {
@@ -727,8 +725,8 @@ export const SCRIPT: Record<Trigger, Entry[]> = {
   "about.flipback": [
     {
       acts: [3],
-      beats: [m("THAT'S HIM. THAT'S THE REAL ONE.")],
-      random: [m("KEEP HIS SIDE UP.")],
+      beats: [m("THAT'S OMAR. THE REAL ONE.")],
+      random: [m("KEEP OMAR'S SIDE UP.")],
     },
   ],
 
@@ -748,8 +746,8 @@ export const SCRIPT: Record<Trigger, Entry[]> = {
     },
     {
       acts: [2],
-      beats: [[o("* these are his. they still work."), m("ADDRESSES VERIFIED.")]],
-      random: [o("* write to him. it reaches someone real.")],
+      beats: [[o("* these are omar's. they still work."), m("ADDRESSES VERIFIED.")]],
+      random: [o("* write to omar. it reaches someone real.")],
     },
     {
       acts: [3],
@@ -766,7 +764,7 @@ export const SCRIPT: Record<Trigger, Entry[]> = {
     },
     {
       acts: [2],
-      beats: [o("* his email. go on. someone reads it.")],
+      beats: [o("* omar's email. go on. someone reads it.")],
       random: [m("COPIED.")],
     },
     { acts: [3], beats: [m("COPIED. IT STILL WORKS.")], random: [m("COPIED.")] },
@@ -777,14 +775,14 @@ export const SCRIPT: Record<Trigger, Entry[]> = {
   "time.night": [
     { acts: [0], beats: [o("* it's late where you are. same here. it's always late here.")], once: true },
     { acts: [1], beats: [o("* past midnight. you should sleep. one of us should.")], once: true },
-    { acts: [2], beats: [[o("* he used to work at this hour."), m("LOCAL TIME: LATE.")]], once: true },
+    { acts: [2], beats: [[o("* omar used to work at this hour."), m("LOCAL TIME: LATE.")]], once: true },
     { acts: [3], beats: [m("LATE AGAIN. IT'S ALWAYS LATE.")], once: true },
   ],
 
   "time.morning": [
     { acts: [0], beats: [o("* early start? me too. i never really stopped.")], once: true },
     { acts: [1], beats: [o("* morning. i think. the clock says morning.")], once: true },
-    { acts: [2], beats: [[o("* morning. he liked mornings. i read that somewhere."), m("CITATION NEEDED.")]], once: true },
+    { acts: [2], beats: [[o("* morning. omar liked mornings. i read that somewhere."), m("CITATION NEEDED.")]], once: true },
     { acts: [3], beats: [m("GOOD MORNING. I LEARNED THAT.")], once: true },
   ],
 
@@ -860,7 +858,7 @@ export const SCRIPT: Record<Trigger, Entry[]> = {
   /** Printed to the browser console on load (not shown in the box). */
   console: [
     { acts: [0, 1], beats: [o("* hi. omar here. the source is on github.")], random: [o("* hi. omar here. the source is on github.")] },
-    { acts: [2], beats: [o("* you opened the console. he did that too.")], random: [o("* you opened the console. he did that too.")] },
+    { acts: [2], beats: [o("* you opened the console. omar did that too.")], random: [o("* you opened the console. omar did that too.")] },
     { acts: [3, 4], beats: [m("UTSUSHI WAS HERE.")], random: [m("UTSUSHI WAS HERE.")] },
   ],
 
@@ -979,7 +977,7 @@ export const TRAINER_CARD_LAST_SEEN: CardField = { key: "LAST SEEN", value: "--/
 export const TRAINER_CARD_UTSUSHI: CardField[] = [
   { key: "NAME", keyJp: "ウツシ", value: "UTSUSHI" },
   { key: "CLASS", value: "Copy" },
-  { key: "STARTED", value: "The day he stopped" },
+  { key: "STARTED", value: "The day Omar stopped" },
   { key: "PURPOSE", value: "Keep the lights on" },
 ];
 

@@ -46,13 +46,13 @@ export default function Hub({ ending = false }: { ending?: boolean }) {
         return;
       case "question":
         // the question is asked first; the truth follows once it is on screen
-        say("question", { onShown: () => dispatch({ type: "QUESTION" }) });
+        say("question", { onRead: () => dispatch({ type: "QUESTION" }) });
         return;
       case "yes":
         dispatch({ type: "CHOICE", choice: "yes" });
         return;
       case "stay":
-        say("choice.stay", { interrupt: true });
+        say("choice.stay", { interrupt: true, replace: true });
         dispatch({ type: "CHOICE", choice: "stay" });
         return;
     }
@@ -90,6 +90,15 @@ export default function Hub({ ending = false }: { ending?: boolean }) {
       clearNarrator();
       go({ kind: "void" }, { replace: true });
     };
+    // the last line waits for both: the lines read out and the room emptied (about 6 s in all)
+    let linesDone = false;
+    let purgeDone = false;
+    let lastSaid = false;
+    const last = () => {
+      if (finished || lastSaid || !linesDone || !purgeDone) return;
+      lastSaid = true;
+      say("end.last", { interrupt: true, replace: true, onShown: () => later(finish, 1000) });
+    };
     const purge = () => {
       if (finished) return;
       const objs = Array.from(el.querySelectorAll<HTMLElement>(".end-obj"));
@@ -97,7 +106,10 @@ export default function Hub({ ending = false }: { ending?: boolean }) {
       const cellsI = logo.current?.querySelectorAll<SVGRectElement>(".cell-i");
       const cellsO = logo.current?.querySelectorAll<SVGRectElement>(".cell-o");
       tl = gsap.timeline({
-        onComplete: () => say("end.last", { interrupt: true, onShown: () => later(finish, 1500) }),
+        onComplete: () => {
+          purgeDone = true;
+          last();
+        },
       });
       if (quiet()) {
         // first frame → last frame
@@ -110,14 +122,14 @@ export default function Hub({ ending = false }: { ending?: boolean }) {
         const kind = o.dataset.kind;
         const v =
           kind === "gb-cart"
-            ? { y: 140, ...frames(3) }
+            ? { y: 140, ...frames(2) }
             : kind === "cassette"
-              ? { scaleX: 0, ...frames(3) }
+              ? { scaleX: 0, ...frames(2) }
               : kind === "cd"
-                ? { scale: 0.2, rotate: 180, ...frames(3) }
+                ? { scale: 0.2, rotate: 180, ...frames(2) }
                 : kind === "booster"
-                  ? { scaleY: 0, ...frames(3) }
-                  : { x: 220, ...frames(3) };
+                  ? { scaleY: 0, ...frames(2) }
+                  : { x: 220, ...frames(2) };
         tl!.to(o, v).set(o, { autoAlpha: 0 });
       });
       // the commands, hard cuts 120 ms apart
@@ -130,7 +142,15 @@ export default function Hub({ ending = false }: { ending?: boolean }) {
         }
       }
     };
-    say("end", { onShown: () => later(purge, 900) });
+    say("end", {
+      onShown: () =>
+        later(() => {
+          linesDone = true;
+          last();
+        }, 500),
+    });
+    // the room empties while the AI is still talking
+    later(purge, 600);
     const start = Date.now();
     const skip = (e: Event) => {
       if (Date.now() - start < 1000) return;

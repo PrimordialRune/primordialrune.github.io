@@ -40,6 +40,7 @@ Studio B, "STILL HERE": the portfolio is one dialogue-driven game, a conversatio
 ## Configuration
 
 - **next.config.mjs** - `output: 'export'`, `assetPrefix` from `ASSET_PREFIX`, `images.unoptimized: true`
+- **scripts/strip-nomodule.mjs** - runs after `next build`: removes the legacy `<script noModule>` polyfill (absolute path that ignores `ASSET_PREFIX`)
 - **tsconfig.json** - Path alias `@/*` maps to `src/*`
 - **eslint.config.mjs** - ESLint flat config with Next.js rules
 - **postcss.config.mjs** - PostCSS with Tailwind CSS plugin

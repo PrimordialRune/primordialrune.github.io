@@ -22,6 +22,8 @@ export interface Page {
   onDone?: () => void;
   /** called once when the page has been fully typed out */
   onShown?: () => void;
+  /** called once the page has been on screen long enough to read (or was moved past) */
+  onRead?: () => void;
 }
 
 interface Config {
@@ -33,7 +35,8 @@ interface Config {
 }
 
 const AMBIENT = new Set(["idle", "edge", "pointer.exit", "resize", "time.night", "time.morning", "visit.return"]);
-const STORY_PREFIX = ["act.", "choice.", "end", "question", "frame.refuse", "about.lastseen", "title.corrupt", "void.peek", "tab.return", "open:"];
+// open:<slug> lines are about the object in hand (context); the two twist beats pass kind: "story"
+const STORY_PREFIX = ["act.", "choice.", "end", "question", "frame.refuse", "about.lastseen", "title.corrupt", "void.peek", "tab.return"];
 
 export function kindOf(trigger: string): Kind {
   if (AMBIENT.has(trigger)) return "ambient";
@@ -109,7 +112,10 @@ function resolve(trigger: string, act: Act): RawLine[] {
 function drop(pages: Page[]) {
   if (process.env.NODE_ENV !== "production" && pages.some((p) => p.kind === "story"))
     console.warn("narrator: dropped a story line", pages);
-  pages.forEach((p) => p.onDone?.());
+  pages.forEach((p) => {
+    pageRead(p);
+    p.onDone?.();
+  });
 }
 
 /** Remove queued (not yet shown) pages of the given kinds */
@@ -121,9 +127,16 @@ function prune(kinds: Kind[]) {
   drop(gone);
 }
 
-function push(pages: Page[], interrupt = false) {
+function push(pages: Page[], interrupt = false, replace = false) {
   if (!pages.length) return;
   const kind = pages[0].kind;
+  if (replace && current?.shown) {
+    // the line on screen has been read: this one takes its place right away
+    const old = current;
+    current = null;
+    pageRead(old);
+    old.onDone?.();
+  }
   if (interrupt) {
     // clears what belongs to the moment, never story that is already waiting
     prune(["context", "ambient"]);
@@ -162,8 +175,12 @@ export interface SayOptions {
   onDone?: () => void;
   /** called once the trigger's last line is fully on screen */
   onShown?: () => void;
+  /** called once the trigger's last line has been on screen long enough to read */
+  onRead?: () => void;
   /** clear context and ambient lines (current included) before this one */
   interrupt?: boolean;
+  /** replace the line on screen, even a story line, once it has been fully shown */
+  replace?: boolean;
   /** speak even in DIRECT mode */
   force?: boolean;
   /** override the trigger's kind */
@@ -175,12 +192,14 @@ export function say(trigger: string, opts: SayOptions = {}): boolean {
   if (!config) return false;
   if (config.isDirect() && !opts.force) {
     opts.onShown?.();
+    opts.onRead?.();
     opts.onDone?.();
     return false;
   }
   const lines = resolve(trigger, config.getAct());
   if (!lines.length) {
     opts.onShown?.();
+    opts.onRead?.();
     opts.onDone?.();
     return false;
   }
@@ -192,7 +211,8 @@ export function say(trigger: string, opts: SayOptions = {}): boolean {
   });
   if (opts.onDone) pages[pages.length - 1].onDone = opts.onDone;
   if (opts.onShown) pages[pages.length - 1].onShown = opts.onShown;
-  push(pages, opts.interrupt);
+  if (opts.onRead) pages[pages.length - 1].onRead = opts.onRead;
+  push(pages, opts.interrupt, opts.replace);
   return true;
 }
 
@@ -220,7 +240,15 @@ export function advance() {
   const done = current;
   current = queue.shift() ?? null;
   emit();
+  if (done) pageRead(done);
   done?.onDone?.();
+}
+
+/** The page has been read (held long enough, or moved past): fires its onRead once */
+export function pageRead(p: Page) {
+  const f = p.onRead;
+  p.onRead = undefined;
+  f?.();
 }
 
 /** The box reports a page fully typed */

@@ -59,7 +59,7 @@ export default function Title({ peek }: { peek: boolean }) {
         peekTimer.current = window.setTimeout(() => {
           dispatch({ type: "PEEK" });
           go({ kind: "title", peek: true }, { replace: true });
-          say("void.peek", { interrupt: true });
+          say("void.peek", { interrupt: true, replace: true });
           peekTimer.current = window.setTimeout(() => go({ kind: "title" }, { replace: true }), 1500);
         }, 700);
       },
