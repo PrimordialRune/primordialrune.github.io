@@ -95,7 +95,7 @@ export default function NarratorScreen() {
   }, [shift]);
 
   const live = !off && story.line ? cleanLine(story.line) : "";
-  const showSave = mounted && !off && saveOpen;
+  const showSave = mounted && !off && saveOpen && story.inCrt;
   const showSpeaker = mounted && !off && !saveOpen && story.inCrt;
 
   return (

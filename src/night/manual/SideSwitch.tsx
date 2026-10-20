@@ -66,9 +66,6 @@ export default function SideSwitch({ side, onSide }: { side: Side; onSide(s: Sid
         <span className={s.sideStamp}>{side}</span>
         <span className={s.sideHint}>
           {pending ? "Turning the tape over…" : "Turn the tape over in the walkman"}
-          <span className={s.kana} lang="ja">
-            カセット
-          </span>
         </span>
       </p>
       <div role="radiogroup" aria-label="Cassette side" aria-busy={pending ? true : undefined} className={s.sides}>

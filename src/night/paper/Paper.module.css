@@ -386,7 +386,7 @@
   gap: 4px;
   font: 300 14px/1.4 var(--f-omar);
 }
-.cardLinks li { display: flex; gap: 8px; align-items: baseline; }
+.cardLinks li { display: flex; flex-wrap: wrap; column-gap: 8px; row-gap: 0; align-items: baseline; }
 .cardKey {
   flex: none;
   width: 64px;
@@ -400,7 +400,7 @@
   color: var(--peacock-blue, #102f41);
   text-decoration: none;
   border-bottom: 1px solid rgba(236, 86, 59, 0.6);
-  word-break: break-all;
+  overflow-wrap: anywhere;
 }
 .cardLink:hover { color: var(--blood-orange, #ec563b); }
 
@@ -448,7 +448,7 @@
 .bigLink:hover { background: var(--blood-orange, #ec563b); }
 .bigKey { font: 900 11px/1 var(--f-omar); letter-spacing: 0.16em; text-transform: uppercase; color: var(--aquamarine, #4eb99f); }
 .bigLink:hover .bigKey { color: var(--cream, #fce8cd); }
-.bigValue { font: 900 clamp(18px, 4vw, 24px)/1.2 var(--f-omar); word-break: break-all; }
+.bigValue { font: 900 clamp(18px, 4vw, 24px)/1.2 var(--f-omar); overflow-wrap: anywhere; }
 .copyRow { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .copyBtn {
   min-height: 44px;

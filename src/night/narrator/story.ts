@@ -250,6 +250,11 @@ function startFile(fresh: boolean) {
 /** The quiet-motion line, once, and never before the greeting */
 function motionLine() {
   if (m.motionSaid) return;
+  // The visitor may have chosen FULL (or QUIET) since boot: then the line is stale
+  if (readMotionSetting() !== "auto" || !systemReducesMotion()) {
+    m.motionPending = false;
+    return;
+  }
   if (m.saveOpen || !m.bootDone) {
     m.motionPending = true;
     return;
@@ -418,7 +423,8 @@ function init() {
   m.hasSave = readFlag("local", FILE_KEY) || m.opened.size > 0;
   m.laterVisit = countVisit() > 1;
   m.stage = deriveStage(m.opened.size, m.notebookLast, m.laterVisit);
-  m.saveOpen = !readFlag("session", SESSION_KEY);
+  // At stage 3 the AI has left the screen, so there is no save select to show on it
+  m.saveOpen = !readFlag("session", SESSION_KEY) && m.stage < 3;
   setTimeout(() => {
     m.longStay = true;
     progressChanged();
