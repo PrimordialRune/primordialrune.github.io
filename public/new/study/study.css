@@ -1,0 +1,91 @@
+/* The case studies: each one is the insert that came with its medium. One stylesheet, skinned per study
+   with --ink / --accent / --accent2 / --paper (the game's own palette) and per medium with [data-medium]. */
+@font-face { font-family: "FK Grotesk"; src: url("../fonts/FKGrotesk-Black.otf") format("opentype"); font-weight: 900; }
+@font-face { font-family: "FK Grotesk"; src: url("../fonts/FKGrotesk-Thin.otf") format("opentype"); font-weight: 200; }
+@font-face { font-family: "8bitDarling"; src: url("../fonts/8bitDarling-Regular.otf") format("opentype"); }
+:root { --room: #07141c; --cream: #fce8cd; --gold: #fadb68; --peacock: #102f41;
+  --pixel: "8bitDarling", ui-monospace, monospace; --grotesk: "FK Grotesk", Helvetica, Arial, sans-serif; color-scheme: dark; }
+/* One palette in both schemes: the booklet is printed, it doesn't follow the OS theme. */
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --room: #07141c; } }
+:root[data-theme="dark"] { --room: #07141c; }
+* { box-sizing: border-box; }
+html { background: var(--room); }
+body { margin: 0; background: var(--room); color: var(--cream); font: 200 19px/1.6 var(--grotesk); -webkit-font-smoothing: antialiased; }
+
+.bar { position: sticky; top: 0; z-index: 2; display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  padding: 10px 16px; background: rgba(7, 20, 28, .92); border-bottom: 3px solid #ec563b; }
+.bar .back { font: 400 11px/1 var(--pixel); letter-spacing: .08em; color: var(--gold); text-decoration: none; padding: 8px 0; }
+.bar .back:hover, .bar .back:focus-visible { color: var(--cream); outline: none; }
+.bar .insert { font: 400 10px/1 var(--pixel); letter-spacing: .08em; opacity: .6; }
+
+.booklet { max-width: 660px; margin: 0 auto; padding: 32px 16px 80px; display: grid; gap: 28px; }
+.page { position: relative; background: var(--paper); color: var(--ink); padding: 40px 44px 20px;
+  box-shadow: inset 4px 0 0 rgba(0, 0, 0, .12), 0 18px 40px rgba(0, 0, 0, .45); }
+/* the staples down the fold */
+.page::before, .page::after { content: ""; position: absolute; left: 6px; width: 3px; height: 22px; background: rgba(0, 0, 0, .28); }
+.page::before { top: 22%; } .page::after { bottom: 22%; }
+
+.page header { margin: 0 0 22px; border-bottom: 4px solid var(--accent); padding-bottom: 10px; }
+h2 { font: 900 30px/1.05 var(--grotesk); text-transform: uppercase; margin: 0; letter-spacing: .01em; }
+.kana { font: 900 13px/1.4 var(--grotesk); opacity: .7; margin-top: 4px; letter-spacing: .06em; }
+.page p { margin: 0 0 16px; max-width: 34em; }
+.page ul { margin: 0 0 18px; padding: 0; list-style: none; }
+.page li { padding-left: 24px; position: relative; margin-bottom: 8px; }
+.page li::before { content: ""; position: absolute; left: 2px; top: .62em; width: 9px; height: 9px; background: var(--accent); }
+.page a { color: var(--accent); font-weight: 900; }
+.page strong { font-weight: 900; }
+
+.folio { text-align: center; font: 400 10px/1 var(--pixel); letter-spacing: .1em; opacity: .55; margin-top: 28px; }
+
+/* pictures: game screens at an integer scale inside a screen bezel, diagrams full width */
+.fig { margin: 26px 0; text-align: center; }
+.fig.screen img { display: inline-block; image-rendering: pixelated; border: 8px solid var(--ink); border-radius: 4px; max-width: 100%; }
+.fig.wide img { width: 100%; height: auto; border: 2px solid var(--ink); background: #fff; }
+.fig figcaption { font-size: 15px; line-height: 1.4; margin-top: 8px; opacity: .8; }
+.fig + .fig { margin-top: -6px; }
+
+/* the narrator writes in the margin: Omar's logo for a face, Omar's lowercase voice */
+.narrator { display: flex; gap: 14px; align-items: flex-start; margin: 22px -14px; padding: 14px 18px; background: var(--ink); color: var(--paper);
+  border-radius: 6px; box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink); }
+.narrator svg { flex: none; width: 34px; height: 34px; fill: var(--paper); margin-top: 4px; }
+.narrator svg .inner { fill: var(--accent); }
+.narrator .who { display: block; font: 400 10px/1 var(--pixel); letter-spacing: .1em; color: var(--accent2); margin-bottom: 6px; }
+.narrator p { margin: 0; font-size: 17px; line-height: 1.5; }
+
+/* drafting: questions for Omar, and the stamp on the cover */
+.question { background: var(--gold); color: var(--peacock); padding: 12px 14px; border: 2px dashed var(--peacock); font-size: 16px; line-height: 1.45; transform: rotate(-.4deg); }
+.question span { display: block; font: 400 9px/1 var(--pixel); letter-spacing: .1em; margin-bottom: 6px; }
+.unsure { display: inline-block; background: var(--gold); color: var(--peacock); font: 900 12px/18px var(--grotesk); width: 18px; text-align: center; border-radius: 50%; }
+.stamp { position: absolute; top: 18px; right: 18px; font: 900 18px/1 var(--grotesk); letter-spacing: .14em; color: var(--accent); border: 3px solid var(--accent); padding: 6px 10px; transform: rotate(6deg); opacity: .9; }
+
+/* the cover: the box art side of the booklet */
+.cover { background: var(--ink); color: var(--paper); text-align: center; padding-top: 34px; }
+.cover .system { font: 400 11px/1 var(--pixel); letter-spacing: .14em; color: var(--accent2); margin-bottom: 22px; }
+.cover-art { display: block; margin: 0 auto 26px; image-rendering: pixelated; max-width: 100%; box-shadow: 0 0 0 2px var(--accent2); }
+.cover h1 { font: 900 clamp(32px, 7vw, 46px)/1 var(--grotesk); text-transform: uppercase; margin: 0; }
+.cover .kana { opacity: .75; }
+.facts { margin: 28px auto 8px; text-align: left; max-width: 460px; font-size: 16px; line-height: 1.4; }
+.facts div { display: grid; grid-template-columns: 7.5em 1fr; gap: 12px; padding: 8px 0; border-top: 1px solid color-mix(in srgb, var(--paper) 25%, transparent); }
+.facts dt { font: 400 10px/1.8 var(--pixel); letter-spacing: .08em; color: var(--accent2); text-transform: uppercase; }
+.facts dd { margin: 0; }
+.play { display: inline-block; margin-top: 18px; padding: 12px 18px; background: var(--accent); color: var(--paper); font: 400 12px/1 var(--pixel); letter-spacing: .1em; text-decoration: none; }
+.play:hover, .play:focus-visible { background: var(--paper); color: var(--ink); outline: none; }
+.cover .folio { opacity: .5; }
+
+/* the booklet slides out of the case (P3), on a spring; quiet motion just shows it */
+@media (prefers-reduced-motion: no-preference) {
+  .page { animation: slide-out .7s cubic-bezier(.2, 1.25, .35, 1) both; }
+  .page:nth-child(2) { animation-delay: .06s; } .page:nth-child(n+3) { animation-delay: .12s; }
+}
+@keyframes slide-out { from { transform: translateY(60px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+@media (max-width: 560px) {
+  body { font-size: 17px; }
+  .page { padding: 30px 22px 16px 26px; }
+  h2 { font-size: 24px; }
+  .narrator { margin: 20px -6px; }
+  .fig { margin-left: -16px; margin-right: -16px; }
+  .fig.screen img { border-width: 4px; }
+  .facts div { grid-template-columns: 1fr; gap: 2px; }
+  .stamp { font-size: 14px; top: 12px; right: 12px; }
+}

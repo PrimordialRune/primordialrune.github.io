@@ -48,7 +48,8 @@ npm run lint     # Run ESLint
   - `useGamepadKeys.ts` - Gamepad buttons replayed as keyboard keys
 - **src/types/** - TypeScript interfaces
   - `project.ts` - Project and ProjectMetadata interfaces
-- **content/projects/** - MDX files for case study content
+- **content/projects/** - MDX files for the old mockup case studies
+- **content/studies/** - The room's case studies, one Markdown file per game, written as that medium's insert (booklet, liner notes...). `npm run studies` (also run before every build) turns them into `public/new/study/<slug>/index.html`; the format is described at the top of each file and in `scripts/build-studies.mjs`. Omar revises the copy by hand: keep it in the Markdown, never in the generated HTML
 - **public/** - Static assets (served at root path)
   - `fonts/` - Custom fonts (FKGrotesk variants, 8bitDarling)
   - `resources/` - Project images and assets
