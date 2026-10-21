@@ -274,11 +274,16 @@ function resize() {
   renderer.setSize(r.width, r.height, false);
   crtMat.uniforms.uOut.value.set(r.width, r.height);
   H = r.height < 520 ? 400 : 480; // short screens (phones sideways) get fewer lines, so the text inside reads bigger
-  W = Math.round(H * Math.min(2.4, Math.max(1, r.width / r.height)));
+  // The picture keeps the glass's own shape, so nothing is ever stretched. A phone sideways with the
+  // browser bar showing is wider than 2.4:1 (a Pixel 10 is about 2.7:1), so the cap is generous.
+  W = Math.round(H * Math.min(3.4, Math.max(1, r.width / r.height)));
   rt.setSize(W, H); ui.width = W; ui.height = H;
   if (cam) { cam.aspect = W / H; cam.updateProjectionMatrix(); }
 }
-addEventListener('resize', resize); resize();
+addEventListener('resize', resize);
+// rotating a phone or going fullscreen can resize the glass after the window event, so watch the canvas itself
+new ResizeObserver(() => resize()).observe(canvas);
+resize();
 
 // ---------- the room ----------
 const scene = new THREE.Scene();
