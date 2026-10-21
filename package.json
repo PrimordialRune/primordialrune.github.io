@@ -4,11 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "node scripts/build-studies.mjs",
+    "prebuild": "node scripts/build-studies.mjs && node scripts/promote-room.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "studies": "node scripts/build-studies.mjs"
+    "studies": "node scripts/build-studies.mjs",
+    "room": "node scripts/promote-room.mjs"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.1.1",
