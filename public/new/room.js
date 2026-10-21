@@ -139,6 +139,9 @@ const LINES = {
 // Chapter 1: only the PC, the Game Boy, its cartridge and the letter are out. Galactic News is a
 // game about delivering mail, so playing it delivers a postcard, and the postcard opens the table.
 // Minamoto re-reads Gen 1 on newer hardware, so the GBA wakes for an old Game Boy cartridge first.
+// Chapter 2: the Cube rulebook is a draft. Reading it offers three face-down picks (a cassette, a disc,
+// a card); each pick turns up on the table, and once it's played the rulebook offers the next one.
+// Holon leaves SpaceRim behind; Crossfader's side B is the drawer's tune, and the drawer holds Haunt Record.
 // Every game played gives back one memory; the logo in the corner fills one step per memory.
 const STORY_LINES = {
   boot: ['* oh. you’re here. sit, sit.', '* everything’s asleep. start with the grey one.'],
@@ -152,6 +155,21 @@ const STORY_LINES = {
   gbaWakes: '* see? old game, new hardware. that’s minamoto, really.',
   minamoto: '* minamoto. gen 1, read again.',
   rulebook: '* something’s on the table now. a rulebook. i wrote it.',
+  draft: ['* a cube is drafted. open the pack, keep one, pass the rest.', '* you pick first.'],
+  draftNext: '* your turn again. the rulebook has another pick.',
+  draftWait: '* play your pick first. then we draft again.',
+  picked: {
+    'crossfader-cassette': '* the cassette. two sides, and both of them matter.',
+    'holon-disc': '* holon. heavy case. it’s mostly numbers.',
+    'ds-cart': '* the little card. two screens, two stories.',
+  },
+  find: {
+    'crossfader-player': ['* that needs its tape deck.', '* it was behind the monitor. here.'],
+    'ds-console': ['* that needs the ds.', '* it was still charging. here.'],
+  },
+  spacerim: '* holon left a second disc on the table. spacerim.',
+  drawerOpens: ['* side b. that’s the drawer’s tune.', '* it’s open now. the old stuff is in there.'],
+  complete: ['* that’s all eight.', '* ...you can stay, you know. i’ll keep the room as it is.'],
   torch: ['* hm. the lamp’s going.', '* here. take the flashlight. point it at things, they’re easier to find.'],
   drawerLocked: '* that’s just old stuff. it’s stuck anyway.',
   skip: '* everything’s out. no story, just the games.',
@@ -162,10 +180,17 @@ const STORY_LINES = {
     [() => !story.found.has('gba-console'), '* there’s something new on the table.', '* the table, top right. play the cartridge waiting there.'],
     [() => !story.flags.has('gba-awake'), '* the advance is asleep. it remembers old things.', '* use the advance, then the grey cartridge.'],
     [() => !story.played.has('gba-cart'), '* it’s awake now. minamoto fits.', '* use the advance, then the minamoto cartridge on the table.'],
+    [() => !story.played.has('ptcg-cube-rulebook'), '* the rulebook on the table. it’s your pick.', '* go to the table and use the rulebook, then pick a game.'],
+    [() => DRAFT.some((g) => story.found.has(g) && !story.played.has(g)), '* you picked one. go on, play it.', '* play the game you picked: it’s on the table, choose PLAY IT.'],
+    [() => story.found.has('spacerim-disc') && !story.played.has('spacerim-disc'), '* holon left another disc on the table.', '* play spacerim: the second disc on the table.'],
+    [() => story.found.has('cd-jewel') && !story.played.has('cd-jewel'), '* the drawer’s open now.', '* go to the drawer and play the disc inside.'],
+    [() => DRAFT.some((g) => !story.found.has(g)), '* the rulebook has another pick.', '* use the rulebook on the table and pick the next game.'],
   ],
 };
 LINES.hover.postcard = STORY_LINES.postcardHover;
 const GAMES = ['gb-cart', 'gba-cart', 'ptcg-cube-rulebook', 'crossfader-cassette', 'holon-disc', 'ds-cart', 'spacerim-disc', 'cd-jewel'];
+const DRAFT = ['crossfader-cassette', 'holon-disc', 'ds-cart'];
+const DRAFT_FACE = { 'crossfader-cassette': ['A CASSETTE', 'two sides'], 'holon-disc': ['A DISC', 'heavy case'], 'ds-cart': ['A CARD', 'very small'] };
 const SAVE_KEY = 'omars-room';
 const story = (() => {
   const s = { found: ['pc', 'gb-console', 'gb-cart', 'envelope'], played: [], spots: ['desk'], flags: [] };
@@ -718,6 +743,7 @@ function activate(id) {
     const games = playable(id).filter((g) => objects[g]);
     if (!games.length) { resetChoice(); say(LINES.nothingYet, 2.4); return; }
     highlight([id, ...games]);
+    if (games.length === 1 && !asleep) return insert(games[0], id); // only one thing fits: no need to ask
     if (games.length && games.every((g) => objects[g].place.spot === 'drawer')) return goSpot('drawer');
     // the games that fit are on the desk already (the story keeps Galactic News there): stay put
     const at = games.length && games.every((g) => objects[g].place.spot === 'desk') ? 'desk' : 'table';
@@ -733,6 +759,7 @@ function activate(id) {
     return insert(id, state.system);
   }
   // free look at a game
+  if (id === 'ptcg-cube-rulebook' && STORY) return readRulebook();
   if (id === 'ptcg-cube-rulebook') say(LINES.rulebook);
   else if (SYSTEM_OF[id] && !state.said.has('hint-' + id)) { state.said.add('hint-' + id); say(LINES.hover[id]); }
   frameObject(id, 0.9, DUR * 0.8);
@@ -873,6 +900,21 @@ function storyEjected(game) {
     setTimeout(() => { goSpot('table'); say(STORY_LINES.rulebook); setTimeout(() => reveal('ptcg-cube-rulebook'), DUR * 1000); }, 400);
     setTimeout(lampGoes, 5200);
   }
+  const lines = [];
+  if (game === 'holon-disc' && !story.found.has('spacerim-disc')) { lines.push(STORY_LINES.spacerim); setTimeout(() => { goSpot('table'); setTimeout(() => reveal('spacerim-disc'), DUR * 1000); }, 400); }
+  if (game === 'crossfader-cassette' && !story.spots.has('drawer')) {
+    lines.push(...STORY_LINES.drawerOpens);
+    setTimeout(() => {
+      openSpot('drawer'); reveal('cd-jewel');
+      gsap.fromTo(drawer.position, { z: DRAWER_SHUT }, { z: DRAWER_SHUT + 0.03, duration: 0.12, yoyo: true, repeat: 1 });
+    }, 400);
+  }
+  if (DRAFT.includes(game) && DRAFT.some((g) => !story.found.has(g))) {
+    lines.push(STORY_LINES.draftNext);
+    setTimeout(() => { const o = objects['ptcg-cube-rulebook']; if (o) { o.glow = 1; gsap.to(o, { glow: 0, duration: 2.4, delay: 2 }); } }, 400);
+  }
+  if (story.played.size === GAMES.length && !story.flags.has('complete')) { story.flags.add('complete'); persist(); lines.push(...STORY_LINES.complete); }
+  if (lines.length) setTimeout(() => say(lines), 500);
 }
 // Something turns up: it drops into place with a little bounce, lit for a moment.
 async function reveal(id) {
@@ -909,10 +951,39 @@ function readPostcard() {
   }
 }
 // Minamoto wants the GBA, which hasn't turned up yet: wanting to play it is what finds it.
-function findSystem(sys) {
+function findSystem(sys, game) {
   goSpot('desk');
-  say(STORY_LINES.findGba);
-  setTimeout(() => { reveal(sys); }, DUR * 1000 + 200);
+  say(STORY_LINES.find[sys] || STORY_LINES.findGba);
+  setTimeout(async () => {
+    await reveal(sys);
+    // found it: put the game in, unless the system has its own condition first (the sleeping GBA)
+    if (game && playable(sys).includes(game)) setTimeout(() => { if (!state.busy && !state.playing) insert(game, sys); }, reduce ? 300 : 1600);
+  }, DUR * 1000 + 200);
+}
+// The Cube's rulebook deals the next games: one face-down pick at a time, the next once the last is played.
+function readRulebook() {
+  if (!story.played.has('ptcg-cube-rulebook')) { story.played.add('ptcg-cube-rulebook'); memFlash = clock.elapsedTime; persist(); }
+  frameObject('ptcg-cube-rulebook', 0.9, DUR * 0.8);
+  highlight(['ptcg-cube-rulebook']);
+  const left = DRAFT.filter((g) => !story.found.has(g));
+  const waiting = DRAFT.find((g) => story.found.has(g) && !story.played.has(g));
+  if (!left.length || waiting) {
+    openProject('ptcg-cube-rulebook', false);
+    say(waiting ? STORY_LINES.draftWait : LINES.rulebook);
+    if (waiting) highlight([waiting]);
+    return;
+  }
+  say(left.length === DRAFT.length ? STORY_LINES.draft : STORY_LINES.draftNext);
+  openPanel({ kind: 'project', tag: 'DRAFT', title: left.length === DRAFT.length ? 'Pick one' : 'Next pick', kana: 'ドラフト  DRAFT',
+    body: [`Pick ${DRAFT.length - left.length + 1} of ${DRAFT.length}. Keep one, the rest come round again.`],
+    items: [...left.map((g) => ({ label: DRAFT_FACE[g][0], note: DRAFT_FACE[g][1], act: () => draftPick(g) })),
+      { label: 'READ THE RULES', act: () => openProject('ptcg-cube-rulebook', false) },
+      { label: 'BACK', act: () => { closePanel(); highlight([]); goSpot('table'); } }] });
+}
+function draftPick(g) {
+  closePanel(); highlight([]); goSpot('table');
+  say(STORY_LINES.picked[g]);
+  setTimeout(() => reveal(g), DUR * 1000);
 }
 function skipStory() {
   for (const p of PLACES) story.found.add(p.id);
@@ -999,11 +1070,19 @@ function announcePanel() {
   if (!panel) return;
   document.getElementById('say').textContent = [panel.title, panel.body?.join(' '), 'Options: ' + panel.items.map((i) => i.label).join(', ')].filter(Boolean).join('. ');
 }
+// PLAY IT goes straight in when the system is out and takes it; otherwise the system says why not.
+function playIt(id) {
+  closePanel();
+  const sys = SYSTEM_OF[id];
+  if (!isFound(sys)) return findSystem(sys, id);
+  if (playable(sys).includes(id)) return insert(id, sys);
+  activate(sys);
+}
 function openProject(id, playing) {
   const p = PROJECTS[id]; if (!p) return;
   const items = [];
   if (playing) items.push({ label: 'EJECT', act: eject });
-  else if (SYSTEM_OF[id]) items.push({ label: 'PLAY IT', act: () => { closePanel(); if (!isFound(SYSTEM_OF[id])) return findSystem(SYSTEM_OF[id]); activate(SYSTEM_OF[id]); } });
+  else if (SYSTEM_OF[id]) items.push({ label: 'PLAY IT', act: () => playIt(id) });
   if (STUDIES) items.push({ label: 'CASE STUDY', act: () => openStudy(id) });
   items.push({ label: 'BACK', act: () => { if (playing) eject(); else { closePanel(); highlight([]); goSpot(objects[id].place.spot); } } });
   openPanel({ kind: 'project', tag: p.medium, title: p.title, kana: p.kana, body: [p.pitch], items });
@@ -1118,7 +1197,7 @@ function drawNav() {
   // small print, bottom right, above nothing else
   g2.font = `${Math.round(9 * ns)}px "${FONT_PIX}"`; g2.textAlign = 'right';
   const links = [['quick', 'QUICK VIEW →', () => { location.href = 'quick/'; }], ['credits', 'CREDITS', () => openPanel(creditsPanel())]];
-  if (STORY && !story.flags.has('skipped')) links.push(['skip', 'SKIP STORY', () => openPanel(skipPanel())]);
+  if (STORY && !story.flags.has('skipped') && !story.flags.has('complete')) links.push(['skip', 'SKIP STORY', () => openPanel(skipPanel())]);
   let rx = W - 18; const ry = H - 16;
   for (const [id, label, act] of links) {
     const w = g2.measureText(label).width;
