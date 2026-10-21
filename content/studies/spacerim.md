@@ -50,7 +50,7 @@ Four kinds of beat run along the track:
 
 SpaceRim has no chart editor. My level editor was a MIDI file: one track for attacks, one for skips, one for defends, laid on top of the song. The game plays the file twice. One copy runs ahead and spawns the markers on the track; the other runs on time and decides whether each key press landed.
 
-![Jabba's level, the whole song. Skips (black) hide between attacks, then the defend section arrives.](jabba-score.png "wide")
+![Drip Sans's level, the whole song at 165 BPM. The skips (black) sit just off the beat, between the attacks, to catch a finger that is ahead of the music.](sans-score.png "wide")
 
 * a page of sheet music, except every note can hurt you.
 
