@@ -19,23 +19,45 @@ facts:
   Made for: Castle Game Jam, October 2026, 48 hours, theme "cross-over"
   Genre: Puzzle platformer in three views
   Engine: Godot 4.7
-  My part: Game design (GDD, one-pager, level design) and development ??
-  Team: Paolo Malacarne, Elia Scaravelli, PrimordialRune ??
-play: ""
+  My part: Project coordinator, game designer and UI/UX designer: all the UI, the level design, and an art direction that stays cohesive
+  Team: Malakh17 (programming), Zahkros (2D art), Smoketracy (music and sound design), Elia Scaravelli (3D models, AI engineering), and me
+play: "https://primordialrune.itch.io/crossfader"
 ---
 
 # One half-remembered song | うた
 
-Crossfader is a puzzle platformer about a girl searching for a song she half-remembers.
+Crossfader is a puzzle platformer about Ayane, a girl searching for a song she half-remembers.
 
-The jam theme was "cross-over". We read it as one room crossed with itself: every level is a single space you can read in two ways, and a third way you have to earn.
+The jam theme was "cross-over", and we built the concept around strong clashes of styles and ideals: two different worlds, crossed together. It didn't start as a platformer. The first pivot was a roguelike where dying in one world was how you travelled to the other. We finally landed on a puzzle adventure you move through by platforming.
+
+The idea grew the way jam ideas should: every member brought their own, and my job was finding a direction that could hold some of them elegantly. The cassette wasn't there at the start. It arrived when Elia showed an animation that reminded me a lot of Unbeatable, an indie game I really love, and from then on we built the game around it.
 
 ![The title screen: flip the side, remix the song](title.png)
 
 * every game i make ends up being about a medium.
 * this one is about a tape. you're holding it.
 
-?? Where did the idea come from? Was the cassette there from the first hour, or did it arrive with the theme?
+# Looking for her own ideas | アヤネ
+
+We are constantly bombarded with cool ideas and concepts, and now with AI even more. A creative person can struggle to find themselves in what they make.
+
+The whole level is a metaphor for Ayane's creative process. She looks for her old ideas inside cassettes to find her inspiration again, and switching between the sides of a cassette is switching between her worlds.
+
+?? Your sentence was cut off here: "puzzles become gradually more difficult as she starts to…". How does it end?
+
+# Mixtape of influences | インスピレーション
+
+The look and feel borrow from a whole shelf:
+
+- **Hi-Fi Rush**, for a world that moves to the beat.
+- **HyperPop and MoePop**, for the colour and the overload.
+- **Planarcadia** from Honkai: Star Rail, and **Splatoon**.
+- **Unbeatable**, for some of the concepts.
+- **Fez**, for the level design: one space, read from more than one side.
+- **Jet Set Radio Future**, for the punk.
+
+* a mixtape of other people's songs.
+* which is how every new song starts, honestly.
 
 # Side A | サイドA
 
@@ -56,17 +78,19 @@ Flipping is one key and always allowed. The puzzle is never in your hands; it's 
 * side a. always side a first.
 * then you flip it. that's the whole game, and also how tapes work.
 
-# Hyper-mode | ハイパー
+# Hyper Mode | ハイパー
 
-Pick up five Inspirations and the Walkman gauge fills. Press X and the room turns 3D for one short hyper track.
+Sometimes Ayane gets so inspired by what she's thinking that she falls into Hyper Mode. Pick up five Inspirations and the Walkman gauge fills; press X and the room turns 3D for one short hyper track.
+
+In Hyper Mode she's overstimulated by the rush of ideas in her head, and that makes it impossible to recover her memories, the tapes. To rebuild a memory and learn from it, she has to come back to nostalgia.
 
 ![Hyper-mode: the room opens into colour](hyper.png)
 
-The rule I held onto: Hyper-mode **sets up** the solution, it never **is** the solution. Nothing can be collected in 3D. You use the song to push a subwoofer where it's needed, and the payoff happens back in 2D, where the moved speaker becomes a step, a wall or a bridge.
+That's the design rule too: Hyper Mode **sets up** the solution, it never **is** the solution. Nothing can be collected in 3D. You use the song to push a subwoofer where it's needed, and the payoff happens back in 2D, where the moved speaker becomes a step, a wall or a bridge.
 
-![Pushing a subwoofer in Hyper-mode](subwoofer.png)
+![Pushing a subwoofer in Hyper Mode](subwoofer.png)
 
-?? Is "a Remix prepares a solution, never is one" the design rule you're proudest of? It's the line I'd lead with for a designer reading this.
+?? You said this rule isn't your proudest line. Which design decision in Crossfader are you proudest of? I'll lead the Hyper Mode page with it, or move it wherever it belongs.
 
 # If it moves on the beat, it matters | シグナル
 
@@ -88,7 +112,3 @@ Only two props change the state of a level: the cassettes you collect and the su
 Each level hides three cassettes. The first two bring back layers of her song. The third, in a gold shell, ends the track: the room freezes and the outro loops until you're ready to continue.
 
 The jam build has two levels, CMY and Bass Drop.
-
-?? Who made the music, and who else was on the team? The repository shows commits from Paolo Malacarne, Elia Scaravelli and you. I'd like the credits to be complete.
-
-?? Where can people play it? An itch.io link would go on the cover.
