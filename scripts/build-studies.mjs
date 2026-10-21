@@ -127,7 +127,7 @@ ${draft ? '<meta name="robots" content="noindex">\n' : ''}<link rel="stylesheet"
 </head>
 <body>
 <!-- Generated from content/studies/${esc(fm.slug)}.md by scripts/build-studies.mjs. Edit the Markdown, not this file. -->
-<nav class="bar"><a class="back" href="../../" data-back>← BACK TO THE ROOM</a><span class="insert">${medium.insert}</span></nav>
+<nav class="bar"><a class="back" href="/" data-back>← BACK TO THE ROOM</a><span class="insert">${medium.insert}</span></nav>
 <main class="booklet">
   <section class="page cover" aria-label="Cover">
     ${draft ? '<div class="stamp" title="Drafted with Claude, waiting for Omar\'s pass">DRAFT</div>' : ''}
@@ -144,7 +144,7 @@ ${pageHtml}
 <script>
 // Back to the room the way you came (keeps ?story and the room's state); a direct visit goes to /new/.
 document.querySelector('[data-back]').addEventListener('click', (e) => {
-  try { if (document.referrer && new URL(document.referrer).pathname.replace(/index\\.html$/, '').endsWith('/new/')) { e.preventDefault(); history.back(); } } catch (_) {}
+  try { const from = document.referrer && new URL(document.referrer); if (from && from.origin === location.origin && (from.pathname === '/' || from.pathname.replace(/index\\.html$/, '').endsWith('/new/'))) { e.preventDefault(); history.back(); } } catch (_) {}
 });
 // Pixel art at the largest integer scale that fits (P1: never 2.5x)
 const fit = () => document.querySelectorAll('img[data-pixel]').forEach((img) => {

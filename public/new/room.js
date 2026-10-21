@@ -8,8 +8,9 @@ import { loadItem, loadTexture } from './stage.js';
 // The picture is always 480 lines; its width follows the window, so the tube can fill it edge to edge.
 let H = 480, W = 640;
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-// ?story plays the room as an adventure: things are hidden until found, and each game unlocks the next.
-const STORY = new URLSearchParams(location.search).has('story');
+// The room plays as an adventure: things are hidden until found, and each game unlocks the next.
+// Story mode is the default; ?free opens every object at once (no memories, no locks)
+const STORY = !new URLSearchParams(location.search).has('free');
 const DUR = reduce ? 0.35 : 1.1;
 // Keep tweens on wall-clock time even when a slow GPU drops frames.
 gsap.ticker.lagSmoothing(0);

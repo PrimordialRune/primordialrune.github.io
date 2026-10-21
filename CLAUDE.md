@@ -20,7 +20,8 @@ npm run lint     # Run ESLint
 
 - **src/app/** - Next.js App Router pages and layouts
   - `layout.tsx` - Root layout with metadata and font configuration
-  - `page.tsx` - Homepage with DiscoverButton and main layout
+  - `classic/page.tsx` - The first home page (pause menu, hero, desk), now at /classic (noindex)
+  - The home page is the room: `public/new/` is copied to `public/index.html` with `<base href="/new/">` by `scripts/promote-room.mjs` (prebuild, gitignored). Story mode is the room's default; `?free` opens everything
   - `globals.css` - Global styles with Tailwind CSS imports and scrollbar hiding
   - `projects/[slug]/page.tsx` - Case study pages with MDX content
 - **src/components/** - Reusable React components
