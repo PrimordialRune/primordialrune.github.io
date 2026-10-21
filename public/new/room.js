@@ -292,7 +292,7 @@ scene.fog = new THREE.Fog(0x06090b, 2.6, 5.5);
 const camera = new THREE.PerspectiveCamera(50, W / H, 0.02, 20);
 cam = camera; resize();
 
-scene.add(new THREE.HemisphereLight(0x7f9fae, 0x1a120c, 0.9));
+const sky = new THREE.HemisphereLight(0x7f9fae, 0x1a120c, 0.9); scene.add(sky);
 const lamp = new THREE.SpotLight(0xffd6a0, 9, 4, 0.75, 0.6, 1.4);
 lamp.position.set(-0.35, 1.6, 0.1); lamp.target.position.set(0, 0.75, -0.55);
 lamp.castShadow = true; lamp.shadow.mapSize.set(1024, 1024); lamp.shadow.bias = -0.0005;
@@ -344,6 +344,15 @@ box(0.8, 0.035, 0.7, wood, -1.48, TABLE_Y - 0.0175, -0.02);
 for (const [x, z] of [[-1.84, -0.33], [-1.84, 0.29], [-1.12, -0.33], [-1.12, 0.29]]) box(0.04, TABLE_Y - 0.035, 0.04, woodDark, x, (TABLE_Y - 0.035) / 2, z);
 const drawerLight = new THREE.PointLight(0x9fd8d0, 1.6, 1.2, 1.5); drawerLight.position.set(0.55, 0.95, 0.1); scene.add(drawerLight);
 const tableLamp = new THREE.PointLight(0xffb070, 4.5, 2.2, 1.6); tableLamp.position.set(-1.3, 1.05, 0.25); tableLamp.castShadow = true; scene.add(tableLamp);
+// Lighting under review: ?light=1 is the room as it is, 2 and 3 lift it a little. Lamps grow less than
+// the ambient so the pools of light still read as lamps.
+const LIGHT = { 1: [1, 1, 5.5], 2: [1.45, 1.2, 6.5], 3: [1.9, 1.4, 7.5] }[new URLSearchParams(location.search).get('light')] || [1, 1, 5.5];
+sky.intensity *= LIGHT[0];
+for (const l of [lamp, fill, drawerLight, tableLamp]) l.intensity *= LIGHT[1];
+scene.fog.far = LIGHT[2];
+// ?torch: a flashlight held at the camera that points wherever the cursor is
+const torch = new THREE.SpotLight(0xfff1d6, 0, 3.2, 0.2, 0.55, 1.2);
+if (new URLSearchParams(location.search).has('torch')) { torch.intensity = 6; scene.add(torch, torch.target); }
 // a poster on the wall, so the room is somebody's: the NES stripes
 const poster = new THREE.Mesh(new THREE.PlaneGeometry(0.42, 0.56), new THREE.MeshStandardMaterial({ color: 0xfce8cd, roughness: 1 }));
 poster.position.set(0.6, 1.5, -0.97); scene.add(poster);
@@ -1359,6 +1368,12 @@ renderer.setAnimationLoop(() => {
   // camera: target plus a gentle sway toward the cursor
   const s = reduce || panel ? 0 : 0.05;
   camera.lookAt(look.x + sway.x * s, look.y + sway.y * s * 0.6, look.z);
+  if (torch.intensity) {
+    // the beam follows the cursor through the curved glass, from just below the eye
+    const [u, v] = curve(mouse.u, mouse.v); ndc.set(u * 2 - 1, v * 2 - 1); ray.setFromCamera(ndc, camera);
+    torch.position.copy(camera.position).add(new THREE.Vector3(0.05, -0.08, 0));
+    torch.target.position.copy(ray.ray.origin).addScaledVector(ray.ray.direction, 1.2);
+  }
   renderer.setRenderTarget(rt); renderer.render(scene, camera);
   drawUI(t);
   renderer.setRenderTarget(null); renderer.render(quadScene, quadCam);
