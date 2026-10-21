@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import { loadItem, loadTexture } from './stage.js';
 
 // The picture is always 480 lines; its width follows the window, so the tube can fill it edge to edge.
-const H = 480; let W = 640;
+let H = 480, W = 640;
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const DUR = reduce ? 0.35 : 1.1;
 // Keep tweens on wall-clock time even when a slow GPU drops frames.
@@ -28,7 +28,7 @@ const PLACES = [
   { id: 'ds-console', spot: 'desk', size: 0.15, pos: [0.56, DESK_Y, -0.66], rotY: -0.65 },
   { id: 'envelope', spot: 'desk', envelope: true, pos: [0.12, DESK_Y, -0.22], rotY: 0.22 },
   // table: the games, lying flat
-  { id: 'gb-cart', spot: 'table', size: 0.065, pos: [-1.62, TABLE_Y, -0.2], flat: true, rotY: 0.3 },
+  { id: 'gb-cart', spot: 'table', size: 0.065, fix: [-12.75, 12, -11], pos: [-1.62, TABLE_Y, -0.2], flat: true, rotY: 0.3 },
   { id: 'gba-cart', spot: 'table', size: 0.057, pos: [-1.5, TABLE_Y, -0.08], flat: true, rotY: -0.2 },
   { id: 'ds-cart', spot: 'table', size: 0.035, pos: [-1.4, TABLE_Y, -0.2], flat: true, rotY: 0.5 },
   { id: 'crossfader-cassette', spot: 'table', size: 0.1, pos: [-1.33, TABLE_Y, -0.02], flat: true, rotY: 0.15 },
@@ -216,6 +216,7 @@ function resize() {
   if (!r.width || !r.height) return;
   renderer.setSize(r.width, r.height, false);
   crtMat.uniforms.uOut.value.set(r.width, r.height);
+  H = r.height < 520 ? 400 : 480; // short screens (phones sideways) get fewer lines, so the text inside reads bigger
   W = Math.round(H * Math.min(2.4, Math.max(1, r.width / r.height)));
   rt.setSize(W, H); ui.width = W; ui.height = H;
   if (cam) { cam.aspect = W / H; cam.updateProjectionMatrix(); }
@@ -349,7 +350,8 @@ async function makeJewel(name) {
   return g;
 }
 // The envelope: cream paper, a flap hinged at the back, Omar's logo on a wax seal, the letter inside.
-let letterMesh, flap;
+let letterMesh, flap, foldMid, foldTop;
+const FOLD = Math.PI - 0.03; // a folded third, lying a hair off the one below
 const FLAP_SHUT = Math.PI - 0.02, FLAP_OPEN = 1.05;
 function makeEnvelope() {
   const g = new THREE.Group();
@@ -370,8 +372,26 @@ function makeEnvelope() {
     x.fillStyle = '#ec563b'; x.font = '900 18px "FK Grotesk"'; x.fillText(LETTER.role.toUpperCase(), 116, 96);
     x.fillStyle = '#34505e'; for (let y = 150; y < 600; y += 26) x.fillRect(36, y, 380 + Math.sin(y) * 60, 3);
   });
-  letterMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 0.265), new THREE.MeshStandardMaterial({ map: letterTex, roughness: 0.9, side: THREE.DoubleSide }));
-  letterMesh.rotation.x = -Math.PI / 2; letterMesh.position.set(0, 0.003, 0.01); letterMesh.scale.set(1, 0.42, 1); letterMesh.visible = false;
+  // A real letter, folded in three: the bottom third lies still, the middle folds up over it and
+  // the top folds over both. Each third is its own panel with paper on the back.
+  const third = 0.265 / 3, back = new THREE.MeshStandardMaterial({ color: 0xf3ead8, roughness: 0.95 });
+  const panelOf = (k) => {
+    const map = letterTex.clone(); map.repeat.set(1, 1 / 3); map.offset.set(0, k / 3); map.needsUpdate = true;
+    const p = new THREE.Group();
+    const front = new THREE.Mesh(new THREE.PlaneGeometry(0.2, third), new THREE.MeshStandardMaterial({ map, roughness: 0.9 }));
+    const rear = new THREE.Mesh(new THREE.PlaneGeometry(0.2, third), back); rear.rotation.y = Math.PI;
+    front.castShadow = rear.castShadow = true;
+    p.add(front, rear); return p;
+  };
+  letterMesh = new THREE.Group();
+  const bottom = panelOf(0);
+  foldMid = new THREE.Group(); foldMid.position.set(0, third / 2, 0.0006);
+  const mid = panelOf(1); mid.position.y = third / 2;
+  foldTop = new THREE.Group(); foldTop.position.set(0, third, -0.0006);
+  const top = panelOf(2); top.position.y = third / 2;
+  foldTop.add(top); foldMid.add(mid, foldTop); letterMesh.add(bottom, foldMid);
+  foldMid.rotation.x = FOLD; foldTop.rotation.x = -FOLD;
+  letterMesh.rotation.x = -Math.PI / 2; letterMesh.position.set(0, 0.003, 0.012); letterMesh.visible = false;
   g.add(body, flap, letterMesh);
   return g;
 }
@@ -383,6 +403,15 @@ function layFlat(obj, up) {
   if (thin === 'z') obj.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), up ? Math.PI / 2 : -Math.PI / 2);
   if (thin === 'y' && up) obj.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), Math.PI);
 }
+// Some downloaded models sit skewed in their own file (the GB cartridge is off by ~12° on every
+// axis); turn them square, then re-centre and re-normalise so the slot maths can trust the axes.
+function straighten(obj, deg) {
+  const q = new THREE.Quaternion().setFromEuler(new THREE.Euler(...deg.map((d) => THREE.MathUtils.degToRad(d))));
+  for (const c of obj.children) { c.position.applyQuaternion(q); c.quaternion.premultiply(q); }
+  obj.updateMatrixWorld(true);
+  const b = new THREE.Box3().setFromObject(obj, true), s = b.getSize(new THREE.Vector3()), k = 1 / Math.max(s.x, s.y, s.z), ctr = b.getCenter(new THREE.Vector3());
+  for (const c of obj.children) { c.position.sub(ctr).multiplyScalar(k); c.scale.multiplyScalar(k); }
+}
 const AXES = { x: new THREE.Vector3(1, 0, 0), y: new THREE.Vector3(0, 1, 0), z: new THREE.Vector3(0, 0, 1) };
 async function place(p) {
   const item = byId[p.id];
@@ -392,6 +421,7 @@ async function place(p) {
   obj.traverse((n) => { if (/^LabelB/.test(n.name)) n.visible = false; });
   const pose = new THREE.Group();
   pose.add(obj);
+  if (p.fix) straighten(obj, p.fix);
   if (p.size) obj.scale.multiplyScalar(p.size); // loadItem normalises to longest side 1
   if (p.flat) layFlat(obj, p.up);
   for (const [axis, deg] of p.pose || []) pose.rotateOnWorldAxis(AXES[axis], THREE.MathUtils.degToRad(deg));
@@ -485,7 +515,7 @@ if (player) {
 // ---------- camera spots ----------
 const SPOTS = {
   desk: { pos: [0, 1.34, 0.36], look: [0, 0.86, -0.55] },
-  table: { pos: [-0.95, 1.05, 0.55], look: [-1.5, 0.42, -0.05] },
+  table: { pos: [-1.3, 0.9, 0.34], look: [-1.46, 0.42, -0.01] },
   drawer: { pos: [0.55, 1.12, 0.42], look: [0.55, 0.52, -0.16] },
 };
 const look = new THREE.Vector3(...SPOTS.desk.look);
@@ -750,18 +780,23 @@ function openLetter() {
   const tl = gsap.timeline({ onComplete: () => { state.busy = false; openPanel(letterPanel()); } });
   tl.to(flap.rotation, { x: FLAP_OPEN, duration: 0.6, ease: 'power2.out' }, DUR * 0.6);
   tl.call(() => { letterMesh.visible = true; });
-  tl.to(letterMesh.position, { z: 0.16, y: 0.006, duration: 0.55, ease: 'power2.out' });
-  tl.to(letterMesh.scale, { y: 1, duration: 0.45, ease: 'power2.out' }, '<0.15');
-  tl.to(letterMesh.position, { y: 0.09, duration: 0.4, ease: 'power2.inOut' });
-  tl.to(letterMesh.rotation, { x: -1.0, duration: 0.4, ease: 'power2.inOut' }, '<');
+  // slide the folded letter out, lift it toward you, then open it a third at a time
+  tl.to(letterMesh.position, { z: 0.17, y: 0.006, duration: 0.6, ease: 'power2.out' });
+  tl.to(letterMesh.position, { y: 0.07, duration: 0.45, ease: 'power2.inOut' });
+  tl.to(letterMesh.rotation, { x: -1.15, duration: 0.45, ease: 'power2.inOut' }, '<');
+  tl.to(foldTop.rotation, { x: 0, duration: 0.45, ease: 'power2.inOut' }, '-=0.1');
+  tl.to(foldMid.rotation, { x: 0, duration: 0.45, ease: 'power2.inOut' }, '-=0.2');
+  tl.to({}, { duration: 0.15 });
 }
 function closeLetter() {
   const tl = gsap.timeline({ onComplete: () => { letterMesh.visible = false; state.busy = false; goSpot('desk'); } });
   state.busy = true;
-  tl.to(letterMesh.rotation, { x: -Math.PI / 2, duration: 0.3 });
-  tl.to(letterMesh.position, { y: 0.003, duration: 0.3 }, '<');
-  tl.to(letterMesh.position, { z: 0.01, duration: 0.4, ease: 'power2.in' });
-  tl.to(letterMesh.scale, { y: 0.42, duration: 0.3 }, '<0.1');
+  // fold it back in three, lay it down, slide it home
+  tl.to(foldMid.rotation, { x: FOLD, duration: 0.4, ease: 'power2.inOut' });
+  tl.to(foldTop.rotation, { x: -FOLD, duration: 0.4, ease: 'power2.inOut' }, '-=0.15');
+  tl.to(letterMesh.rotation, { x: -Math.PI / 2, duration: 0.35, ease: 'power2.inOut' });
+  tl.to(letterMesh.position, { y: 0.006, duration: 0.35, ease: 'power2.inOut' }, '<');
+  tl.to(letterMesh.position, { z: 0.012, y: 0.003, duration: 0.45, ease: 'power2.in' });
   tl.to(flap.rotation, { x: FLAP_SHUT, duration: 0.45, ease: 'power2.in' });
 }
 
@@ -797,12 +832,13 @@ function drawPanel(t) {
   panelHits = [];
   if (!panel) return;
   const letter = panel.kind === 'letter', wide = letter || panel.kind === 'credits';
-  const w = wide ? Math.min(W - 96, 600) : 260, x = wide ? Math.round((W - w) / 2) : W - w - 28, y = wide ? 36 : 70;
+  const short = H < 480; // phones sideways: wider windows, bigger rows for thumbs, clear of the bigger nav
+  const w = wide ? Math.min(W - 96, short ? 780 : 600) : (short ? 300 : 260), x = wide ? Math.round((W - w) / 2) : W - w - 28, y = wide ? (short ? 24 : 36) : (short ? 82 : 70);
   g2.font = `900 ${wide ? 15 : 14}px "FK Grotesk"`;
   const bodyLines = panel.body.flatMap((p) => [...wrap(p, w - 40), '']);
   const lineH = wide ? 18 : 17;
-  const itemH = wide ? 19 : 22;
-  const h = 84 + (letter ? 30 : 0) + bodyLines.length * lineH + (panel.extra ? 22 : 0) + panel.items.length * itemH + 14;
+  const itemH = short ? (wide ? 23 : 28) : wide ? 19 : 22;
+  const h = 84 + (letter && !short ? 30 : 0) + bodyLines.length * lineH + (panel.extra ? 22 : 0) + panel.items.length * itemH + 14;
   // window: same family as the dialogue box
   g2.fillStyle = 'rgba(16,47,65,0.96)'; g2.fillRect(x, y, w, h);
   g2.strokeStyle = '#fce8cd'; g2.lineWidth = 2; g2.strokeRect(x + 4, y + 4, w - 8, h - 8);
@@ -813,12 +849,12 @@ function drawPanel(t) {
   g2.font = '900 11px "FK Grotesk"'; g2.fillStyle = '#4eb99f'; g2.fillText(panel.kana, x + 20, y + 54);
   let cy = y + 78;
   if (letter && portrait.complete && portrait.naturalWidth) {
-    const ps = 84, px = x + w - ps - 22, py = y + 16;
+    const ps = short ? 60 : 84, px = x + w - ps - 22, py = y + 16;
     g2.imageSmoothingEnabled = false;
     g2.fillStyle = '#fce8cd'; g2.fillRect(px - 4, py - 4, ps + 8, ps + 8);
     g2.drawImage(portrait, px, py, ps, ps);
     g2.imageSmoothingEnabled = true;
-    cy += 30;
+    if (!short) cy += 30;
   }
   g2.font = `900 ${wide ? (panel.kind === 'credits' ? 12 : 15) : 14}px "FK Grotesk"`; g2.fillStyle = 'rgba(252,232,205,0.92)';
   for (const l of bodyLines) { g2.fillText(l, x + 20, cy); cy += lineH; }
@@ -871,13 +907,13 @@ function drawNav() {
   g2.restore();
   if (panel) return;
   // small print, bottom right, above nothing else
-  g2.font = `9px "${FONT_PIX}"`; g2.textAlign = 'right';
+  g2.font = `${Math.round(9 * ns)}px "${FONT_PIX}"`; g2.textAlign = 'right';
   const links = [['quick', 'QUICK VIEW →', () => { location.href = 'quick/'; }], ['credits', 'CREDITS', () => openPanel(creditsPanel())]];
   let rx = W - 18; const ry = H - (nar.visible ? 104 : 16);
   for (const [id, label, act] of links) {
     const w = g2.measureText(label).width;
     g2.fillStyle = navHover === id ? '#fadb68' : 'rgba(252,232,205,0.55)'; g2.fillText(label, rx, ry);
-    navHits.push({ id, x: rx - w - 4, y: ry - 9, w: w + 8, h: 18, act });
+    navHits.push({ id, x: rx - w - 6, y: ry - 12 * ns, w: w + 12, h: 24 * ns, act });
     rx -= w + 18;
   }
   g2.textAlign = 'left';
@@ -897,9 +933,28 @@ function pick() {
   for (const h of hits) { let o = h.object; while (o && !o.userData.hit) o = o.parent; if (o && o.visible !== false) return o.userData.hit; }
   return null;
 }
+let pointerType = 'mouse', wentFull = false;
+function setMouse(e) { const r = canvas.getBoundingClientRect(); mouse.u = (e.clientX - r.left) / r.width; mouse.v = 1 - (e.clientY - r.top) / r.height; }
+// Touch has no hover: a tap is the first and only time we learn where the finger is.
+canvas.addEventListener('pointerdown', (e) => {
+  pointerType = e.pointerType; setMouse(e);
+});
+// on phones, take the whole screen sideways where the browser allows it (a touch counts as a gesture on lift)
+canvas.addEventListener('pointerup', (e) => {
+  if (e.pointerType !== 'touch' || wentFull || document.fullscreenElement) return;
+  wentFull = true;
+  document.documentElement.requestFullscreen?.({ navigationUI: 'hide' }).then(() => screen.orientation?.lock?.('landscape')).catch(() => {});
+});
+// A finger is fat and the table's games are small: when a tap misses, take the nearest thing in reach.
+function pickNear() {
+  const [u, v] = curve(mouse.u, mouse.v); const px = u * W, py = (1 - v) * H;
+  const reach = 46 * H / canvas.clientHeight;
+  let best = null, bd = reach;
+  for (const id of inView()) { const at = screenOf(id, true); if (!at) continue; const d = Math.hypot(at[0] - px, at[1] - py); if (d < bd) { bd = d; best = id; } }
+  return best;
+}
 canvas.addEventListener('pointermove', (e) => {
-  const r = canvas.getBoundingClientRect();
-  mouse.u = (e.clientX - r.left) / r.width; mouse.v = 1 - (e.clientY - r.top) / r.height; mouse.in = true;
+  pointerType = e.pointerType; setMouse(e); mouse.in = pointerType !== 'touch';
   sway.x = (mouse.u - 0.5); sway.y = (mouse.v - 0.5);
   state.idle = 0;
   const nh = navAt(mouse.u, mouse.v); navHover = nh?.id || null;
@@ -907,11 +962,13 @@ canvas.addEventListener('pointermove', (e) => {
   else canvas.style.cursor = nh ? 'pointer' : 'crosshair';
 });
 canvas.addEventListener('pointerleave', () => { mouse.in = false; });
-canvas.addEventListener('click', () => {
+canvas.addEventListener('click', (e) => {
+  setMouse(e);
+  if (pointerType === 'touch') { mouse.in = false; state.hover = null; navHover = null; }
   if (panel) { const hit = panelAt(mouse.u, mouse.v); if (hit) { panel.items[hit.i].act(); return; } }
   const nh = navAt(mouse.u, mouse.v); if (nh) { if (nh.id === 'quick' || nh.id === 'credits' || !state.busy) nh.act(); return; }
   if (state.mode === 'boot' || state.busy || state.playing) return;
-  const id = pick();
+  const id = pick() || (pointerType === 'touch' ? pickNear() : null);
   if (!id) { if (state.mode === 'choose') resetChoice(); return; }
   activate(id);
 });
@@ -952,9 +1009,9 @@ function wrap(text, maxW) {
   for (const w of words) { const t = cur ? cur + ' ' + w : w; if (g2.measureText(t).width > maxW && cur) { lines.push(cur); cur = w; } else cur = t; }
   if (cur) lines.push(cur); return lines;
 }
-function screenOf(id) {
+function screenOf(id, centre = false) {
   const o = objects[id]; if (!o) return null;
-  const b = new THREE.Box3().setFromObject(o.root); const c = b.getCenter(new THREE.Vector3()); c.y = b.max.y;
+  const b = new THREE.Box3().setFromObject(o.root); const c = b.getCenter(new THREE.Vector3()); if (!centre) c.y = b.max.y;
   c.project(camera); return [(c.x * 0.5 + 0.5) * W, (1 - (c.y * 0.5 + 0.5)) * H];
 }
 function drawUI(t) {
@@ -976,7 +1033,8 @@ function drawUI(t) {
   drawPanel(t);
   // the dialogue box
   if (nar.visible && !(panel && panel.kind === 'letter')) {
-    const bw = Math.min(W - 80, 760), bx = Math.round((W - bw) / 2), by = H - 92, bh = 72;
+    // on short screens the box keeps to the bottom left so it hides less of the room
+    const short = H < 480, bw = short ? Math.min(Math.round(W * 0.56), 560) : Math.min(W - 80, 760), bx = short ? 24 : Math.round((W - bw) / 2), by = H - 92, bh = 72;
     g2.fillStyle = 'rgba(16,47,65,0.94)'; g2.fillRect(bx, by, bw, bh);
     g2.strokeStyle = '#fce8cd'; g2.lineWidth = 2; g2.strokeRect(bx + 4, by + 4, bw - 8, bh - 8);
     g2.font = `12px "${FONT_PIX}"`;
