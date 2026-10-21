@@ -126,6 +126,8 @@ const LINES = {
     'crossfader-player': '* the cassette. it only takes the one.',
   },
   wrong: '* that doesn’t go in there.',
+  nothingYet: '* nothing for that one yet. keep looking.',
+  chooseHelp: '* one of the lit ones. or the bars up top, if you changed your mind.',
   rulebook: '* you don’t put this one in anything. you read it.',
   letter: '* go on. it’s short. i wrote it myself.',
   study: '* the case studies are still in the other room. soon.',
@@ -653,7 +655,7 @@ function frameObject(id, dist = 1, dur = DUR) {
 // ---------- narrator (drawn inside the tube) ----------
 const nar = { name: 'OMAR', text: '', shown: 0, queue: [], until: 0, visible: false };
 // say() cuts in: the narrator answers what you just did. queue() waits its turn (boot, idle).
-function say(lines, hold = 3.2) { nar.queue = []; queue(lines, hold); next(); }
+function say(lines, hold = 3.2) { nar.queue = [].concat(lines).map((t) => ({ t, hold })); next(); }
 function queue(lines, hold = 3.2) {
   nar.queue.push(...[].concat(lines).map((t) => ({ t, hold })));
   if (!nar.visible) next();
@@ -714,6 +716,7 @@ function activate(id) {
     const asleep = id === 'gba-console' && !gbaAwake();
     say(asleep ? STORY_LINES.gbaAsleep : LINES.choose[id]);
     const games = playable(id).filter((g) => objects[g]);
+    if (!games.length) { resetChoice(); say(LINES.nothingYet, 2.4); return; }
     highlight([id, ...games]);
     if (games.length && games.every((g) => objects[g].place.spot === 'drawer')) return goSpot('drawer');
     // the games that fit are on the desk already (the story keeps Galactic News there): stay put
@@ -1001,7 +1004,7 @@ function openProject(id, playing) {
   const items = [];
   if (playing) items.push({ label: 'EJECT', act: eject });
   else if (SYSTEM_OF[id]) items.push({ label: 'PLAY IT', act: () => { closePanel(); if (!isFound(SYSTEM_OF[id])) return findSystem(SYSTEM_OF[id]); activate(SYSTEM_OF[id]); } });
-  items.push({ label: 'CASE STUDY', act: () => (STUDIES ? openStudy(id) : say(LINES.study, 2.4)) });
+  if (STUDIES) items.push({ label: 'CASE STUDY', act: () => openStudy(id) });
   items.push({ label: 'BACK', act: () => { if (playing) eject(); else { closePanel(); highlight([]); goSpot(objects[id].place.spot); } } });
   openPanel({ kind: 'project', tag: p.medium, title: p.title, kana: p.kana, body: [p.pitch], items });
 }
@@ -1115,8 +1118,8 @@ function drawNav() {
   // small print, bottom right, above nothing else
   g2.font = `${Math.round(9 * ns)}px "${FONT_PIX}"`; g2.textAlign = 'right';
   const links = [['quick', 'QUICK VIEW →', () => { location.href = 'quick/'; }], ['credits', 'CREDITS', () => openPanel(creditsPanel())]];
-  if (STORY && !story.flags.has('skipped')) links.push(['skip', 'SKIP STORY', skipStory]);
-  let rx = W - 18; const ry = H - (nar.visible ? 104 : 16);
+  if (STORY && !story.flags.has('skipped')) links.push(['skip', 'SKIP STORY', () => openPanel(skipPanel())]);
+  let rx = W - 18; const ry = H - 16;
   for (const [id, label, act] of links) {
     const w = g2.measureText(label).width;
     g2.fillStyle = navHover === id ? '#fadb68' : 'rgba(252,232,205,0.55)'; g2.fillText(label, rx, ry);
@@ -1124,6 +1127,10 @@ function drawNav() {
     rx -= w + 18;
   }
   g2.textAlign = 'left';
+}
+function skipPanel() {
+  return { kind: 'project', tag: 'SKIP STORY', title: 'Skip the story?', kana: 'スキップ  SKIP', body: ['Everything in the room comes out at once. The memories stay as they are.'],
+    items: [{ label: 'KEEP PLAYING', act: closePanel }, { label: 'SKIP IT', act: () => { closePanel(); skipStory(); } }] };
 }
 function creditsPanel() {
   return { kind: 'credits', tag: 'CREDITS', title: 'Model credits', kana: 'クレジット', body: [CREDIT_TEXT], items: [{ label: 'BACK', act: closePanel }] };
@@ -1163,7 +1170,7 @@ canvas.addEventListener('pointerup', (e) => {
     const dx = e.clientX - swipeFrom.x, dy = e.clientY - swipeFrom.y;
     if (Math.hypot(dx, dy) > 36 && performance.now() - swipeFrom.t < 700) {
       swiped = true; state.idle = 0;
-      if (Math.abs(dx) > Math.abs(dy)) step(dx < 0 ? 1 : -1, 'x'); else step(dy > 0 ? 1 : -1, 'y');
+      if (Math.abs(dx) > Math.abs(dy)) step(dx < 0 ? -1 : 1, 'x'); else step(dy > 0 ? 1 : -1, 'y');
     }
     swipeFrom = null;
   }
@@ -1181,7 +1188,7 @@ function pickNear() {
   return best;
 }
 canvas.addEventListener('pointermove', (e) => {
-  pointerType = e.pointerType; setMouse(e); mouse.in = pointerType !== 'touch';
+  pointerType = e.pointerType; setMouse(e); mouse.in = pointerType !== 'touch'; state.keyHover = false;
   sway.x = (mouse.u - 0.5); sway.y = (mouse.v - 0.5);
   state.idle = 0;
   if (pointerType === 'touch') return; // a finger sliding over a menu doesn't choose anything
@@ -1203,7 +1210,7 @@ canvas.addEventListener('click', (e) => {
   }
   if (state.mode === 'boot' || state.busy || state.playing) return;
   const id = pick() || (touch ? pickNear() : null);
-  if (!id) { state.hover = null; if (state.mode === 'choose') resetChoice(); return; }
+  if (!id) { state.hover = null; if (state.mode === 'choose') say(LINES.chooseHelp, 2.4); return; }
   if (touch && state.hover !== id) { state.hover = id; return; } // aim first: the prompt shows over it
   if (touch) state.hover = null;
   activate(id);
@@ -1373,7 +1380,6 @@ renderer.setAnimationLoop(() => {
   crtMat.uniforms.uBurst.value *= Math.pow(0.04, rawDt);
   // hover
   if (mouse.in && !state.keyHover) state.hover = state.mode === 'boot' || panel || navHover ? null : pick();
-  if (mouse.in && state.keyHover && Math.abs(sway.x) + Math.abs(sway.y) > 0) state.keyHover = false;
   const hov = state.hover;
   if (hov && hov !== state.lastHover && hov !== 'drawer' && state.mode === 'free' && !state.said.has(hov) && LINES.hover[hov]) {
     state.said.add(hov); if (!nar.visible) queue(LINES.hover[hov], 2.4);
