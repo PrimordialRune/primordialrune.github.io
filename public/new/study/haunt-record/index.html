@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en" data-medium="archive">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Haunt Record · Omar Golinelli</title>
+<meta name="description" content="Haunt Record: the recovered notes, a case study by Omar Golinelli.">
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="../study.css">
+<style>:root { --ink: #202c39; --accent: #eb5e55; --accent2: #48a9a6; --paper: #fcde9c; }</style>
+</head>
+<body>
+<!-- Generated from content/studies/haunt-record.md by scripts/build-studies.mjs. Edit the Markdown, not this file. -->
+<nav class="bar"><a class="back" href="../../" data-back>← BACK TO THE ROOM</a><span class="insert">RECOVERED NOTES</span></nav>
+<main class="booklet">
+  <section class="page cover" aria-label="Cover">
+    <div class="stamp" title="Drafted with Claude, waiting for Omar's pass">DRAFT</div>
+    <div class="system">ARCHIVED DISC</div>
+    <img class="cover-art" src="logo.png" alt="Haunt Record cover" data-wide>
+    <h1>Haunt Record</h1>
+    <div class="kana" lang="ja">ホーント・レコード</div>
+    <dl class="facts"><div><dt>Started</dt><dd>April 2021, first prototype planned for summer 2021</dd></div><div><dt>Genre</dt><dd>JRPG dungeon crawler, single player, top-down action</dd></div><div><dt>Engine</dt><dd>Unity 2021.1 (2D)</dd></div><div><dt>My part</dt><dd>Game design, programming, UI design, game graphics</dd></div><div><dt>Team</dt><dd>Omar Golinelli, Edoardo Zuliani (game graphics)</dd></div><div><dt>Status</dt><dd>Archived <span class="unsure" title="To confirm">?</span></dd></div></dl>
+    
+    <footer class="folio">RECOVERED NOTES <span lang="ja">ふっきゅう</span></footer>
+  </section>
+
+  <section class="page" aria-labelledby="p1">
+    <header><h2 id="p1">The licence</h2><div class="kana" lang="ja">ライセンス</div></header>
+    <p>You play a Hunter sent into a mysterious dungeon. Your job is to kill a set number of enemies, all of the same species. Do it, and you're given a hunting licence for that species. Collect every licence by the rules, and you can free everyone from the dungeon.</p>
+    <p>Although something sounds particularly strange.</p>
+    <figure class="fig screen x4"><img src="hunter.png" alt="The Hunter" data-pixel><figcaption>The Hunter</figcaption></figure>
+    <aside class="narrator" aria-label="The narrator"><svg viewBox="0 0 555 555" aria-hidden="true"><path d="M260.32,454.02l-159.33-159.33c-8.33-8.33-8.33-21.82,0-30.15l168.17-168.17c4-4,9.42-6.24,15.08-6.24h159.92c5.17,0,6.81-6.96,2.19-9.27L289.14,2.25c-8.21-4.1-18.12-2.5-24.61,3.99L6.24,264.53c-8.33,8.33-8.33,21.82,0,30.15l254.08,254.08c8.33,8.33,21.82,8.33,30.15,0l260.8-260.79c3.08-3.08.9-8.36-3.46-8.36h-72.56c-6.63,0-13,2.64-17.69,7.33l-167.08,167.08c-8.33,8.33-21.82,8.33-30.15,0Z"/><path class="inner" d="M551.25,137.49h-263.74c-7.75,0-15.19,3.08-20.67,8.56l-125.39,125.39c-3.01,3.01-.88,8.16,3.38,8.16h101.34c16.14,0,29.23,13.09,29.23,29.23v101.34c0,4.26,5.15,6.39,8.16,3.38l270.14-270.14c2.19-2.19.64-5.92-2.45-5.92Z"/></svg><div><span class="who">OMAR</span><p>* this one's archived.</p><p>* it doesn't— it's fine. read it if you want.</p></div></aside>
+    <footer class="folio">TRACK 01</footer>
+  </section>
+
+  <section class="page" aria-labelledby="p2">
+    <header><h2 id="p2">The streak</h2><div class="kana" lang="ja">ストリーク</div></header>
+    <p>The win condition is a streak: defeat a number of enemies in a row <strong>without killing anything else</strong> in between. The difficulty is as much in sparing as in killing. Some enemies have to be avoided or held off, because killing them breaks the streak.</p>
+    <p>Reach the threshold and a boss room opens for the species you've been hunting. Beat it, and the licence is yours.</p>
+    <p>Enemies show no stats, so as you go deeper you never quite know how much stronger they've become. The damage you deal is the only measure you get.</p>
+    <figure class="fig screen x3"><img src="sprites.png" alt="Early sprite tests" data-pixel><figcaption>Early sprite tests</figcaption></figure>
+    <footer class="folio">TRACK 02</footer>
+  </section>
+
+  <section class="page" aria-labelledby="p3">
+    <header><h2 id="p3">Weak spots</h2><div class="kana" lang="ja">じゃくてん</div></header>
+    <p>The first time a new enemy attacks, a reticle appears on its weak spot. For a casual player it's a hint about where to hit. For a veteran it's a lesson in how to play perfectly.</p>
+    <p>Every perfect hit pays off with a bigger visual reward than the damage itself, so every player ends up chasing perfect runs without being told to. Discovered weak spots stay in the bestiary across runs.</p>
+    <ul><li>The Boulderfish hides in sandy ground like a bear trap and charges head first. Its head is armoured; its fish body is fragile, exposed only while it charges.</li><li>The Wizarms look like sorcerers with a hand for a face and pretend to be human until they strike. The hand only becomes solid, and hittable, in the moment it attacks.</li></ul>
+    <p class="question"><span>QUESTION FOR OMAR</span>These enemies are from the GDD. Did any of them get built, or were they only designed?</p>
+    <footer class="folio">TRACK 03</footer>
+  </section>
+
+  <section class="page" aria-labelledby="p4">
+    <header><h2 id="p4">One run, four players</h2><div class="kana" lang="ja">プレイヤー</div></header>
+    <p>I designed each run so different players could take it differently. With a 20-kill licence as the example:</p>
+    <ul><li>The story player finds the fastest way through to get on with the plot.</li><li>The early achiever tries the easy missions at a harder grade, to see how far the streak can go.</li><li>The collector chases licence grades, up to a gold one that only looks better.</li><li>The hardcore player goes for perfect scores and top grades at once.</li></ul>
+    <p>A failed perfect run still counts if it was perfect at a lower grade, and the icon for that grade gets a little shinier. You get the push to try again without the pressure of all-or-nothing.</p>
+    <figure class="fig wide"><img src="hud.jpg" alt="The HUD: utility box, minimap, streak and treasure level" loading="lazy"><figcaption>The HUD: utility box, minimap, streak and treasure level</figcaption></figure>
+    <footer class="folio">TRACK 04</footer>
+  </section>
+
+  <section class="page" aria-labelledby="p5">
+    <header><h2 id="p5">The Mindhaunter</h2><div class="kana" lang="ja">マインドハンター</div></header>
+    <p>The dungeon is not a dungeon. The researchers call it the Mindhaunter: a mental structure built to wash a host's mind until the host loses their humanity.</p>
+    <p>The host is Eero, a man who lost everything and agreed to test a &quot;revolutionary game&quot;. The one steering him toward the Hero's Journey is you, the player, because your own mind is conditioned to want it too. At some point the host feels it, and the player becomes the enemy that was controlling him.</p>
+    <p>Every resident of the dungeon carries a curse. The Hunter's is Heroism: he comes back to life every time he dies. Alan, the first person you meet, carries Altruism. He has to set the stage so the hero can shine, which is why he teaches you everything, and why he lets you kill his goat in the tutorial.</p>
+    <figure class="fig wide"><img src="textbox.jpg" alt="Dialogue box test" loading="lazy"><figcaption>Dialogue box test</figcaption></figure>
+    <aside class="narrator" aria-label="The narrator"><svg viewBox="0 0 555 555" aria-hidden="true"><path d="M260.32,454.02l-159.33-159.33c-8.33-8.33-8.33-21.82,0-30.15l168.17-168.17c4-4,9.42-6.24,15.08-6.24h159.92c5.17,0,6.81-6.96,2.19-9.27L289.14,2.25c-8.21-4.1-18.12-2.5-24.61,3.99L6.24,264.53c-8.33,8.33-8.33,21.82,0,30.15l254.08,254.08c8.33,8.33,21.82,8.33,30.15,0l260.8-260.79c3.08-3.08.9-8.36-3.46-8.36h-72.56c-6.63,0-13,2.64-17.69,7.33l-167.08,167.08c-8.33,8.33-21.82,8.33-30.15,0Z"/><path class="inner" d="M551.25,137.49h-263.74c-7.75,0-15.19,3.08-20.67,8.56l-125.39,125.39c-3.01,3.01-.88,8.16,3.38,8.16h101.34c16.14,0,29.23,13.09,29.23,29.23v101.34c0,4.26,5.15,6.39,8.16,3.38l270.14-270.14c2.19-2.19.64-5.92-2.45-5.92Z"/></svg><div><span class="who">OMAR</span><p>* i don't like this page.</p><p>* ...it's a good page. it's just very close to the screen.</p></div></aside>
+    <p class="question"><span>QUESTION FOR OMAR</span>How much of the twist do you want on a public page? I wrote it out in full; we can cut it back to &quot;something sounds particularly strange&quot; if you'd rather keep it secret.</p>
+    <footer class="folio">TRACK 05</footer>
+  </section>
+
+  <section class="page" aria-labelledby="p6">
+    <header><h2 id="p6">The first prototype</h2><div class="kana" lang="ja">プロトタイプ</div></header>
+    <p>The plan was to start small enough for a tiny team, then grow toward the full concept:</p>
+    <ul><li>one setting, a rocky cave</li><li>simple movement and a basic attack</li><li>five enemy types with their bosses</li><li>fifteen hand-made floors, served in random order</li><li>an enemy counter, a dialogue box, a start menu and a pause menu</li><li>the prototype's gimmick, the dice-roll attack: a die next to the counters re-rolls after every hit and sets the power of the next one</li></ul>
+    <figure class="fig wide"><img src="timeline.png" alt="The plan, summer 2021" loading="lazy"><figcaption>The plan, summer 2021</figcaption></figure>
+    <figure class="fig wide"><img src="pause.jpg" alt="Pause menu test: a torn border to cut the game off from the pause" loading="lazy"><figcaption>Pause menu test: a torn border to cut the game off from the pause</figcaption></figure>
+    <figure class="fig screen x2"><img src="style.png" alt="Style experiments" data-pixel><figcaption>Style experiments</figcaption></figure>
+    <p class="question"><span>QUESTION FOR OMAR</span>What happened to it? Why did it go into the drawer? This is the page where your own words matter most.</p>
+    <footer class="folio">TRACK 06</footer>
+  </section>
+</main>
+<script>
+// Back to the room the way you came (keeps ?story and the room's state); a direct visit goes to /new/.
+document.querySelector('[data-back]').addEventListener('click', (e) => {
+  try { if (document.referrer && new URL(document.referrer).pathname.replace(/index\.html$/, '').endsWith('/new/')) { e.preventDefault(); history.back(); } } catch (_) {}
+});
+// Pixel art at the largest integer scale that fits (P1: never 2.5x)
+const fit = () => document.querySelectorAll('img[data-pixel]').forEach((img) => {
+  if (!img.naturalWidth) return;
+  const box = img.parentElement.clientWidth - 2 * (parseFloat(getComputedStyle(img).borderLeftWidth) || 0), want = +(img.closest('[class*=" x"]')?.className.match(/x(\d)/)?.[1] || 3);
+  const s = Math.max(1, Math.min(want, Math.floor(box / img.naturalWidth)));
+  img.style.width = img.naturalWidth * s + 'px';
+});
+document.querySelectorAll('img[data-pixel]').forEach((img) => img.addEventListener('load', fit));
+addEventListener('resize', fit); fit();
+</script>
+</body>
+</html>

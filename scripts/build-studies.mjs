@@ -51,14 +51,25 @@ function frontMatter(text) {
   return data;
 }
 
-function figure(caption, file, opt, draft) {
-  const wide = opt === 'wide';
+// Pixel art is anything up to Game Boy Advance width; bigger pictures are screenshots, shown full width.
+function imageWidth(dir, file) {
+  try {
+    const b = readFileSync(join(dir, file));
+    if (b.toString('ascii', 1, 4) === 'PNG') return b.readUInt32BE(16);
+    if (b.toString('ascii', 0, 3) === 'GIF') return b.readUInt16LE(6);
+  } catch (_) { /* missing file: treat as a screenshot */ }
+  return Infinity;
+}
+const isPixel = (dir, file) => imageWidth(dir, file) <= 320;
+
+function figure(caption, file, opt, dir) {
+  const wide = opt === 'wide' || !isPixel(dir, file);
   const scale = (opt || '').match(/^x(\d)$/)?.[1];
   const cls = wide ? 'fig wide' : `fig screen${scale ? ` x${scale}` : ''}`;
   return `<figure class="${cls}"><img src="${esc(file)}" alt="${esc(caption)}"${wide ? ' loading="lazy"' : ''}${wide ? '' : ' data-pixel'}><figcaption>${inline(caption)}</figcaption></figure>`;
 }
 
-function body(md, draft) {
+function body(md, draft, dir) {
   const pages = []; let page = null; let list = null; let aside = null; let para = [];
   const flushPara = () => { if (para.length) { page.html.push(`<p>${inline(para.join(' '))}</p>`); para = []; } };
   const flushList = () => { if (list) { page.html.push(`<ul>${list.map((i) => `<li>${inline(i)}</li>`).join('')}</ul>`); list = null; } };
@@ -78,14 +89,21 @@ function body(md, draft) {
     if (line.startsWith('?? ')) { flush(); if (draft) page.html.push(`<p class="question"><span>QUESTION FOR OMAR</span>${inline(line.slice(3))}</p>`); continue; }
     if (line.startsWith('- ')) { flushPara(); flushAside(); (list ||= []).push(line.slice(2)); continue; }
     const img = line.match(/^!\[(.*?)\]\((\S+?)(?:\s+"(.+?)")?\)$/);
-    if (img) { flush(); page.html.push(figure(img[1], img[2], img[3], draft)); continue; }
+    if (img) { flush(); page.html.push(figure(img[1], img[2], img[3], dir)); continue; }
     flushList(); flushAside(); para.push(line);
   }
   if (page) flush();
   return pages;
 }
 
-function render(fm, pages) {
+// The page number, in the medium's own counting: a tape has two sides of tracks, a disc has tracks.
+function folio(medium, i, n) {
+  if (medium === 'cassette') { const half = Math.ceil(n / 2); return i < half ? `SIDE A · A${i + 1}` : `SIDE B · B${i - half + 1}`; }
+  if (medium === 'disc' || medium === 'archive') return `TRACK ${String(i + 1).padStart(2, '0')}`;
+  return `— ${i + 2} —`;
+}
+
+function render(fm, pages, dir) {
   const draft = fm.status !== 'final';
   const medium = MEDIA[fm.medium] || MEDIA.gb;
   const [ink, accent, accent2, paper] = (fm.palette || '#102f41 #ec563b #339999 #fce8cd').split(/\s+/);
@@ -95,7 +113,7 @@ function render(fm, pages) {
   <section class="page" aria-labelledby="p${i + 1}">
     <header><h2 id="p${i + 1}">${inline(p.title)}</h2>${p.kana ? `<div class="kana" lang="ja">${esc(p.kana)}</div>` : ''}</header>
     ${p.html.join('\n    ')}
-    <footer class="folio">— ${i + 2} —</footer>
+    <footer class="folio">${folio(fm.medium, i, pages.length)}</footer>
   </section>`).join('\n');
   return `<!doctype html>
 <html lang="en" data-medium="${esc(fm.medium || 'gb')}">
@@ -114,7 +132,7 @@ ${draft ? '<meta name="robots" content="noindex">\n' : ''}<link rel="stylesheet"
   <section class="page cover" aria-label="Cover">
     ${draft ? '<div class="stamp" title="Drafted with Claude, waiting for Omar\'s pass">DRAFT</div>' : ''}
     <div class="system">${medium.system}</div>
-    ${fm.cover ? `<img class="cover-art" src="${esc(fm.cover)}" alt="${esc(fm.title)} title screen" data-pixel>` : ''}
+    ${fm.cover ? `<img class="cover-art" src="${esc(fm.cover)}" alt="${esc(fm.title)} cover"${isPixel(dir, fm.cover) ? ' data-pixel' : ' data-wide'}>` : ''}
     <h1>${esc(fm.title)}</h1>
     <div class="kana" lang="ja">${esc(fm.kana || '')}</div>
     <dl class="facts">${facts}</dl>
@@ -150,8 +168,9 @@ for (const file of readdirSync(SRC).filter((f) => f.endsWith('.md'))) {
   if (!m) { console.warn(`skip ${file}: no front matter`); continue; }
   const fm = frontMatter(m[1]);
   fm.slug ||= file.replace(/\.md$/, '');
-  const pages = body(m[2], fm.status !== 'final');
+  const dir = join(OUT, fm.slug);
+  const pages = body(m[2], fm.status !== 'final', dir);
   mkdirSync(join(OUT, fm.slug), { recursive: true });
-  writeFileSync(join(OUT, fm.slug, 'index.html'), render(fm, pages));
+  writeFileSync(join(dir, 'index.html'), render(fm, pages, dir));
   console.log(`study: ${fm.slug} (${pages.length} pages, ${fm.status || 'draft'})`);
 }
