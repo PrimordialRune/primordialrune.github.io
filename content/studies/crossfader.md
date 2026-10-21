@@ -43,7 +43,7 @@ We are constantly bombarded with cool ideas and concepts, and now with AI even m
 
 The whole level is a metaphor for Ayane's creative process. She looks for her old ideas inside cassettes to find her inspiration again, and switching between the sides of a cassette is switching between her worlds.
 
-?? Your sentence was cut off here: "puzzles become gradually more difficult as she starts to…". How does it end?
+The puzzles get gradually harder as she discovers more of herself, and starts to find her identity as an artist.
 
 # Mixtape of influences | インスピレーション
 
