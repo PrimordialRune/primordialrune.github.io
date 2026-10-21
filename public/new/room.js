@@ -991,11 +991,13 @@ function drawPanel(t) {
   if (!panel) return;
   const letter = panel.kind === 'letter', wide = letter || panel.kind === 'credits' || panel.kind === 'memories';
   const short = H < 480; // phones sideways: wider windows, bigger rows for thumbs, clear of the bigger nav
-  const w = wide ? Math.min(W - 96, short ? 780 : 600) : (short ? 300 : 260), x = wide ? Math.round((W - w) / 2) : W - w - 28, y = wide ? (short ? 24 : 36) : (short ? 82 : 70);
+  // with a finger, the game window grows and keeps clear of the A/B buttons on the right
+  const big = touchUI && !wide;
+  const w = wide ? Math.min(W - 96, short ? 780 : 600) : big ? 360 : (short ? 300 : 260), x = wide ? Math.round((W - w) / 2) : W - w - (big ? 150 : 28), y = wide ? (short ? 24 : 36) : (short ? 82 : 70);
   g2.font = `900 ${wide ? 15 : 14}px "FK Grotesk"`;
   const bodyLines = panel.body.flatMap((p) => [...wrap(p, w - 40), '']);
   const lineH = wide ? 18 : 17;
-  const itemH = short ? (wide ? 23 : 28) : wide ? 19 : 22;
+  const itemH = big ? 36 : short ? (wide ? 23 : 28) : wide ? 19 : 22;
   const h = 84 + (letter && !short ? 30 : 0) + bodyLines.length * lineH + (panel.extra ? 22 : 0) + panel.items.length * itemH + 14;
   // window: same family as the dialogue box
   g2.fillStyle = 'rgba(16,47,65,0.96)'; g2.fillRect(x, y, w, h);
@@ -1023,7 +1025,7 @@ function drawPanel(t) {
   panel.items.forEach((it, i) => {
     const on = i === panel.sel;
     if (on) { g2.fillStyle = '#ec563b'; g2.fillRect(x + 14, cy - itemH / 2 + 1, w - 28, itemH - 2); }
-    g2.font = '12px "8bitDarling"'; g2.fillStyle = on ? '#fce8cd' : 'rgba(252,232,205,0.85)';
+    g2.font = `${big ? 15 : 12}px "8bitDarling"`; g2.fillStyle = on ? '#fce8cd' : 'rgba(252,232,205,0.85)';
     g2.fillText((on ? '▶ ' : '  ') + it.label, x + 22, cy + 1);
     if (it.note) { g2.font = '900 12px "FK Grotesk"'; g2.fillStyle = on ? '#fce8cd' : '#4eb99f'; g2.textAlign = 'right'; g2.fillText(it.note, x + w - 24, cy + 1); g2.textAlign = 'left'; }
     panelHits.push({ i, x: x + 14, y: cy - itemH / 2, w: w - 28, h: itemH });
@@ -1100,14 +1102,29 @@ function pick() {
   return null;
 }
 let pointerType = 'mouse', wentFull = false;
+// Phones play the room like a handheld: tap to aim, tap again (or A) to use, swipe like a D-pad, B to go back.
+let touchUI = matchMedia('(pointer: coarse)').matches;
 function setMouse(e) { const r = canvas.getBoundingClientRect(); mouse.u = (e.clientX - r.left) / r.width; mouse.v = 1 - (e.clientY - r.top) / r.height; }
 // Touch has no hover: a tap is the first and only time we learn where the finger is.
+let swipeFrom = null, swiped = false;
 canvas.addEventListener('pointerdown', (e) => {
   pointerType = e.pointerType; setMouse(e);
+  swiped = false;
+  if (e.pointerType === 'touch') { touchUI = true; swipeFrom = { x: e.clientX, y: e.clientY, t: performance.now() }; }
 });
-// on phones, take the whole screen sideways where the browser allows it (a touch counts as a gesture on lift)
 canvas.addEventListener('pointerup', (e) => {
-  if (e.pointerType !== 'touch' || wentFull || document.fullscreenElement) return;
+  if (e.pointerType !== 'touch') return;
+  // a quick drag is a swipe: left/right walks through the objects in view, up/down through menu rows
+  if (swipeFrom) {
+    const dx = e.clientX - swipeFrom.x, dy = e.clientY - swipeFrom.y;
+    if (Math.hypot(dx, dy) > 36 && performance.now() - swipeFrom.t < 700) {
+      swiped = true; state.idle = 0;
+      if (Math.abs(dx) > Math.abs(dy)) step(dx < 0 ? 1 : -1, 'x'); else step(dy > 0 ? 1 : -1, 'y');
+    }
+    swipeFrom = null;
+  }
+  // on phones, take the whole screen sideways where the browser allows it (a touch counts as a gesture on lift)
+  if (wentFull || document.fullscreenElement) return;
   wentFull = true;
   document.documentElement.requestFullscreen?.({ navigationUI: 'hide' }).then(() => screen.orientation?.lock?.('landscape')).catch(() => {});
 });
@@ -1123,6 +1140,7 @@ canvas.addEventListener('pointermove', (e) => {
   pointerType = e.pointerType; setMouse(e); mouse.in = pointerType !== 'touch';
   sway.x = (mouse.u - 0.5); sway.y = (mouse.v - 0.5);
   state.idle = 0;
+  if (pointerType === 'touch') return; // a finger sliding over a menu doesn't choose anything
   const nh = navAt(mouse.u, mouse.v); navHover = nh?.id || null;
   if (panel) { const hit = panelAt(mouse.u, mouse.v); if (hit) panel.sel = hit.i; canvas.style.cursor = hit || nh ? 'pointer' : 'crosshair'; }
   else canvas.style.cursor = nh ? 'pointer' : 'crosshair';
@@ -1130,14 +1148,43 @@ canvas.addEventListener('pointermove', (e) => {
 canvas.addEventListener('pointerleave', () => { mouse.in = false; });
 canvas.addEventListener('click', (e) => {
   setMouse(e);
-  if (pointerType === 'touch') { mouse.in = false; state.hover = null; navHover = null; }
-  if (panel) { const hit = panelAt(mouse.u, mouse.v); if (hit) { panel.items[hit.i].act(); return; } }
+  const touch = pointerType === 'touch';
+  if (touch) { mouse.in = false; navHover = null; if (swiped) { swiped = false; return; } }
   const nh = navAt(mouse.u, mouse.v); if (nh) { if (nh.id === 'quick' || nh.id === 'credits' || !state.busy) nh.act(); return; }
+  if (panel) {
+    const hit = panelAt(mouse.u, mouse.v); if (!hit) return;
+    // with a finger, the first tap on a row picks it and the second uses it
+    if (touch && panel.sel !== hit.i) { panel.sel = hit.i; return; }
+    panel.items[hit.i].act(); return;
+  }
   if (state.mode === 'boot' || state.busy || state.playing) return;
-  const id = pick() || (pointerType === 'touch' ? pickNear() : null);
-  if (!id) { if (state.mode === 'choose') resetChoice(); return; }
+  const id = pick() || (touch ? pickNear() : null);
+  if (!id) { state.hover = null; if (state.mode === 'choose') resetChoice(); return; }
+  if (touch && state.hover !== id) { state.hover = id; return; } // aim first: the prompt shows over it
+  if (touch) state.hover = null;
   activate(id);
 });
+// The handheld's buttons. A uses what's aimed at (or the chosen row), B steps back.
+function pressA() {
+  if (panel) return panel.items[panel.sel].act();
+  if (state.mode === 'boot' || state.busy || state.playing || !state.hover) return;
+  const id = state.hover; state.hover = null; activate(id);
+}
+function pressB() {
+  if (panel) return panel.items.at(-1).act();
+  if (state.busy) return;
+  state.hover = null;
+  if (state.mode === 'choose') { resetChoice(); goSpot(spot); } else if (spot !== 'desk') goSpot('desk');
+}
+// D-pad: along x through the objects in view, left to right as they sit on screen; along y through menu rows.
+function step(dir, axis) {
+  if (panel) { panel.sel = (panel.sel + dir + panel.items.length) % panel.items.length; return; }
+  if (axis === 'y' || state.mode === 'boot' || state.busy || state.playing) return;
+  const list = inView().map((id) => [id, screenOf(id, true)]).filter(([, at]) => at && at[0] > 0 && at[0] < W).sort((p, q) => p[1][0] - q[1][0]).map(([id]) => id);
+  if (!list.length) return;
+  const i = list.indexOf(state.hover);
+  state.hover = list[i < 0 ? (dir > 0 ? 0 : list.length - 1) : (i + dir + list.length) % list.length];
+}
 
 // keyboard: arrows pick among objects in view (or menu entries), Enter uses, Esc steps back, 1-3 move
 let focusIdx = -1;
@@ -1189,7 +1236,7 @@ function drawUI(t) {
     const at = id === 'drawer' ? (() => { const v = new THREE.Vector3(); knob.getWorldPosition(v); v.project(camera); return [(v.x * 0.5 + 0.5) * W, (1 - (v.y * 0.5 + 0.5)) * H - 10]; })() : screenOf(id);
     if (at) {
       g2.font = `12px "${FONT_PIX}"`;
-      const txt = '▶ ' + label; const w = g2.measureText(txt).width + 14;
+      const txt = '▶ ' + label + (touchUI ? ' (A)' : ''); const w = g2.measureText(txt).width + 14;
       const x = Math.round(Math.min(W - w - 6, Math.max(6, at[0] - w / 2))), y = Math.round(Math.max(8, at[1] - 30 + Math.sin(t * 5) * 2));
       g2.fillStyle = '#ec563b'; g2.fillRect(x, y, w, 20);
       g2.fillStyle = '#fce8cd'; g2.fillText(txt, x + 7, y + 11);
@@ -1221,9 +1268,23 @@ function drawUI(t) {
     g2.fillText({ desk: 'CH 01 DESK', table: 'CH 02 TABLE', drawer: 'CH 03 DRAWER' }[spot], 18, 20);
     if (STORY) drawMemories(t);
   }
+  if (touchUI) drawPad();
   uiTex.needsUpdate = true;
 }
 
+// A and B, drawn like a Game Boy's: A up and right, B down and left, big enough for a thumb.
+let padFlash = { id: null, t: -1 };
+function drawPad() {
+  const r = 30, ax = W - 46, ay = Math.round(H * 0.46), bx = ax - 70, by = ay + 40;
+  for (const [id, cx, cy, label, act] of [['btnB', bx, by, 'B', pressB], ['btnA', ax, ay, 'A', pressA]]) {
+    const lit = padFlash.id === id && clock.elapsedTime - padFlash.t < 0.15;
+    g2.fillStyle = lit ? '#fadb68' : 'rgba(236,86,59,0.9)';
+    g2.beginPath(); g2.arc(cx, cy, r, 0, Math.PI * 2); g2.fill();
+    g2.strokeStyle = 'rgba(252,232,205,0.5)'; g2.lineWidth = 2; g2.stroke();
+    g2.font = `16px "${FONT_PIX}"`; g2.fillStyle = '#fce8cd'; g2.textAlign = 'center'; g2.fillText(label, cx, cy + 1); g2.textAlign = 'left';
+    navHits.push({ id, x: cx - r - 6, y: cy - r - 6, w: (r + 6) * 2, h: (r + 6) * 2, act: () => { padFlash = { id, t: clock.elapsedTime }; act(); } });
+  }
+}
 // The narrator's face in the corner: Omar's logo, its inside filling one step per memory given back.
 function drawMemories(t) {
   const n = story.played.size, size = 34, x = 18, y = 34;
@@ -1306,6 +1367,9 @@ renderer.setAnimationLoop(() => {
 // ---------- power on ----------
 gsap.to(crtMat.uniforms.uPower, { value: 1, duration: reduce ? 0.2 : 0.9, ease: 'power2.out', delay: 0.2 });
 if (!reduce) crtMat.uniforms.uBurst.value = 0.9;
-setTimeout(() => { queue(STORY ? (returning ? STORY_LINES.back : STORY_LINES.boot) : LINES.boot, 2.6); }, reduce ? 300 : 1300);
+setTimeout(() => {
+  queue(STORY ? (returning ? STORY_LINES.back : STORY_LINES.boot) : LINES.boot, 2.6);
+  if (touchUI) queue('* tap something to point at it, tap again to use it. a and b work too.', 3.4);
+}, reduce ? 300 : 1300);
 setTimeout(() => { loadRest(); if (state.mode === 'boot') state.mode = 'free'; highlight(Object.keys(PLAYS).filter(isFound)); setTimeout(() => highlight([]), 2600); }, reduce ? 1500 : (STORY ? 4200 : 6500));
-window.__room = { THREE, look, crtMat, objects, goSpot, state, camera, activate, story, reveal, skipStory, eject, openLetter, get panel() { return panel; }, tray, TRAY, doorPivot, frameObject };
+window.__room = { pressA, pressB, step, THREE, look, crtMat, objects, goSpot, state, camera, activate, story, reveal, skipStory, eject, openLetter, get panel() { return panel; }, tray, TRAY, doorPivot, frameObject };
