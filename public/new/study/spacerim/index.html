@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en" data-medium="disc">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SpaceRim · Omar Golinelli</title>
+<meta name="description" content="SpaceRim: the liner notes, a case study by Omar Golinelli.">
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="../study.css">
+<style>:root { --ink: #1a1016; --accent: #db604c; --accent2: #317c87; --paper: #f6dbba; }</style>
+</head>
+<body>
+<!-- Generated from content/studies/spacerim.md by scripts/build-studies.mjs. Edit the Markdown, not this file. -->
+<nav class="bar"><a class="back" href="../../" data-back>← BACK TO THE ROOM</a><span class="insert">LINER NOTES</span></nav>
+<main class="booklet">
+  <section class="page cover" aria-label="Cover">
+    <div class="stamp" title="Drafted with Claude, waiting for Omar's pass">DRAFT</div>
+    <div class="system">PC CD-ROM</div>
+    <img class="cover-art" src="logo.png" alt="SpaceRim cover" data-pixel>
+    <h1>SpaceRim</h1>
+    <div class="kana" lang="ja">スペースリム</div>
+    <dl class="facts"><div><dt>Made for</dt><dd>A castle game jam, as Limpero Studios, October 2023 <span class="unsure" title="To confirm">?</span></dd></div><div><dt>Genre</dt><dd>Rhythm boss battles</dd></div><div><dt>Engine</dt><dd>Godot 4.1, with MIDI-driven beats</dd></div><div><dt>My part</dt><dd> <span class="unsure" title="To confirm">?</span></dd></div><div><dt>Team</dt><dd> <span class="unsure" title="To confirm">?</span></dd></div></dl>
+    
+    <footer class="folio">LINER NOTES <span lang="ja">ライナーノーツ</span></footer>
+  </section>
+
+  <section class="page" aria-labelledby="p1">
+    <header><h2 id="p1">Beat the boss</h2><div class="kana" lang="ja">ボス</div></header>
+    <p>SpaceRim is a rhythm game made of boss fights. The music is the attack pattern: the beats arrive along a timeline, and every beat is an action.</p>
+    <figure class="fig screen x2"><img src="tutorial.png" alt="Create the spells to beat the boss" data-pixel><figcaption>Create the spells to beat the boss</figcaption></figure>
+    <aside class="narrator" aria-label="The narrator"><svg viewBox="0 0 555 555" aria-hidden="true"><path d="M260.32,454.02l-159.33-159.33c-8.33-8.33-8.33-21.82,0-30.15l168.17-168.17c4-4,9.42-6.24,15.08-6.24h159.92c5.17,0,6.81-6.96,2.19-9.27L289.14,2.25c-8.21-4.1-18.12-2.5-24.61,3.99L6.24,264.53c-8.33,8.33-8.33,21.82,0,30.15l254.08,254.08c8.33,8.33,21.82,8.33,30.15,0l260.8-260.79c3.08-3.08.9-8.36-3.46-8.36h-72.56c-6.63,0-13,2.64-17.69,7.33l-167.08,167.08c-8.33,8.33-21.82,8.33-30.15,0Z"/><path class="inner" d="M551.25,137.49h-263.74c-7.75,0-15.19,3.08-20.67,8.56l-125.39,125.39c-3.01,3.01-.88,8.16,3.38,8.16h101.34c16.14,0,29.23,13.09,29.23,29.23v101.34c0,4.26,5.15,6.39,8.16,3.38l270.14-270.14c2.19-2.19.64-5.92-2.45-5.92Z"/></svg><div><span class="who">OMAR</span><p>* spacerim. a jam game. it shows.</p><p>* in a good way. mostly.</p></div></aside>
+    <p class="question"><span>QUESTION FOR OMAR</span>What was the jam, and its theme? And who was Limpero Studios? I found the project as &quot;LimperoStudiosCastleJam&quot; but nothing about the team.</p>
+    <footer class="folio">TRACK 01</footer>
+  </section>
+
+  <section class="page" aria-labelledby="p2">
+    <header><h2 id="p2">Four kinds of beat</h2><div class="kana" lang="ja">ビート</div></header>
+    <p>Each beat on the timeline carries a sign, and the player builds spells by answering them in time:</p>
+    <ul><li><strong>Attack</strong> hits the boss.</li><li><strong>Skip</strong> lets a beat pass.</li><li><strong>Stun</strong> stops the boss for a moment.</li><li><strong>Defend</strong> is held down, and blocks what comes back.</li></ul>
+    <p>The beats aren't placed by hand on a chart: the game reads the song's MIDI file and spawns a marker for every note on the right channel, so the level is literally the score.</p>
+    <p class="question"><span>QUESTION FOR OMAR</span>I guessed what Stun and Defend do from the tutorial screen; please correct them. And is it right that the levels are generated from the MIDI tracks? It's the most interesting technical choice in the project, if so.</p>
+    <footer class="folio">TRACK 02</footer>
+  </section>
+
+  <section class="page" aria-labelledby="p3">
+    <header><h2 id="p3">The bosses</h2><div class="kana" lang="ja">ボスたち</div></header>
+    <p>Every boss is a parody of someone you've met somewhere else.</p>
+    <figure class="fig screen x2"><img src="boss-skeleton.gif" alt="A skeleton in a cap" data-pixel><figcaption>A skeleton in a cap</figcaption></figure>
+    <figure class="fig screen x2"><img src="boss-slug.gif" alt="A very large slug, holding a very red bowl" data-pixel><figcaption>A very large slug, holding a very red bowl</figcaption></figure>
+    <figure class="fig screen x2"><img src="boss-breathtaking.gif" alt="You're breathtaking!" data-pixel><figcaption>You're breathtaking!</figcaption></figure>
+    <aside class="narrator" aria-label="The narrator"><svg viewBox="0 0 555 555" aria-hidden="true"><path d="M260.32,454.02l-159.33-159.33c-8.33-8.33-8.33-21.82,0-30.15l168.17-168.17c4-4,9.42-6.24,15.08-6.24h159.92c5.17,0,6.81-6.96,2.19-9.27L289.14,2.25c-8.21-4.1-18.12-2.5-24.61,3.99L6.24,264.53c-8.33,8.33-8.33,21.82,0,30.15l254.08,254.08c8.33,8.33,21.82,8.33,30.15,0l260.8-260.79c3.08-3.08.9-8.36-3.46-8.36h-72.56c-6.63,0-13,2.64-17.69,7.33l-167.08,167.08c-8.33,8.33-21.82,8.33-30.15,0Z"/><path class="inner" d="M551.25,137.49h-263.74c-7.75,0-15.19,3.08-20.67,8.56l-125.39,125.39c-3.01,3.01-.88,8.16,3.38,8.16h101.34c16.14,0,29.23,13.09,29.23,29.23v101.34c0,4.26,5.15,6.39,8.16,3.38l270.14-270.14c2.19-2.19.64-5.92-2.45-5.92Z"/></svg><div><span class="who">OMAR</span><p>* i'm not going to say who they are.</p><p>* you know who they are.</p></div></aside>
+    <p class="question"><span>QUESTION FOR OMAR</span>Did you draw the bosses? Who made the music?</p>
+    <footer class="folio">TRACK 03</footer>
+  </section>
+</main>
+<script>
+// Back to the room the way you came (keeps ?story and the room's state); a direct visit goes to /new/.
+document.querySelector('[data-back]').addEventListener('click', (e) => {
+  try { if (document.referrer && new URL(document.referrer).pathname.replace(/index\.html$/, '').endsWith('/new/')) { e.preventDefault(); history.back(); } } catch (_) {}
+});
+// Pixel art at the largest integer scale that fits (P1: never 2.5x)
+const fit = () => document.querySelectorAll('img[data-pixel]').forEach((img) => {
+  if (!img.naturalWidth) return;
+  const box = img.parentElement.clientWidth - 2 * (parseFloat(getComputedStyle(img).borderLeftWidth) || 0), want = +(img.closest('[class*=" x"]')?.className.match(/x(\d)/)?.[1] || 3);
+  const s = Math.max(1, Math.min(want, Math.floor(box / img.naturalWidth)));
+  img.style.width = img.naturalWidth * s + 'px';
+});
+document.querySelectorAll('img[data-pixel]').forEach((img) => img.addEventListener('load', fit));
+addEventListener('resize', fit); fit();
+</script>
+</body>
+</html>

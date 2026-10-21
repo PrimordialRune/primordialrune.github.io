@@ -40,7 +40,7 @@ h2 { font: 900 30px/1.05 var(--grotesk); text-transform: uppercase; margin: 0; l
 /* pictures: game screens at an integer scale inside a screen bezel, diagrams full width */
 .fig { margin: 26px 0; text-align: center; }
 .fig.screen img { display: inline-block; image-rendering: pixelated; border: 8px solid var(--ink); border-radius: 4px; max-width: 100%; }
-.fig.wide img { width: 100%; height: auto; border: 2px solid var(--ink); background: #fff; }
+.fig.wide img { width: 100%; height: auto; border: 2px solid var(--ink); }
 .fig figcaption { font-size: 15px; line-height: 1.4; margin-top: 8px; opacity: .8; }
 .fig + .fig { margin-top: -6px; }
 
@@ -61,7 +61,9 @@ h2 { font: 900 30px/1.05 var(--grotesk); text-transform: uppercase; margin: 0; l
 /* the cover: the box art side of the booklet */
 .cover { background: var(--ink); color: var(--paper); text-align: center; padding-top: 34px; }
 .cover .system { font: 400 11px/1 var(--pixel); letter-spacing: .14em; color: var(--accent2); margin-bottom: 22px; }
-.cover-art { display: block; margin: 0 auto 26px; image-rendering: pixelated; max-width: 100%; box-shadow: 0 0 0 2px var(--accent2); }
+.cover-art { display: block; margin: 0 auto 26px; max-width: 100%; box-shadow: 0 0 0 2px var(--accent2); }
+.cover-art[data-pixel] { image-rendering: pixelated; }
+.cover-art[data-wide] { width: 100%; height: auto; }
 .cover h1 { font: 900 clamp(32px, 7vw, 46px)/1 var(--grotesk); text-transform: uppercase; margin: 0; }
 .cover .kana { opacity: .75; }
 .facts { margin: 28px auto 8px; text-align: left; max-width: 460px; font-size: 16px; line-height: 1.4; }
