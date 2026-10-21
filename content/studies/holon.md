@@ -8,7 +8,6 @@
 #   ![caption](file.png)    a picture from public/new/study/holon/
 #   - like this             a bullet list
 # The pages are numbered like tracks on the disc.
-# No game screenshots here on purpose: the alpha asks testers not to share them yet.
 slug: holon
 title: Holon
 kana: ホロン
@@ -19,68 +18,84 @@ palette: "#0d1530 #4f6fa8 #5fe3f2 #f1f4fa"
 facts:
   What: A simulator for the RS-PK retro format of the Pokémon TCG (the EX era), designed for digital
   Status: Closed alpha, version 0.1.2
-  Platforms: Web, Windows, Android, and a game server on a Raspberry Pi
+  Platforms: Web, Windows and Android, with a game server on a Raspberry Pi
   Engine: Unity 6
-  My part: Game design, visual design, art direction and development, built with AI help for the code
+  My part: Game design, visual design, art direction and development, building the code with AI help
   Since: April 2025
   Inspired by: Pokémon TCG Pocket, and the Game Boy Pokémon Trading Card Game
-  Music: Hoenn remixes by Zame
-play: ""
+play: "https://holon.primordialrune.com/"
 ---
 
 # Designed for digital | ホロン
 
 Holon is a simulator for RS-PK, the retro format of the Pokémon Trading Card Game that covers the whole EX era, from EX Ruby & Sapphire through EX Power Keepers.
 
-I made it because I wanted a way to play this game that feels refreshing and is designed for digital, not a paper table copied onto a screen. Pokémon TCG Pocket was a big inspiration: it showed how well the TCG can be rethought for a digital space. I wanted to do the same for the community I care about most in the Pokémon TCG, the RS-PK players.
+I wanted a way to play this game that feels refreshing and is designed for digital, not a paper table copied onto a screen. Pokémon TCG Pocket showed how well the TCG can be rethought for a screen. I wanted the same for the community I care about most, the RS-PK players.
+
+This page is about the decisions behind it: how it looks, how a crowded board stays readable, how the alpha is run, and where the story mode is going.
 
 * holon. the logo took longer than some games.
 * it's the one i'm still playing.
 
-# Chrome and metal | クローム
+# A silver instrument from 2003 | クローム
 
-The whole design mixes the aesthetic of the time with a modern renovation. Holon should feel new, modern and functional, and still remind you of how things looked back then.
+Holon should feel new, modern and functional, and still take you back to the early 2000s. Chrome does most of that work.
 
-You can see it most in the chrome and metal everywhere: the materials of Y2K design, the years these cards came out in.
+The first redesign of the menus got it wrong: clean, modern and bland. The direction we agreed after it fits in one line: **a silver alloy instrument from 2003, holding cards that are still holo.** The metal is the era's signature: the silver EX card border, the GBA SP, the MiniDisc, the translucent iMac. So the body is brushed alloy with dark rails, the cards sit in dark pockets cut into it, and holo appears only on the cards themselves, when you tilt them.
 
-?? You wrote "I try to use that a bit also for horror", and I'm not sure I caught it. Did you mean the chrome also turns unsettling somewhere (a boss, the story mode), or something else?
+![One of five prototypes for the home screen: the deck in a receiver window, dials for mode and format](shell.png "wide")
 
-# Every card, hopefully | カード
+The type follows the same rule. Card names use Gill Sans, because the cards of the time were set in it, and the numbers use a Y2K techno face.
 
-The alpha has Ruby & Sapphire, Sandstorm and Dragon, with every card (hopefully) working. You can play against the AI, try online play against other testers, build decks in a deck editor, and import decklists from Limitless.
+# A board you can read | ボード
 
-Getting old cards right is the hard part. The rules of the EX era live in a written ruleset, set by set rulings, and the memory of the players who were there. Holon measures its engine against that ruleset and fixes what diverges: a damage counter that wasn't always 10 damage, Darkness and Metal Energy that provided every type, two Pokémon knocked out at the same time.
+A Pokémon TCG board gets crowded fast: abilities that react, attacks that are locked, a Trainer that can only target some of your Pokémon. Every state of the board says one of three things:
 
-* a lot of the loading-screen tips came from questions testers asked.
-* the game learns from the people playing it. i like that. i'd like that.
+- **What a card is, and what it can do by itself.** It belongs to the card, always on.
+- **Whether a place will accept what you're doing.** It belongs to the place, and lights up only while you act.
+- **Whether something will react to what you're doing.** It belongs to the card, as a change in its own signal.
+
+The test of this grammar isn't whether one tricky card works. It's whether the next hundred cards arrive as configurations of it, without new code for each one.
+
+![From the first wireframe to the board, in light and dark](wireframe.png "wide")
+![](board.png "wide")
+
+One more decision: the board leans 12° toward you. Tilting the camera did nothing, because rotating a camera in place can't create depth, so the board itself tilts. The cards lie in it like objects on a table, while your hand stays upright: a hand is held, not laid down.
+
+# Running the alpha | アルファ
+
+**One set, complete.** The plan was to open the alpha with three sets. Measured against the project, that meant importing 190 more cards and drawing art for 280, with tests for none of them. Importing three sets at once would only prove they can be brute-forced. So the alpha opened with EX Ruby & Sapphire alone, complete, and the next set became a measured experiment in how well the card pipeline scales.
+
+**Real accounts from day one.** The site and the builds are public, but nothing plays without an approved account. A tester asks for a seat on the Holon site, I approve them from Telegram, and the account they get carries their name and decks across devices into the beta.
+
+**Reporting a bug takes one key.** F8 saves a report from any match; on a phone, you hold three fingers on the screen. The tester brief says it plainly: if you need someone's help to start a match, that itself is a bug worth reporting.
+
+**Testers shape the game.** When a ruling feels wrong, it becomes a fix or a loading-screen tip; many of the tips started as questions testers asked. Every release goes through one gate that runs the whole test suite and a build before anything reaches players, and every release comes with notes written for testers, not for me.
+
+![The deck list, before and after: from card-number order to evolution lines, then card kinds](deck-editor.png "wide")
+
+* the game learns from the people playing it.
+* i like that. i'd like that.
 
 # A story mode, like the Game Boy ones | ものがたり
 
-The Game Boy Pokémon Trading Card Game gave the cards an adventure: clubs, masters, a world to walk through. It only ever covered the earliest sets, and its sequel, which added Team Rocket cards, never left Japan.
+The Game Boy Pokémon Trading Card Game gave the cards an adventure. It only covered the earliest sets, and its sequel, with the Team Rocket cards, never left Japan.
 
-I want Holon to have that too, but living alongside the simulator. Players who only want to test decks or run tournaments keep the simulator. Players who want an adventure get a story mode, with a more draft-like way of building what they play.
+Holon's story mode, still being designed, lives alongside the simulator. Players who want to test decks or run tournaments keep the simulator. Players who want an adventure travel across Hoenn from Norman to Steven, open packs as rewards, and build their deck from what they've opened. It's a collection campaign that teaches deck building one set at a time.
 
-The story's bosses are designed to be a real challenge, and each one has a **trainer power**: a strong move they can use once during a match. Some accelerate energy, some clear special conditions, and so on. A trainer power gives every Gym Leader a flavour you can't foresee just by reading their deck.
+![The reward packs, as their Japanese originals: Ruby & Sapphire, Sandstorm, Dragon, and two for later](packs.png "wide")
+
+The bosses are meant to be hard, and each one has a **trainer power**: a strong move they can use once in a match, which you can't foresee just by reading their deck. Winona, the Fortree Gym Leader, flies: after she has moved her Pokémon three times in a match, she can use the effect of Gust of Wind and drag one of yours into the Active Spot.
+
+The difficulty curve is modelled before it's played. A simulation opens thousands of packs, builds the best deck each collection allows, and estimates the win chance for every fight. AI-against-AI matches then measure what the model can only guess.
 
 * a deck tells you what someone plays.
 * a trainer power tells you who they are.
 
-?? Is the story mode already in the alpha, or still being designed? And can you name one Gym Leader and their trainer power? One concrete example would make this page.
-
-# The closed alpha | アルファ
-
-Holon is in a small closed alpha while I learn, test and improve it. Testers ask for a seat on the site, sign in inside the game, and their decks follow them across devices.
-
-- F8 sends a bug report from any match. On a phone, hold three fingers on the screen.
-- If a ruling feels wrong, testers tell me, and it becomes a fix or a tip.
-- Matches online run through a game server on a Raspberry Pi.
-
-?? Should this page link to the alpha request, or stay quiet until the beta? I left screenshots out because the site asks testers not to share them yet.
-
 # How it's made | せいさく
 
-I'm building Holon with the help of AI, particularly for programming, while I keep learning Unity development. The game design, visual design and art direction are my own work.
+I'm building Holon with the help of AI, particularly for the code, while I keep learning Unity. The game design, visual design and art direction are mine.
 
-The project is documented like a studio would document it: a knowledge base where every page says whether it owns a fact or only repeats it, decision records, a release gate that runs the tests before every build, and rules conformance measured against the written ruleset.
+The project is documented the way a studio would document it: decision records like the ones on this page, a release gate, and rules conformance measured against the written ruleset of the time.
 
 Holon is an unofficial, non-commercial fan project. It is not affiliated with or endorsed by Nintendo, Creatures, GAME FREAK or The Pokémon Company.
