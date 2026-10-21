@@ -867,7 +867,7 @@ function storyEjected(game) {
   if (!STORY) return;
   if (game === 'gb-cart' && !story.found.has('postcard')) setTimeout(() => { reveal('postcard'); say(STORY_LINES.postcard); }, 400);
   if (game === 'gba-cart' && !story.found.has('ptcg-cube-rulebook')) {
-    setTimeout(() => { reveal('ptcg-cube-rulebook'); say(STORY_LINES.rulebook); }, 400);
+    setTimeout(() => { goSpot('table'); say(STORY_LINES.rulebook); setTimeout(() => reveal('ptcg-cube-rulebook'), DUR * 1000); }, 400);
     setTimeout(lampGoes, 5200);
   }
 }
