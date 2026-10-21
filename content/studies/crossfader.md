@@ -75,22 +75,19 @@ Things you collect only exist on one side. A cassette lying flat can only be rea
 
 Flipping is one key and always allowed. The puzzle is never in your hands; it's in knowing what each side shows and hides. A cassette standing upright can only be read from the side.
 
-* side a. always side a first.
-* then you flip it. that's the whole game, and also how tapes work.
-
 # Hyper Mode | ハイパー
+
+Hyper Mode is the decision I'm proudest of. In level design terms it's a cheat: for one track the room opens into 3D and you can go places the two flat sides never allow. What keeps it fair is the story. While she's in it, Ayane can't touch her memories.
 
 Sometimes Ayane gets so inspired by what she's thinking that she falls into Hyper Mode. Pick up five Inspirations and the Walkman gauge fills; press X and the room turns 3D for one short hyper track.
 
 In Hyper Mode she's overstimulated by the rush of ideas in her head, and that makes it impossible to recover her memories, the tapes. To rebuild a memory and learn from it, she has to come back to nostalgia.
 
-![Hyper-mode: the room opens into colour](hyper.png)
+![Hyper Mode: the room opens into colour](hyper.png)
 
-That's the design rule too: Hyper Mode **sets up** the solution, it never **is** the solution. Nothing can be collected in 3D. You use the song to push a subwoofer where it's needed, and the payoff happens back in 2D, where the moved speaker becomes a step, a wall or a bridge.
+So the cheat is balanced by the metaphor: Hyper Mode **sets up** the solution, it never **is** the solution. Nothing can be collected in 3D. You use the song to push a subwoofer where it's needed, and the payoff happens back in 2D, where the moved speaker becomes a step, a wall or a bridge.
 
 ![Pushing a subwoofer in Hyper Mode](subwoofer.png)
-
-?? You said this rule isn't your proudest line. Which design decision in Crossfader are you proudest of? I'll lead the Hyper Mode page with it, or move it wherever it belongs.
 
 # If it moves on the beat, it matters | シグナル
 
@@ -105,7 +102,7 @@ There is no tutorial text beyond the first Flip prompt. The room teaches itself 
 Only two props change the state of a level: the cassettes you collect and the subwoofer you push. Everything else in the room only talks to you.
 
 * a still room with one thing bouncing.
-* that's how you tell someone where to look without saying anything. i should try it.
+* you know where to look before anyone tells you.
 
 # Three cassettes | カセット
 

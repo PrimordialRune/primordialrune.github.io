@@ -16,57 +16,62 @@ status: draft
 cover: logo.png
 palette: "#1a1016 #db604c #317c87 #f6dbba"
 facts:
-  Made for: A 48-hour castle game jam, October 2023, theme "Klaatu barada nikto" ??
+  Made for: Castle Game Jam, October 2023, 48 hours, theme "Klaatu barada nikto"
   Genre: Rhythm game with RPG boss battles, played by typing spells
-  Engine: Godot 4.1, with MIDI-driven beats
-  My part: ??
-  Team: Malakh17, Zahkros, Smoketracy, Elia Scaravelli and me: the same team as Crossfader
-play: ""
+  Engine: Godot 4.1, with levels written as MIDI tracks
+  My part: Game designer, pixel artist and UI artist: I drew the bosses and wrote their spells
+  Team: LIMPERO Studios: Malakh17, Zahkros, Smoketracy, Elia Scaravelli and me
+play: "https://primordialrune.itch.io/spacerim"
 ---
 
 # Klaatu barada nikto | じゅもん
 
 The jam's theme was a phrase: "Klaatu barada nikto", the words that stop the robot Gort in The Day the Earth Stood Still (1951). A theme that is literally a spell, so we made a game about reciting spells.
 
-We wanted something that could be done properly in 48 hours, by the same team that later made Crossfader. SpaceRim is a rhythm game with a bit of RPG in it: you face a boss, and the only weapon you have is your keyboard.
+We wanted something we could do properly in 48 hours. SpaceRim is a rhythm game with a bit of RPG in it: you face a boss, and the only weapon you have is your keyboard. The name is a team pun: Space, plus Skyrim.
 
 ![Create the spells to beat the boss](tutorial.png "x2")
 
 * spacerim. a jam game. it shows.
 * in a good way. mostly.
 
-?? What does "Rim" mean in the name? And who was Limpero Studios: the team's name at the time?
-
 # Spells, letter by letter | タイピング
 
-Every spell is a word, and every word is spread across the beats of the song. Say the spell is TOBY: when the beats call for an attack, you type the next letter in time, T, then O, then B. Each correct letter deals damage. Finishing the whole word completes the spell, and a completed spell hits much harder.
+Every spell is a word, spread across the beats of the song. Say the spell is TOBY: each time an attack beat arrives, you type the next letter in time, T, then O, then B. Every correct letter deals damage, and a streak of them builds a multiplier up to double. Finishing the word completes the spell.
 
-The beats carry their own signs. A sword means attack: type the next letter. Other beats ask you to stay quiet, and let the beat pass.
+Four kinds of beat run along the track:
 
-?? You mentioned an action type I couldn't make out ("a silent"?). What are all the beat types and what does each one do? The tutorial screen shows Attack, Skip, Stun and Defend.
+- **Attack**, the sword: type the right letter on time and it hits the boss. The wrong key stuns you instead.
+- **Stun** cancels your damage: the next attack beats go dark and hit nothing.
+- **Skip** is a fakeout. It sits right on the tempo of the song to tempt you, and pressing it costs you a life.
+- **Defend**: hit the spacebar to shield yourself from the boss's attack. Miss it and the boss tears a letter off your spell, or takes a life if the spell is still empty.
 
-The beats aren't placed by hand: the game reads the song's MIDI file and spawns a marker for every note on the right channel, so the level is literally the score.
+# The level is the score | スコア
 
-?? Is it right that the levels are generated from the MIDI tracks? It's the most interesting technical choice in the project, if so.
+SpaceRim has no chart editor. My level editor was a MIDI file: one track for attacks, one for skips, one for defends, laid on top of the song. The game plays the file twice. One copy runs ahead and spawns the markers on the track; the other runs on time and decides whether each key press landed.
+
+![Jabba's level, the whole song. Skips (black) hide between attacks, then the defend section arrives.](jabba-score.png "wide")
+
+* a page of sheet music, except every note can hurt you.
 
 # Learning to read in time | リズム
 
-In testing, typing on the beat felt counterintuitive at first. Then players got used to it and started building real skill. The rhythm does half the teaching: following the beat tells you when the next letter is due, and you fall into a loop of reading the word ahead and typing it in time.
+In testing, typing on the beat felt counterintuitive at first. Then players got used to it and started building real skill: reading the word ahead, typing it in time.
 
-* reading ahead, typing in time.
-* that's also how you write a letter to someone you miss. i think.
+We were short on time, so there was no real polishing round, but two changes made a big difference:
 
-?? What changed after that first round of testing? A tweak to the timing window, bigger letters, a slower first boss? That's the design story a reader will want here.
+- **A breath at the start.** The song opens with the word on screen before the first beat, so players get mentally ready and reach a state of flow sooner.
+- **The word moved down.** We put the letters in the lower part of the screen, between the beat track and the keyboard. Your eyes travel between those two all the time, and the word sits on the way, so you read it by reflex.
+
+The tutorial level watches you, too: if you make too many mistakes in the first seconds, a helper starts flashing to show you what to press.
 
 # The bosses | ボスたち
 
-Every boss is a parody of someone you've met somewhere else.
+The whole theme was very meme, and so are the bosses: Sans in a Supreme drip jacket, Keanu Reeves as Johnny Silverhand, and Jabba the Hutt pondering the orb. I drew them, and I picked their spells, so every word belongs to its boss. Sans makes you type DRIP, TOBY and SUPREME. Jabba's last spell is the theme itself: KLAATU BARADA NIKTO.
 
-![A skeleton in a cap](boss-skeleton.gif "x2")
-![A very large slug, holding a very red bowl](boss-slug.gif "x2")
-![You're breathtaking!](boss-breathtaking.gif "x2")
+![Drip Sans](boss-skeleton.gif "x2")
+![Jabba, pondering the orb](boss-slug.gif "x2")
+![Johnny Silverhand: you're breathtaking!](boss-breathtaking.gif "x2")
 
-* i'm not going to say who they are.
+* i'm not going to explain the jokes.
 * you know who they are.
-
-?? Who drew the bosses, and who picked the words for each boss's spells? If the spells are tied to the parodies (TOBY for the skeleton?), that's worth saying.
