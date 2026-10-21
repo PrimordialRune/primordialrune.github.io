@@ -12,7 +12,7 @@ slug: spacerim
 title: SpaceRim
 kana: スペースリム
 medium: disc
-status: draft
+status: final
 cover: logo.png
 palette: "#1a1016 #db604c #317c87 #f6dbba"
 facts:
