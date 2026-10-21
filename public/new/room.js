@@ -149,6 +149,7 @@ const STORY_LINES = {
   gbaWakes: '* see? old game, new hardware. that’s minamoto, really.',
   minamoto: '* minamoto. gen 1, read again.',
   rulebook: '* something’s on the table now. a rulebook. i wrote it.',
+  torch: ['* hm. the lamp’s going.', '* here. take the flashlight. point it at things, they’re easier to find.'],
   drawerLocked: '* that’s just old stuff. it’s stuck anyway.',
   skip: '* everything’s out. no story, just the games.',
   hints: [
@@ -344,15 +345,18 @@ box(0.8, 0.035, 0.7, wood, -1.48, TABLE_Y - 0.0175, -0.02);
 for (const [x, z] of [[-1.84, -0.33], [-1.84, 0.29], [-1.12, -0.33], [-1.12, 0.29]]) box(0.04, TABLE_Y - 0.035, 0.04, woodDark, x, (TABLE_Y - 0.035) / 2, z);
 const drawerLight = new THREE.PointLight(0x9fd8d0, 1.6, 1.2, 1.5); drawerLight.position.set(0.55, 0.95, 0.1); scene.add(drawerLight);
 const tableLamp = new THREE.PointLight(0xffb070, 4.5, 2.2, 1.6); tableLamp.position.set(-1.3, 1.05, 0.25); tableLamp.castShadow = true; scene.add(tableLamp);
-// Lighting under review: ?light=1 is the room as it is, 2 and 3 lift it a little. Lamps grow less than
-// the ambient so the pools of light still read as lamps.
-const LIGHT = { 1: [1, 1, 5.5], 2: [1.45, 1.2, 6.5], 3: [1.9, 1.4, 7.5] }[new URLSearchParams(location.search).get('light')] || [1, 1, 5.5];
+// Lighting: 2 is the room's light (Omar's pick); ?light=1 is the darker first version, 3 a little brighter.
+// Lamps grow less than the ambient so the pools of light still read as lamps.
+const LIGHT = { 1: [1, 1, 5.5], 2: [1.45, 1.2, 6.5], 3: [1.9, 1.4, 7.5] }[new URLSearchParams(location.search).get('light') || '2'] || [1.45, 1.2, 6.5];
 sky.intensity *= LIGHT[0];
 for (const l of [lamp, fill, drawerLight, tableLamp]) l.intensity *= LIGHT[1];
 scene.fog.far = LIGHT[2];
-// ?torch: a flashlight held at the camera that points wherever the cursor is
+// The flashlight: held at the camera, it points wherever the cursor (or, on a phone, the aim) is.
+// The story hands it over when the desk lamp starts to go; ?torch switches it on outside the story.
 const torch = new THREE.SpotLight(0xfff1d6, 0, 3.2, 0.2, 0.55, 1.2);
-if (new URLSearchParams(location.search).has('torch')) { torch.intensity = 6; scene.add(torch, torch.target); }
+scene.add(torch, torch.target);
+const TORCH = 6;
+if (new URLSearchParams(location.search).has('torch')) torch.intensity = TORCH;
 // a poster on the wall, so the room is somebody's: the NES stripes
 const poster = new THREE.Mesh(new THREE.PlaneGeometry(0.42, 0.56), new THREE.MeshStandardMaterial({ color: 0xfce8cd, roughness: 1 }));
 poster.position.set(0.6, 1.5, -0.97); scene.add(poster);
@@ -861,7 +865,10 @@ function storyPlayed(game, sys) {
 function storyEjected(game) {
   if (!STORY) return;
   if (game === 'gb-cart' && !story.found.has('postcard')) setTimeout(() => { reveal('postcard'); say(STORY_LINES.postcard); }, 400);
-  if (game === 'gba-cart' && !story.found.has('ptcg-cube-rulebook')) setTimeout(() => { reveal('ptcg-cube-rulebook'); say(STORY_LINES.rulebook); }, 400);
+  if (game === 'gba-cart' && !story.found.has('ptcg-cube-rulebook')) {
+    setTimeout(() => { reveal('ptcg-cube-rulebook'); say(STORY_LINES.rulebook); }, 400);
+    setTimeout(lampGoes, 5200);
+  }
 }
 // Something turns up: it drops into place with a little bounce, lit for a moment.
 async function reveal(id) {
@@ -875,6 +882,18 @@ async function reveal(id) {
   burst(0.35);
   o.glow = 1; gsap.to(o, { glow: 0, duration: 2.4, delay: 1 });
 }
+// The desk lamp starts to go (the first thing in the room that fails), and the narrator hands over a flashlight.
+const LAMP_FULL = lamp.intensity;
+function dimLamp() { lamp.intensity = LAMP_FULL * 0.45; bulb.material.color.set(0xb89a6c); }
+function lampGoes() {
+  if (story.flags.has('torch')) return;
+  story.flags.add('torch'); persist();
+  const tl = gsap.timeline();
+  for (const k of [0.1, 1, 0.05, 0.8, 0.02, 0.6]) tl.set(lamp, { intensity: LAMP_FULL * k }, `+=${reduce ? 0 : 0.09}`);
+  tl.call(() => { dimLamp(); burst(0.3); say(STORY_LINES.torch); });
+  tl.to(torch, { intensity: TORCH, duration: reduce ? 0.01 : 0.6, ease: 'power2.out' }, '+=1.2');
+}
+if (STORY && story.flags.has('torch')) { dimLamp(); torch.intensity = TORCH; }
 function openSpot(s) { if (story.spots.has(s)) return; story.spots.add(s); persist(); navFlash[s] = clock.elapsedTime; burst(0.3); }
 const navFlash = {};
 function readPostcard() {
@@ -1369,10 +1388,14 @@ renderer.setAnimationLoop(() => {
   const s = reduce || panel ? 0 : 0.05;
   camera.lookAt(look.x + sway.x * s, look.y + sway.y * s * 0.6, look.z);
   if (torch.intensity) {
-    // the beam follows the cursor through the curved glass, from just below the eye
-    const [u, v] = curve(mouse.u, mouse.v); ndc.set(u * 2 - 1, v * 2 - 1); ray.setFromCamera(ndc, camera);
+    // the beam follows the cursor through the curved glass, from just below the eye; with a finger, it finds what you aimed at
     torch.position.copy(camera.position).add(new THREE.Vector3(0.05, -0.08, 0));
-    torch.target.position.copy(ray.ray.origin).addScaledVector(ray.ray.direction, 1.2);
+    const aimed = touchUI && state.hover && objects[state.hover];
+    if (aimed) new THREE.Box3().setFromObject(aimed.root).getCenter(torch.target.position);
+    else {
+      const [u, v] = curve(mouse.u, mouse.v); ndc.set(u * 2 - 1, v * 2 - 1); ray.setFromCamera(ndc, camera);
+      torch.target.position.copy(ray.ray.origin).addScaledVector(ray.ray.direction, 1.2);
+    }
   }
   renderer.setRenderTarget(rt); renderer.render(scene, camera);
   drawUI(t);
@@ -1387,4 +1410,4 @@ setTimeout(() => {
   if (touchUI) queue('* tap something to point at it, tap again to use it. a and b work too.', 3.4);
 }, reduce ? 300 : 1300);
 setTimeout(() => { loadRest(); if (state.mode === 'boot') state.mode = 'free'; highlight(Object.keys(PLAYS).filter(isFound)); setTimeout(() => highlight([]), 2600); }, reduce ? 1500 : (STORY ? 4200 : 6500));
-window.__room = { pressA, pressB, step, THREE, look, crtMat, objects, goSpot, state, camera, activate, story, reveal, skipStory, eject, openLetter, get panel() { return panel; }, tray, TRAY, doorPivot, frameObject };
+window.__room = { lampGoes, pressA, pressB, step, THREE, look, crtMat, objects, goSpot, state, camera, activate, story, reveal, skipStory, eject, openLetter, get panel() { return panel; }, tray, TRAY, doorPivot, frameObject };
