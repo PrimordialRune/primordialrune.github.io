@@ -41,11 +41,11 @@ You fly the mail ship for The Galactic News, and every level is a delivery route
 * a game about trusting paper.
 * printed on paper. well, almost.
 
-?? Who wrote the story: was "the only medium they still count on" there from the start, or did it come after Paperboy-in-space?
+I wrote the story with IndigoMountain, and that idea was there from the start.
 
 # Every menu is part of the world | フロントページ
 
-I wanted every screen to be an object from the game's world, not a menu laid on top of it.
+I wanted every screen to be an object from the game's world, not a menu laid on top of it. The part I love most is how the story and the levels blend: the newspapers tell the story through their illustrations, and they are also the level select, without a seam between the two.
 
 **The level select is the newspaper.** Each route is a front page of Galactic Today: a headline, a portrait, the quota for that route. And the headline is the level design. "Employment increases" is the first, gentle route. "Galaxy-wide fuel shortage" starts you with less fuel. "Pirates!" sends seven pirate ships. "Traffic collapses!" fills the lanes with more than two hundred civilian ships. "Pirate captain near Earth" is the boss. You read the news, then you fly into it.
 
@@ -56,11 +56,12 @@ I wanted every screen to be an object from the game's world, not a menu laid on 
 ![The upgrade shop](shop.png)
 ![Buying the light shield](upgrade.png)
 
-**The HUD is the cockpit.** Health, fuel, the delivery bar, shields and the paper count are dials and gauges on the ship's dashboard. It is harder to read than a plain HUD, and that was the trade I chose: you're sitting in the ship, not looking at a game.
+**The HUD is the cockpit.** Health, fuel, the delivery bar, shields and the paper count are dials and gauges on the ship's dashboard. It is harder to read than a plain HUD, and that was the trade I chose: you're sitting in the ship, not looking at a game. Getting it readable took several passes. An early test put a plain bar across the top of the screen; the final one moved everything into the dashboard at the bottom.
 
-![The cockpit: health, fuel, delivery bar, shield and papers](hud.png)
+![An early test: a plain bar across the top](hud-early.png)
+![The final cockpit: health, fuel, delivery bar, shield and papers](hud.png)
 
-?? Was there a moment in the jam when the cockpit HUD was too hard to read, and you had to change it? A before and after would be great here.
+The small things are the ones I enjoy most. The money counter, for one, sits inside a frame shaped like a dollar sign.
 
 # A tutorial in the stars | せいざ
 
@@ -72,8 +73,6 @@ The cockpit explains itself the same way. On the first route the game pauses for
 
 * the sky tells you which button to press.
 * i still look for them when i play it.
-
-?? What were the other "design takes" like this one? Tell me two or three and I'll give them a page.
 
 # How to play | あそびかた
 
@@ -87,7 +86,7 @@ A route ends on a results card: mailboxes delivered, the number you needed, and 
 
 ![Level complete](level-complete.gif)
 
-?? Failing a route still pays for every paper you delivered. Was that a deliberate call, so the next try starts a little stronger?
+Failing a route still pays for every paper you delivered. That was deliberate: if the game feels hard, the money lets you unlock every upgrade you need, so the curve is kinder than it looks.
 
 # Four colours | よんしょく
 
@@ -106,6 +105,7 @@ The shop started as a sketch, next to a diagram of every screen and how you move
 
 - Development: IndigoMountain, Mika
 - Game design: PrimordialRune (me)
+- Story: IndigoMountain, PrimordialRune (me)
 - Pixel art: PrimordialRune (me), GoldfishParty
 - UI art: PrimordialRune (me)
 - Music: Craig Henderson
