@@ -12,7 +12,7 @@ slug: galactic-news
 title: The Galactic News
 kana: ギャラクティック・ニュース
 medium: gb
-status: draft
+status: final
 cover: title.gif
 palette: "#291f23 #bd502f #34d1af #f7ecb9"
 facts:

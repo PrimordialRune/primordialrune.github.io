@@ -1083,13 +1083,14 @@ function openProject(id, playing) {
   const items = [];
   if (playing) items.push({ label: 'EJECT', act: eject });
   else if (SYSTEM_OF[id]) items.push({ label: 'PLAY IT', act: () => playIt(id) });
-  if (STUDIES) items.push({ label: 'CASE STUDY', act: () => openStudy(id) });
+  if (STUDIES || PUBLISHED.has(SLUG[id])) items.push({ label: 'CASE STUDY', act: () => openStudy(id) });
   items.push({ label: 'BACK', act: () => { if (playing) eject(); else { closePanel(); highlight([]); goSpot(objects[id].place.spot); } } });
   openPanel({ kind: 'project', tag: p.medium, title: p.title, kana: p.kana, body: [p.pitch], items });
 }
-// Case studies live on their own pages (study/<slug>/), drafts behind ?studies until Omar's pass is done.
+// Case studies live on their own pages (study/<slug>/). The ones Omar has passed are linked for everyone; drafts stay behind ?studies.
 // Leaving is a channel change: a burst, the picture collapses to a line, then the page goes.
 const STUDIES = new URLSearchParams(location.search).has('studies');
+const PUBLISHED = new Set(['crossfader', 'spacerim', 'holon', 'galactic-news']);
 const SLUG = { 'gb-cart': 'galactic-news', 'gba-cart': 'minamoto', 'ds-cart': 'legends-arise', 'crossfader-cassette': 'crossfader', 'holon-disc': 'holon', 'spacerim-disc': 'spacerim', 'ptcg-cube-rulebook': 'ptcg-cube', 'cd-jewel': 'haunt-record' };
 function openStudy(id) {
   if (!SLUG[id] || state.leaving) return;

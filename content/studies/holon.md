@@ -12,7 +12,7 @@ slug: holon
 title: Holon
 kana: ホロン
 medium: disc
-status: draft
+status: final
 cover: logo.png
 palette: "#0d1530 #4f6fa8 #5fe3f2 #f1f4fa"
 facts:

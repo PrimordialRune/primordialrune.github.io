@@ -12,7 +12,7 @@ slug: crossfader
 title: Crossfader
 kana: クロスフェーダー
 medium: cassette
-status: draft
+status: final
 cover: cover.png
 palette: "#2e2828 #d2508f #4fb3cf #f1ead6"
 facts:
