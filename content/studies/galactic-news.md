@@ -19,87 +19,95 @@ facts:
   Made for: GBJAM 11, September 2023
   Hardware: Game Boy rules, 160 × 144, four colours
   Engine: Godot 4.1
-  My part: Pixel art and UI ??
-  Team: IndigoMountain, Mika, GoldfishParty, Craig Henderson
-play: ""
+  My part: Game design, pixel art and UI art
+  Inspired by: Paperboy
+  Team: IndigoMountain, Mika, GoldfishParty, Craig Henderson and me
+play: "https://indigomountain.itch.io/galactic-news"
 ---
 
-# Story | ストーリー
+# Space is out of space | ストーリー
 
-Space is out of space. The newspapers still have to get through.
+The game starts from Paperboy: ride along a street, throw the paper into every mailbox. We took the route to space.
 
-You fly the mail ship for The Galactic News. Every level is a delivery route: a stretch of space dotted with mailboxes, a paper count, and pirates who would rather the news didn't arrive.
+The story is told in four screens before the title. Space is out of space. The intergalactic highways are cluttered with spacecraft. The Pirate News Network intercepts and manipulates news on the galactic web. So people go back to the only medium they still count on: the newspaper.
 
-![The opening cutscene: SPACE IS OUT OF SPACE!](cutscene.gif)
+![SPACE IS OUT OF SPACE!](cutscene.gif)
+![The highways, cluttered](cutscene2.png)
+![The Pirate News Network](cutscene3.png)
+![The only medium they still count on](cutscene4.png)
 
-* i drew that headline before i knew what the game was.
-* that's how it usually goes.
+You fly the mail ship for The Galactic News, and every level is a delivery route.
 
-?? Where did the idea start? Was "space is out of space" the jam theme, or the first joke?
+* a game about trusting paper.
+* printed on paper. well, almost.
 
-# The front page | フロントページ
+?? Who wrote the story: was "the only medium they still count on" there from the start, or did it come after Paperboy-in-space?
 
-The level select is the newspaper. Each route is a front page of Galactic Today, with its headline, its quota and a little SOON! box for the next edition. Choosing a level is reading the paper you are about to deliver.
+# Every menu is part of the world | フロントページ
+
+I wanted every screen to be an object from the game's world, not a menu laid on top of it.
+
+**The level select is the newspaper.** Each route is a front page of Galactic Today: a headline, a portrait, the quota for that route. And the headline is the level design. "Employment increases" is the first, gentle route. "Galaxy-wide fuel shortage" starts you with less fuel. "Pirates!" sends seven pirate ships. "Traffic collapses!" fills the lanes with more than two hundred civilian ships. "Pirate captain near Earth" is the boss. You read the news, then you fly into it.
 
 ![Galactic Today: every level is a front page](level-select.gif)
 
-This is the thing I care about most in the project: the menu is not a menu, it is the object the game is about.
+**The shop is an ad in the paper.** Upgrades are sold the way they would be in a newspaper: a page with the owner, the ship on the lift and the parts on offer.
 
-* you'll notice i do this a lot.
-* the medium is the message. somebody said that first. i just keep agreeing.
+![The upgrade shop](shop.png)
+![Buying the light shield](upgrade.png)
 
-?? Is that true for you, or am I putting words in your mouth? Rewrite this page freely.
+**The HUD is the cockpit.** Health, fuel, the delivery bar, shields and the paper count are dials and gauges on the ship's dashboard. It is harder to read than a plain HUD, and that was the trade I chose: you're sitting in the ship, not looking at a game.
+
+![The cockpit: health, fuel, delivery bar, shield and papers](hud.png)
+
+?? Was there a moment in the jam when the cockpit HUD was too hard to read, and you had to change it? A before and after would be great here.
+
+# A tutorial in the stars | せいざ
+
+The first route has no tutorial text for the controls. As you fly up, the stars form Game Boys, and each one lights the button you need: the D-pad to steer, A to throw a paper to the right, B to throw to the left.
+
+![The first route's sky: constellations shaped like Game Boys](constellations.png "x2")
+
+The cockpit explains itself the same way. On the first route the game pauses for a moment on each gauge, with an arrow and one short line: your fuel meter, steering uses fuel. Newspaper ammo, for shooting news.
+
+* the sky tells you which button to press.
+* i still look for them when i play it.
+
+?? What were the other "design takes" like this one? Tell me two or three and I'll give them a page.
 
 # How to play | あそびかた
 
-- Steer the mail ship with the D-pad. Fuel burns only while you move.
-- A throws a newspaper to the right, B throws one to the left. The paper bag is not bottomless.
-- SELECT raises the shield for two seconds. It needs ten to recharge.
-- A paper that hits a passing ship knocks it off course. Pirates shoot back.
-- When the clock runs out, you need enough mailboxes delivered to pass.
+- Steer the mail ship with the D-pad. Steering burns fuel.
+- A throws a newspaper to the right, B throws one to the left.
+- SELECT raises the shield when it's full.
+- Pirates shoot back, and civilian ships get in the way.
+- Fill the delivery bar to the line before the clock runs out.
 
-![The HUD: health, fuel and papers along the bottom](hud.png)
-
-A route ends on a results card: mailboxes delivered, the number you needed, and the money you made. Every paper pays ten, even on a failed route, so the next attempt starts a little stronger.
+A route ends on a results card: mailboxes delivered, the number you needed, and the money you made.
 
 ![Level complete](level-complete.gif)
 
-?? Failing still pays (10 per paper delivered, "you made 30$ anyways" in the UI flow). Was that a deliberate design call? It's a nice one to talk about.
+?? Failing a route still pays for every paper you delivered. Was that a deliberate call, so the next try starts a little stronger?
 
-# The upgrade shop | ショップ
+# Four colours | よんしょく
 
-Money goes to the shop. The owner greets you at the hangar door, your ship sits on the lift, and four parts sit on the shelf, each with two grades: a printer for more papers (Printobot-2, Printobot-3), hull plating (Titanium alloy, Diamond coating), engines (Hyper-1, F-1) and shields (Sigma, Omega).
+GBJAM asks for Game Boy rules: a 160 × 144 screen and four colours. We picked a warm four: near-black, rust, mint and paper. They carry the whole game, from the title to the credits.
 
-![The shop owner and the ship in the hangar](shop.png)
-![Buying the light shield](upgrade.png)
+![The mail ship, frame by frame](mail-ship.gif "x4")
 
-The shop started as a sketch in the docs folder and a diagram of every screen and how you move between them: boot, story, title, the paper, the shop, the route, and back.
+The shop started as a sketch, next to a diagram of every screen and how you move between them.
 
 ![The first upgrade sketch](upgrade-sketch.png)
 ![The UI flow, planned in the first days of the jam](ui-flow.png "wide")
 
-* the diagram has three question marks in it.
-* we answered all of them. eventually.
-
-?? Did you draw the UI flow and design the shop yourself? I'd like the "My part" line to be exact.
-
-# Four colours | よんしょく
-
-GBJAM asks for Game Boy rules: a 160 × 144 screen and four colours. We picked a warm four: near-black #291f23, rust #bd502f, mint #34d1af and paper #f7ecb9. They carry the whole game, from the title to the credits.
-
-![The mail ship, frame by frame](mail-ship.gif "x4")
-
-* this booklet is printed in those same four.
-* i checked. twice.
-
-?? Anything about working inside four colours you'd want a designer reading this to notice?
+* this booklet is printed in those same four colours.
 
 # Staff | スタッフ
 
 - Development: IndigoMountain, Mika
+- Game design: PrimordialRune (me)
 - Pixel art: PrimordialRune (me), GoldfishParty
+- UI art: PrimordialRune (me)
 - Music: Craig Henderson
 
 ![The credits screen](credits.png)
-
-?? Where can people play it? An itch.io link would go on the cover.
