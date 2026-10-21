@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en" data-medium="gb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Galactic News · Omar Golinelli</title>
+<meta name="description" content="The Galactic News: the instruction booklet, a case study by Omar Golinelli.">
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="../study.css">
+<style>:root { --ink: #291f23; --accent: #bd502f; --accent2: #34d1af; --paper: #f7ecb9; }</style>
+</head>
+<body>
+<!-- Generated from content/studies/galactic-news.md by scripts/build-studies.mjs. Edit the Markdown, not this file. -->
+<nav class="bar"><a class="back" href="../../" data-back>← BACK TO THE ROOM</a><span class="insert">INSTRUCTION BOOKLET</span></nav>
+<main class="booklet">
+  <section class="page cover" aria-label="Cover">
+    <div class="stamp" title="Drafted with Claude, waiting for Omar's pass">DRAFT</div>
+    <div class="system">GAME BOY</div>
+    <img class="cover-art" src="title.gif" alt="The Galactic News title screen" data-pixel>
+    <h1>The Galactic News</h1>
+    <div class="kana" lang="ja">ギャラクティック・ニュース</div>
+    <dl class="facts"><div><dt>Made for</dt><dd>GBJAM 11, September 2023</dd></div><div><dt>Hardware</dt><dd>Game Boy rules, 160 × 144, four colours</dd></div><div><dt>Engine</dt><dd>Godot 4.1</dd></div><div><dt>My part</dt><dd>Pixel art and UI <span class="unsure" title="To confirm">?</span></dd></div><div><dt>Team</dt><dd>IndigoMountain, Mika, GoldfishParty, Craig Henderson</dd></div></dl>
+    
+    <footer class="folio">INSTRUCTION BOOKLET <span lang="ja">とりあつかいせつめいしょ</span></footer>
+  </section>
+
+  <section class="page" aria-labelledby="p1">
+    <header><h2 id="p1">Story</h2><div class="kana" lang="ja">ストーリー</div></header>
+    <p>Space is out of space. The newspapers still have to get through.</p>
+    <p>You fly the mail ship for The Galactic News. Every level is a delivery route: a stretch of space dotted with mailboxes, a paper count, and pirates who would rather the news didn't arrive.</p>
+    <figure class="fig screen"><img src="cutscene.gif" alt="The opening cutscene: SPACE IS OUT OF SPACE!" data-pixel><figcaption>The opening cutscene: SPACE IS OUT OF SPACE!</figcaption></figure>
+    <aside class="narrator" aria-label="The narrator"><svg viewBox="0 0 555 555" aria-hidden="true"><path d="M260.32,454.02l-159.33-159.33c-8.33-8.33-8.33-21.82,0-30.15l168.17-168.17c4-4,9.42-6.24,15.08-6.24h159.92c5.17,0,6.81-6.96,2.19-9.27L289.14,2.25c-8.21-4.1-18.12-2.5-24.61,3.99L6.24,264.53c-8.33,8.33-8.33,21.82,0,30.15l254.08,254.08c8.33,8.33,21.82,8.33,30.15,0l260.8-260.79c3.08-3.08.9-8.36-3.46-8.36h-72.56c-6.63,0-13,2.64-17.69,7.33l-167.08,167.08c-8.33,8.33-21.82,8.33-30.15,0Z"/><path class="inner" d="M551.25,137.49h-263.74c-7.75,0-15.19,3.08-20.67,8.56l-125.39,125.39c-3.01,3.01-.88,8.16,3.38,8.16h101.34c16.14,0,29.23,13.09,29.23,29.23v101.34c0,4.26,5.15,6.39,8.16,3.38l270.14-270.14c2.19-2.19.64-5.92-2.45-5.92Z"/></svg><div><span class="who">OMAR</span><p>* i drew that headline before i knew what the game was.</p><p>* that's how it usually goes.</p></div></aside>
+    <p class="question"><span>QUESTION FOR OMAR</span>Where did the idea start? Was &quot;space is out of space&quot; the jam theme, or the first joke?</p>
+    <footer class="folio">— 2 —</footer>
+  </section>
+
+  <section class="page" aria-labelledby="p2">
+    <header><h2 id="p2">The front page</h2><div class="kana" lang="ja">フロントページ</div></header>
+    <p>The level select is the newspaper. Each route is a front page of Galactic Today, with its headline, its quota and a little SOON! box for the next edition. Choosing a level is reading the paper you are about to deliver.</p>
+    <figure class="fig screen"><img src="level-select.gif" alt="Galactic Today: every level is a front page" data-pixel><figcaption>Galactic Today: every level is a front page</figcaption></figure>
+    <p>This is the thing I care about most in the project: the menu is not a menu, it is the object the game is about.</p>
+    <aside class="narrator" aria-label="The narrator"><svg viewBox="0 0 555 555" aria-hidden="true"><path d="M260.32,454.02l-159.33-159.33c-8.33-8.33-8.33-21.82,0-30.15l168.17-168.17c4-4,9.42-6.24,15.08-6.24h159.92c5.17,0,6.81-6.96,2.19-9.27L289.14,2.25c-8.21-4.1-18.12-2.5-24.61,3.99L6.24,264.53c-8.33,8.33-8.33,21.82,0,30.15l254.08,254.08c8.33,8.33,21.82,8.33,30.15,0l260.8-260.79c3.08-3.08.9-8.36-3.46-8.36h-72.56c-6.63,0-13,2.64-17.69,7.33l-167.08,167.08c-8.33,8.33-21.82,8.33-30.15,0Z"/><path class="inner" d="M551.25,137.49h-263.74c-7.75,0-15.19,3.08-20.67,8.56l-125.39,125.39c-3.01,3.01-.88,8.16,3.38,8.16h101.34c16.14,0,29.23,13.09,29.23,29.23v101.34c0,4.26,5.15,6.39,8.16,3.38l270.14-270.14c2.19-2.19.64-5.92-2.45-5.92Z"/></svg><div><span class="who">OMAR</span><p>* you'll notice i do this a lot.</p><p>* the medium is the message. somebody said that first. i just keep agreeing.</p></div></aside>
+    <p class="question"><span>QUESTION FOR OMAR</span>Is that true for you, or am I putting words in your mouth? Rewrite this page freely.</p>
+    <footer class="folio">— 3 —</footer>
+  </section>
+
+  <section class="page" aria-labelledby="p3">
+    <header><h2 id="p3">How to play</h2><div class="kana" lang="ja">あそびかた</div></header>
+    <ul><li>Steer the mail ship with the D-pad. Fuel burns only while you move.</li><li>A throws a newspaper to the right, B throws one to the left. The paper bag is not bottomless.</li><li>SELECT raises the shield for two seconds. It needs ten to recharge.</li><li>A paper that hits a passing ship knocks it off course. Pirates shoot back.</li><li>When the clock runs out, you need enough mailboxes delivered to pass.</li></ul>
+    <figure class="fig screen"><img src="hud.png" alt="The HUD: health, fuel and papers along the bottom" data-pixel><figcaption>The HUD: health, fuel and papers along the bottom</figcaption></figure>
+    <p>A route ends on a results card: mailboxes delivered, the number you needed, and the money you made. Every paper pays ten, even on a failed route, so the next attempt starts a little stronger.</p>
+    <figure class="fig screen"><img src="level-complete.gif" alt="Level complete" data-pixel><figcaption>Level complete</figcaption></figure>
+    <p class="question"><span>QUESTION FOR OMAR</span>Failing still pays (10 per paper delivered, &quot;you made 30$ anyways&quot; in the UI flow). Was that a deliberate design call? It's a nice one to talk about.</p>
+    <footer class="folio">— 4 —</footer>
+  </section>
+
+  <section class="page" aria-labelledby="p4">
+    <header><h2 id="p4">The upgrade shop</h2><div class="kana" lang="ja">ショップ</div></header>
+    <p>Money goes to the shop. The owner greets you at the hangar door, your ship sits on the lift, and four parts sit on the shelf, each with two grades: a printer for more papers (Printobot-2, Printobot-3), hull plating (Titanium alloy, Diamond coating), engines (Hyper-1, F-1) and shields (Sigma, Omega).</p>
+    <figure class="fig screen"><img src="shop.png" alt="The shop owner and the ship in the hangar" data-pixel><figcaption>The shop owner and the ship in the hangar</figcaption></figure>
+    <figure class="fig screen"><img src="upgrade.png" alt="Buying the light shield" data-pixel><figcaption>Buying the light shield</figcaption></figure>
+    <p>The shop started as a sketch in the docs folder and a diagram of every screen and how you move between them: boot, story, title, the paper, the shop, the route, and back.</p>
+    <figure class="fig screen"><img src="upgrade-sketch.png" alt="The first upgrade sketch" data-pixel><figcaption>The first upgrade sketch</figcaption></figure>
+    <figure class="fig wide"><img src="ui-flow.png" alt="The UI flow, planned in the first days of the jam" loading="lazy"><figcaption>The UI flow, planned in the first days of the jam</figcaption></figure>
+    <aside class="narrator" aria-label="The narrator"><svg viewBox="0 0 555 555" aria-hidden="true"><path d="M260.32,454.02l-159.33-159.33c-8.33-8.33-8.33-21.82,0-30.15l168.17-168.17c4-4,9.42-6.24,15.08-6.24h159.92c5.17,0,6.81-6.96,2.19-9.27L289.14,2.25c-8.21-4.1-18.12-2.5-24.61,3.99L6.24,264.53c-8.33,8.33-8.33,21.82,0,30.15l254.08,254.08c8.33,8.33,21.82,8.33,30.15,0l260.8-260.79c3.08-3.08.9-8.36-3.46-8.36h-72.56c-6.63,0-13,2.64-17.69,7.33l-167.08,167.08c-8.33,8.33-21.82,8.33-30.15,0Z"/><path class="inner" d="M551.25,137.49h-263.74c-7.75,0-15.19,3.08-20.67,8.56l-125.39,125.39c-3.01,3.01-.88,8.16,3.38,8.16h101.34c16.14,0,29.23,13.09,29.23,29.23v101.34c0,4.26,5.15,6.39,8.16,3.38l270.14-270.14c2.19-2.19.64-5.92-2.45-5.92Z"/></svg><div><span class="who">OMAR</span><p>* the diagram has three question marks in it.</p><p>* we answered all of them. eventually.</p></div></aside>
+    <p class="question"><span>QUESTION FOR OMAR</span>Did you draw the UI flow and design the shop yourself? I'd like the &quot;My part&quot; line to be exact.</p>
+    <footer class="folio">— 5 —</footer>
+  </section>
+
+  <section class="page" aria-labelledby="p5">
+    <header><h2 id="p5">Four colours</h2><div class="kana" lang="ja">よんしょく</div></header>
+    <p>GBJAM asks for Game Boy rules: a 160 × 144 screen and four colours. We picked a warm four: near-black #291f23, rust #bd502f, mint #34d1af and paper #f7ecb9. They carry the whole game, from the title to the credits.</p>
+    <figure class="fig screen x4"><img src="mail-ship.gif" alt="The mail ship, frame by frame" data-pixel><figcaption>The mail ship, frame by frame</figcaption></figure>
+    <aside class="narrator" aria-label="The narrator"><svg viewBox="0 0 555 555" aria-hidden="true"><path d="M260.32,454.02l-159.33-159.33c-8.33-8.33-8.33-21.82,0-30.15l168.17-168.17c4-4,9.42-6.24,15.08-6.24h159.92c5.17,0,6.81-6.96,2.19-9.27L289.14,2.25c-8.21-4.1-18.12-2.5-24.61,3.99L6.24,264.53c-8.33,8.33-8.33,21.82,0,30.15l254.08,254.08c8.33,8.33,21.82,8.33,30.15,0l260.8-260.79c3.08-3.08.9-8.36-3.46-8.36h-72.56c-6.63,0-13,2.64-17.69,7.33l-167.08,167.08c-8.33,8.33-21.82,8.33-30.15,0Z"/><path class="inner" d="M551.25,137.49h-263.74c-7.75,0-15.19,3.08-20.67,8.56l-125.39,125.39c-3.01,3.01-.88,8.16,3.38,8.16h101.34c16.14,0,29.23,13.09,29.23,29.23v101.34c0,4.26,5.15,6.39,8.16,3.38l270.14-270.14c2.19-2.19.64-5.92-2.45-5.92Z"/></svg><div><span class="who">OMAR</span><p>* this booklet is printed in those same four.</p><p>* i checked. twice.</p></div></aside>
+    <p class="question"><span>QUESTION FOR OMAR</span>Anything about working inside four colours you'd want a designer reading this to notice?</p>
+    <footer class="folio">— 6 —</footer>
+  </section>
+
+  <section class="page" aria-labelledby="p6">
+    <header><h2 id="p6">Staff</h2><div class="kana" lang="ja">スタッフ</div></header>
+    <ul><li>Development: IndigoMountain, Mika</li><li>Pixel art: PrimordialRune (me), GoldfishParty</li><li>Music: Craig Henderson</li></ul>
+    <figure class="fig screen"><img src="credits.png" alt="The credits screen" data-pixel><figcaption>The credits screen</figcaption></figure>
+    <p class="question"><span>QUESTION FOR OMAR</span>Where can people play it? An itch.io link would go on the cover.</p>
+    <footer class="folio">— 7 —</footer>
+  </section>
+</main>
+<script>
+// Back to the room the way you came (keeps ?story and the room's state); a direct visit goes to /new/.
+document.querySelector('[data-back]').addEventListener('click', (e) => {
+  try { if (document.referrer && new URL(document.referrer).pathname.replace(/index\.html$/, '').endsWith('/new/')) { e.preventDefault(); history.back(); } } catch (_) {}
+});
+// Pixel art at the largest integer scale that fits (P1: never 2.5x)
+const fit = () => document.querySelectorAll('img[data-pixel]').forEach((img) => {
+  if (!img.naturalWidth) return;
+  const box = img.parentElement.clientWidth - 2 * (parseFloat(getComputedStyle(img).borderLeftWidth) || 0), want = +(img.closest('[class*=" x"]')?.className.match(/x(\d)/)?.[1] || 3);
+  const s = Math.max(1, Math.min(want, Math.floor(box / img.naturalWidth)));
+  img.style.width = img.naturalWidth * s + 'px';
+});
+document.querySelectorAll('img[data-pixel]').forEach((img) => img.addEventListener('load', fit));
+addEventListener('resize', fit); fit();
+</script>
+</body>
+</html>
