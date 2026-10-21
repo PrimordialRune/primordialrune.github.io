@@ -8,6 +8,8 @@ import { loadItem, loadTexture } from './stage.js';
 // The picture is always 480 lines; its width follows the window, so the tube can fill it edge to edge.
 let H = 480, W = 640;
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+// ?story plays the room as an adventure: things are hidden until found, and each game unlocks the next.
+const STORY = new URLSearchParams(location.search).has('story');
 const DUR = reduce ? 0.35 : 1.1;
 // Keep tweens on wall-clock time even when a slow GPU drops frames.
 gsap.ticker.lagSmoothing(0);
@@ -38,6 +40,11 @@ const PLACES = [
   // drawer: the archive
   { id: 'cd-jewel', spot: 'drawer', jewel: 'haunt-record', pos: [0, -0.06, 0.04], rotY: 0.1 },
 ];
+// In the story, Galactic News waits on the desk beside the Game Boy, and its postcard arrives later.
+if (STORY) {
+  Object.assign(PLACES.find((p) => p.id === 'gb-cart'), { spot: 'desk', pos: [-0.62, DESK_Y, -0.46], rotY: -0.5 });
+  PLACES.push({ id: 'postcard', spot: 'desk', postcard: true, pos: [0.33, DESK_Y, -0.54], rotY: -0.3 });
+}
 
 // What plays what. The GBA reads Game Boy cartridges too; the PC reads every disc.
 const PLAYS = {
@@ -124,6 +131,56 @@ const LINES = {
   idle: ['* ...you can look around, you know.', '* the drawer’s just old stuff.', '* take your time. i have plenty.'],
   drawer: '* that one’s archived. it doesn’t— it’s fine.',
 };
+
+// ---------- the story (?story) ----------
+// Chapter 1: only the PC, the Game Boy, its cartridge and the letter are out. Galactic News is a
+// game about delivering mail, so playing it delivers a postcard, and the postcard opens the table.
+// Minamoto re-reads Gen 1 on newer hardware, so the GBA wakes for an old Game Boy cartridge first.
+// Every game played gives back one memory; the logo in the corner fills one step per memory.
+const STORY_LINES = {
+  boot: ['* oh. you’re here. sit, sit.', '* everything’s asleep. start with the grey one.'],
+  back: ['* you’re back. i kept everything where you left it.'],
+  postcard: '* mail. for you. i always answer mail.',
+  postcardHover: '* that wasn’t there before.',
+  table: '* the table. go on, it’s set for you.',
+  findGba: ['* that one needs the advance.', '* it was under some papers. here.'],
+  gbaAsleep: '* it’s asleep. give it something old. it remembers old things.',
+  gbaRefuses: '* not that one yet. something older first.',
+  gbaWakes: '* see? old game, new hardware. that’s minamoto, really.',
+  minamoto: '* minamoto. gen 1, read again.',
+  rulebook: '* something’s on the table now. a rulebook. i wrote it.',
+  drawerLocked: '* that’s just old stuff. it’s stuck anyway.',
+  skip: '* everything’s out. no story, just the games.',
+  hints: [
+    // [condition, gentle nudge, plain instruction]
+    [() => !story.played.has('gb-cart'), '* the grey one. the cartridge is right next to it.', '* click the game boy, then the cartridge beside it.'],
+    [() => !story.flags.has('postcard-read'), '* something came in the mail.', '* the postcard on the desk. read it.'],
+    [() => !story.found.has('gba-console'), '* there’s something new on the table.', '* the table, top right. play the cartridge waiting there.'],
+    [() => !story.flags.has('gba-awake'), '* the advance is asleep. it remembers old things.', '* use the advance, then the grey cartridge.'],
+    [() => !story.played.has('gba-cart'), '* it’s awake now. minamoto fits.', '* use the advance, then the minamoto cartridge on the table.'],
+  ],
+};
+LINES.hover.postcard = STORY_LINES.postcardHover;
+const GAMES = ['gb-cart', 'gba-cart', 'ptcg-cube-rulebook', 'crossfader-cassette', 'holon-disc', 'ds-cart', 'spacerim-disc', 'cd-jewel'];
+const SAVE_KEY = 'omars-room';
+const story = (() => {
+  const s = { found: ['pc', 'gb-console', 'gb-cart', 'envelope'], played: [], spots: ['desk'], flags: [] };
+  if (STORY) {
+    try {
+      if (new URLSearchParams(location.search).has('reset')) localStorage.removeItem(SAVE_KEY);
+      Object.assign(s, JSON.parse(localStorage.getItem(SAVE_KEY) || '{}'));
+    } catch { /* no storage: the run just isn't kept */ }
+  }
+  return { found: new Set(s.found), played: new Set(s.played), spots: new Set(s.spots), flags: new Set(s.flags) };
+})();
+const returning = STORY && story.played.size > 0;
+function persist() {
+  if (!STORY) return;
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(Object.fromEntries(Object.entries(story).map(([k, v]) => [k, [...v]])))); } catch { /* ignore */ }
+}
+const isFound = (id) => !STORY || story.found.has(id);
+const spotOpen = (s) => !STORY || story.spots.has(s);
+const gbaAwake = () => !STORY || story.flags.has('gba-awake');
 
 // Every CC BY model in the room is credited under the TV, as the licence asks.
 const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -395,6 +452,30 @@ function makeEnvelope() {
   g.add(body, flap, letterMesh);
   return g;
 }
+// The postcard Galactic News delivers, printed in the game's own four colours.
+function makePostcard() {
+  const draw = (x, w, h) => {
+    const [ink, rust, mint, paper] = ['#291f23', '#bd502f', '#34d1af', '#f7ecb9'];
+    x.fillStyle = paper; x.fillRect(0, 0, w, h);
+    x.fillStyle = ink; x.fillRect(0, 0, w, 44);
+    x.font = '20px "8bitDarling"'; x.fillStyle = paper; x.fillText('GALACTIC NEWS', 14, 30);
+    x.font = '14px "8bitDarling"'; x.fillStyle = mint; x.fillText('DELIVERED', w - 132, 29);
+    // the stamp: Omar's logo in a perforated frame
+    x.fillStyle = rust; x.fillRect(w - 92, 60, 76, 92);
+    x.fillStyle = paper; for (let i = 0; i < 9; i++) { x.beginPath(); x.arc(w - 92 + 4 + i * 8.5, 60, 3, 0, 7); x.arc(w - 92 + 4 + i * 8.5, 152, 3, 0, 7); x.fill(); }
+    drawLogo(x, w - 82, 78, 56, paper, ink);
+    x.font = '18px "8bitDarling"'; x.fillStyle = ink; x.fillText('TO: YOU', 24, 196);
+    x.fillStyle = ink; for (const y of [150, 212, 234]) x.fillRect(24, y, 230, 3);
+    x.fillStyle = rust; x.fillText('THE TABLE', 24, 96); x.fillText('IS SET', 24, 128);
+  };
+  const tex = canvasTex(384, 256, draw);
+  const g = new THREE.Group();
+  g.userData.redraw = () => { draw(tex.image.getContext('2d'), 384, 256); tex.needsUpdate = true; }; // once the fonts are in
+  const card = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.002, 0.093), [0, 1, 2, 3, 4, 5].map((k) => k === 2 ? new THREE.MeshStandardMaterial({ map: tex, roughness: 0.85 }) : new THREE.MeshStandardMaterial({ color: 0xf7ecb9, roughness: 0.9 })));
+  card.position.y = 0.001; card.castShadow = card.receiveShadow = true;
+  g.add(card);
+  return g;
+}
 // Lay an object on its broadest face (cartridges, cassettes); up flips it if the back faces up.
 function layFlat(obj, up) {
   const s = new THREE.Box3().setFromObject(obj).getSize(new THREE.Vector3());
@@ -415,8 +496,8 @@ function straighten(obj, deg) {
 const AXES = { x: new THREE.Vector3(1, 0, 0), y: new THREE.Vector3(0, 1, 0), z: new THREE.Vector3(0, 0, 1) };
 async function place(p) {
   const item = byId[p.id];
-  if (!item && !p.envelope) return;
-  const obj = p.envelope ? makeEnvelope() : p.jewel ? await makeJewel(p.jewel) : await loadItem(item);
+  if (!item && !p.envelope && !p.postcard) return;
+  const obj = p.envelope ? makeEnvelope() : p.postcard ? makePostcard() : p.jewel ? await makeJewel(p.jewel) : await loadItem(item);
   // Crossfader cassettes carry both side letters; the game shows one at a time. Side A is up.
   obj.traverse((n) => { if (/^LabelB/.test(n.name)) n.visible = false; });
   const pose = new THREE.Group();
@@ -439,6 +520,7 @@ async function place(p) {
     o.userData.hit = p.id;
   });
   (p.spot === 'drawer' ? drawer : scene).add(root);
+  root.visible = isFound(p.id);
   objects[p.id] = { root, pose, obj, place: p, item, mats, glow: 0, size: p.size || 1 };
 }
 // The desk loads first so the room can switch on; the table and drawer follow when you head there
@@ -528,13 +610,15 @@ function moveTo(pos, at, dur = DUR) {
 }
 function setNav(s) { spot = s; document.querySelectorAll('#nav button').forEach((b) => b.setAttribute('aria-current', String(b.dataset.spot === s))); }
 function goSpot(s) {
-  if (!SPOTS[s] || state.busy) return;
+  if (!SPOTS[s] || state.busy || !spotOpen(s)) return;
   if (s !== 'desk') loadRest();
   closePanel();
   if (state.mode !== 'choose') state.mode = 'free';
   setNav(s);
   moveTo(SPOTS[s].pos, SPOTS[s].look);
   gsap.to(drawer.position, { z: s === 'drawer' ? DRAWER_OPEN : DRAWER_SHUT, duration: DUR * 0.9, ease: 'back.out(1.2)', delay: s === 'drawer' ? DUR * 0.4 : 0 });
+  // the first time the table is open, Minamoto is waiting on it
+  if (STORY && s === 'table' && story.flags.has('postcard-read') && !story.found.has('gba-cart')) { story.found.add('gba-cart'); setTimeout(() => reveal('gba-cart'), DUR * 1000); }
   if (s === 'drawer' && !state.sawDrawer) { state.sawDrawer = true; setTimeout(() => { say(LINES.drawer); glitchName(); }, DUR * 1000 + 300); }
   burst(0.35);
   focusIdx = -1;
@@ -577,11 +661,14 @@ function tickNarrator(dt) {
 
 // ---------- interaction state ----------
 const state = { mode: 'boot', system: null, hover: null, sawDrawer: false, said: new Set(), idle: 0, busy: false, playing: null };
+// What a system will take right now: found games only, and an unwoken GBA only takes the old cartridge.
+const playable = (sys) => (PLAYS[sys] || []).filter((g) => isFound(g) && (sys !== 'gba-console' || gbaAwake() || g === 'gb-cart'));
 const PROMPT = (id) => {
   if (id === 'drawer') return spot === 'drawer' ? null : 'OPEN';
   if (id === 'envelope') return 'OPEN';
+  if (id === 'postcard') return 'READ';
   if (PLAYS[id]) return 'USE';
-  if (state.mode === 'choose') return (PLAYS[state.system] || []).includes(id) ? 'INSERT' : null;
+  if (state.mode === 'choose') return playable(state.system).includes(id) ? 'INSERT' : null;
   return 'LOOK';
 };
 function highlight(ids) {
@@ -592,23 +679,35 @@ function resetChoice() { state.mode = 'free'; state.system = null; highlight([])
 function activate(id) {
   if (!id || state.busy) return;
   if (state.playing) return; // the menu handles eject first
-  if (id === 'drawer') return goSpot('drawer');
+  if (id === 'drawer') {
+    if (spotOpen('drawer')) return goSpot('drawer');
+    say(STORY_LINES.drawerLocked, 2.4);
+    gsap.fromTo(drawer.position, { z: DRAWER_SHUT }, { z: DRAWER_SHUT + 0.015, duration: 0.07, yoyo: true, repeat: 3 });
+    return;
+  }
   if (id === 'envelope') return openLetter();
+  if (id === 'postcard') return readPostcard();
   const o = objects[id]; if (!o) return;
   if (PLAYS[id] && !rest?.done) { loadRest().then(() => activate(id)); return; } // its games are still on their way
   if (PLAYS[id]) {
     // pick a system: look over at the games that fit, lit up
     state.mode = 'choose'; state.system = id;
-    say(LINES.choose[id]);
-    const games = PLAYS[id].filter((g) => objects[g]);
+    const asleep = id === 'gba-console' && !gbaAwake();
+    say(asleep ? STORY_LINES.gbaAsleep : LINES.choose[id]);
+    const games = playable(id).filter((g) => objects[g]);
     highlight([id, ...games]);
-    if (games.every((g) => objects[g].place.spot === 'drawer')) return goSpot('drawer');
-    setNav('table'); closePanel();
-    moveTo(SPOTS.table.pos, SPOTS.table.look);
+    if (games.length && games.every((g) => objects[g].place.spot === 'drawer')) return goSpot('drawer');
+    // the games that fit are on the desk already (the story keeps Galactic News there): stay put
+    const at = games.length && games.every((g) => objects[g].place.spot === 'desk') ? 'desk' : 'table';
+    setNav(at); closePanel();
+    moveTo(SPOTS[at].pos, SPOTS[at].look);
     return;
   }
   if (state.mode === 'choose') {
-    if (!(PLAYS[state.system] || []).includes(id)) { say(LINES.wrong, 1.6); burst(0.25); return; }
+    if (!playable(state.system).includes(id)) {
+      const refuse = state.system === 'gba-console' && (PLAYS['gba-console'] || []).includes(id);
+      say(refuse ? STORY_LINES.gbaRefuses : LINES.wrong, 1.6); burst(0.25); return;
+    }
     return insert(id, state.system);
   }
   // free look at a game
@@ -729,15 +828,69 @@ function frameDrive() { moveTo([0.0, 1.0, -0.12], [0.17, 0.82, -0.56]); }
 function started(game, sys) {
   if (sys !== 'pc') setScreen(sys, true);
   if (SLOTS[sys]) cameraTo(sys, 1.6);
-  say(`* ${PROJECTS[game].title.toLowerCase()}. good choice.`);
+  say(storyPlayed(game, sys) || `* ${PROJECTS[game].title.toLowerCase()}. good choice.`);
   openProject(game, true);
+}
+
+// ---------- story beats ----------
+let memFlash = -10; // when the last memory came back, for the corner logo's blink
+function storyPlayed(game, sys) {
+  if (!STORY) return null;
+  let line = null;
+  if (sys === 'gba-console' && game === 'gb-cart' && !story.flags.has('gba-awake')) { story.flags.add('gba-awake'); line = STORY_LINES.gbaWakes; burst(0.5); }
+  if (game === 'gba-cart') line = STORY_LINES.minamoto;
+  if (GAMES.includes(game) && !story.played.has(game)) { story.played.add(game); memFlash = clock.elapsedTime; }
+  persist();
+  return line;
+}
+// What happens once a game is taken out again: the next thing turns up.
+function storyEjected(game) {
+  if (!STORY) return;
+  if (game === 'gb-cart' && !story.found.has('postcard')) setTimeout(() => { reveal('postcard'); say(STORY_LINES.postcard); }, 400);
+  if (game === 'gba-cart' && !story.found.has('ptcg-cube-rulebook')) setTimeout(() => { reveal('ptcg-cube-rulebook'); say(STORY_LINES.rulebook); }, 400);
+}
+// Something turns up: it drops into place with a little bounce, lit for a moment.
+async function reveal(id) {
+  if (!objects[id]) await loadRest();
+  const o = objects[id]; if (!o) return;
+  story.found.add(id); persist();
+  o.root.traverse((n) => n.userData.redraw?.());
+  o.root.visible = true;
+  const y = o.root.position.y;
+  gsap.fromTo(o.root.position, { y: y + 0.18 }, { y, duration: reduce ? 0.01 : 0.55, ease: 'bounce.out' });
+  burst(0.35);
+  o.glow = 1; gsap.to(o, { glow: 0, duration: 2.4, delay: 1 });
+}
+function openSpot(s) { if (story.spots.has(s)) return; story.spots.add(s); persist(); navFlash[s] = clock.elapsedTime; burst(0.3); }
+const navFlash = {};
+function readPostcard() {
+  frameObject('postcard', 1.1);
+  openPanel({ kind: 'project', tag: 'POSTCARD', title: 'Delivered', kana: 'はいたつ  DELIVERY', body: ['Galactic News delivered this one. On the back, in Omar’s hand: “The table is set. Come and see the rest.”'],
+    items: [{ label: 'GO TO THE TABLE', act: () => { closePanel(); goSpot('table'); say(STORY_LINES.table); } }, { label: 'BACK', act: () => { closePanel(); goSpot('desk'); } }] });
+  if (!story.flags.has('postcard-read')) {
+    story.flags.add('postcard-read'); openSpot('table');
+  }
+}
+// Minamoto wants the GBA, which hasn't turned up yet: wanting to play it is what finds it.
+function findSystem(sys) {
+  goSpot('desk');
+  say(STORY_LINES.findGba);
+  setTimeout(() => { reveal(sys); }, DUR * 1000 + 200);
+}
+function skipStory() {
+  for (const p of PLACES) story.found.add(p.id);
+  for (const s of Object.keys(SPOTS)) story.spots.add(s);
+  story.flags.add('gba-awake'); story.flags.add('postcard-read'); story.flags.add('skipped');
+  persist();
+  loadRest().then(() => { for (const o of Object.values(objects)) o.root.visible = true; });
+  say(STORY_LINES.skip);
 }
 
 function eject() {
   const p = state.playing; if (!p || state.busy) return;
   const g = objects[p.game];
   state.busy = true; closePanel();
-  const tl = gsap.timeline({ onComplete: () => { state.busy = false; state.playing = null; resetChoice(); goSpot('desk'); } });
+  const tl = gsap.timeline({ onComplete: () => { state.busy = false; state.playing = null; resetChoice(); goSpot('desk'); storyEjected(p.game); } });
   if (p.sys === 'pc') {
     showOnMonitor(desktopTex); frameDrive();
     tweenLocal(tl, g.obj, CASE_HELD.pos, CASE_HELD.quat, g.obj.scale.x, 0.6, 'power2.inOut', 0.2);
@@ -813,7 +966,7 @@ function openProject(id, playing) {
   const p = PROJECTS[id]; if (!p) return;
   const items = [];
   if (playing) items.push({ label: 'EJECT', act: eject });
-  else if (SYSTEM_OF[id]) items.push({ label: 'PLAY IT', act: () => { closePanel(); activate(SYSTEM_OF[id]); } });
+  else if (SYSTEM_OF[id]) items.push({ label: 'PLAY IT', act: () => { closePanel(); if (!isFound(SYSTEM_OF[id])) return findSystem(SYSTEM_OF[id]); activate(SYSTEM_OF[id]); } });
   items.push({ label: 'CASE STUDY', act: () => say(LINES.study, 2.4) });
   items.push({ label: 'BACK', act: () => { if (playing) eject(); else { closePanel(); highlight([]); goSpot(objects[id].place.spot); } } });
   openPanel({ kind: 'project', tag: p.medium, title: p.title, kana: p.kana, body: [p.pitch], items });
@@ -831,7 +984,7 @@ const portrait = new Image(); portrait.src = 'labels/omar-pixel.png';
 function drawPanel(t) {
   panelHits = [];
   if (!panel) return;
-  const letter = panel.kind === 'letter', wide = letter || panel.kind === 'credits';
+  const letter = panel.kind === 'letter', wide = letter || panel.kind === 'credits' || panel.kind === 'memories';
   const short = H < 480; // phones sideways: wider windows, bigger rows for thumbs, clear of the bigger nav
   const w = wide ? Math.min(W - 96, short ? 780 : 600) : (short ? 300 : 260), x = wide ? Math.round((W - w) / 2) : W - w - 28, y = wide ? (short ? 24 : 36) : (short ? 82 : 70);
   g2.font = `900 ${wide ? 15 : 14}px "FK Grotesk"`;
@@ -890,12 +1043,14 @@ function drawNav() {
   const ns = canvas.clientHeight < 520 ? 1.35 : 1;
   g2.save(); g2.translate(W, 0); g2.scale(ns, ns); g2.translate(-W, 0);
   let x = W - 18;
-  for (const [id, num, label, kana] of [...NAV].reverse()) {
+  for (const [id, num, label, kana] of [...NAV].filter(([id]) => spotOpen(id)).reverse()) {
     g2.font = `11px "${FONT_PIX}"`; const lw = g2.measureText(label).width;
     g2.font = `900 9px "${FONT_G}"`; const kw = g2.measureText(kana).width;
     const w = 34 + Math.max(lw, kw) + 12, h = 30, y = 10; x -= w;
     const on = spot === id, hot = navHover === id;
-    g2.fillStyle = on ? '#ec563b' : hot ? 'rgba(236,86,59,0.6)' : 'rgba(236,86,59,0.35)';
+    // a channel that just opened blinks gold for a couple of seconds
+    const fresh = navFlash[id] !== undefined && clock.elapsedTime - navFlash[id] < 2.4 && Math.floor((clock.elapsedTime - navFlash[id]) * 4) % 2 === 0;
+    g2.fillStyle = fresh ? '#fadb68' : on ? '#ec563b' : hot ? 'rgba(236,86,59,0.6)' : 'rgba(236,86,59,0.35)';
     g2.beginPath(); g2.roundRect(x, y, w, h, 15); g2.fill();
     g2.fillStyle = '#102f41'; g2.fillRect(x + 8, y + 9, 20, 12);
     g2.font = `8px "${FONT_PIX}"`; g2.fillStyle = '#fce8cd'; g2.fillText(num, x + 11, y + 15.5);
@@ -909,6 +1064,7 @@ function drawNav() {
   // small print, bottom right, above nothing else
   g2.font = `${Math.round(9 * ns)}px "${FONT_PIX}"`; g2.textAlign = 'right';
   const links = [['quick', 'QUICK VIEW →', () => { location.href = 'quick/'; }], ['credits', 'CREDITS', () => openPanel(creditsPanel())]];
+  if (STORY && !story.flags.has('skipped')) links.push(['skip', 'SKIP STORY', skipStory]);
   let rx = W - 18; const ry = H - (nar.visible ? 104 : 16);
   for (const [id, label, act] of links) {
     const w = g2.measureText(label).width;
@@ -930,7 +1086,12 @@ function pick() {
   ndc.set(u * 2 - 1, v * 2 - 1);
   ray.setFromCamera(ndc, camera);
   const hits = ray.intersectObjects(scene.children, true);
-  for (const h of hits) { let o = h.object; while (o && !o.userData.hit) o = o.parent; if (o && o.visible !== false) return o.userData.hit; }
+  for (const h of hits) {
+    let o = h.object; while (o && !o.userData.hit) o = o.parent;
+    if (!o) continue;
+    let shown = true; for (let a = o; a; a = a.parent) if (!a.visible) shown = false;
+    if (shown) return o.userData.hit;
+  }
   return null;
 }
 let pointerType = 'mouse', wentFull = false;
@@ -975,7 +1136,7 @@ canvas.addEventListener('click', (e) => {
 
 // keyboard: arrows pick among objects in view (or menu entries), Enter uses, Esc steps back, 1-3 move
 let focusIdx = -1;
-function inView() { return Object.entries(objects).filter(([id, o]) => (o.place.spot === spot || (state.mode === 'choose' && (PLAYS[state.system] || []).includes(id))) && o.root.visible).map(([id]) => id); }
+function inView() { return Object.entries(objects).filter(([id, o]) => (o.place.spot === spot || (state.mode === 'choose' && playable(state.system).includes(id))) && o.root.visible).map(([id]) => id); }
 addEventListener('keydown', (e) => {
   if (e.target.closest && e.target.closest('nav, details')) return;
   if (panel) {
@@ -1048,11 +1209,49 @@ function drawUI(t) {
   }
   drawNav();
   // spot label, top-left, like a channel number
-  if (!(panel && panel.kind === 'letter')) {
+  if (!panel || panel.kind === 'project') {
+    // a dark plate so the corner reads over a lit desk
+    if (STORY) { g2.fillStyle = 'rgba(6,9,11,0.6)'; g2.beginPath(); g2.roundRect(8, 6, 184, 70, 8); g2.fill(); }
     g2.font = `12px "${FONT_PIX}"`; g2.fillStyle = 'rgba(252,232,205,0.7)';
     g2.fillText({ desk: 'CH 01 DESK', table: 'CH 02 TABLE', drawer: 'CH 03 DRAWER' }[spot], 18, 20);
+    if (STORY) drawMemories(t);
   }
   uiTex.needsUpdate = true;
+}
+
+// The narrator's face in the corner: Omar's logo, its inside filling one step per memory given back.
+function drawMemories(t) {
+  const n = story.played.size, size = 34, x = 18, y = 34;
+  const blink = t - memFlash < 1.6 && Math.floor((t - memFlash) * 5) % 2 === 0;
+  const shown = blink ? n - 1 : n;
+  g2.save(); g2.translate(x, y); g2.scale(size / 555, size / 555);
+  g2.fillStyle = '#fce8cd'; g2.fill(new Path2D(LOGO_OUTER));
+  const inner = new Path2D(LOGO_INNER);
+  g2.fillStyle = 'rgba(252,232,205,0.16)'; g2.fill(inner);
+  // the inside spans about y 137 to 417 in logo units; it fills from its wide top edge in eight hard steps
+  const top = 137, hgt = (417 - top) * shown / GAMES.length;
+  g2.clip(inner); g2.fillStyle = '#ec563b'; g2.fillRect(0, top, 555, hgt);
+  g2.restore();
+  g2.font = `11px "${FONT_PIX}"`; g2.fillStyle = blink ? '#fadb68' : 'rgba(252,232,205,0.8)';
+  const label = `MEMORIES ${n}/${GAMES.length}`;
+  g2.fillText(label, x + size + 8, y + size / 2);
+  if (!panel) navHits.push({ id: 'memories', x: x - 4, y: y - 4, w: size + 16 + g2.measureText(label).width, h: size + 8, act: () => openPanel(memoriesPanel()) });
+}
+// A trainer card of what's been given back: played games by name, the rest still unknown.
+function memoriesPanel() {
+  return {
+    kind: 'memories', tag: 'MEMORIES', title: `${story.played.size} of ${GAMES.length}`, kana: 'きおく  MEMORIES',
+    body: ['Every game you play gives one memory back.'],
+    items: [...GAMES.map((g) => story.played.has(g)
+      ? { label: PROJECTS[g].title.toUpperCase(), note: PROJECTS[g].medium.toLowerCase(), act: () => { closePanel(); activate(g); } }
+      : { label: '? ? ?', note: '', act: () => say(nextHint(true) || '* not yet.', 2.4) }),
+    { label: 'BACK', act: closePanel }],
+  };
+}
+// The hint for wherever the visitor is stuck: a nudge first, the plain instruction the second time.
+function nextHint(plain) {
+  const h = STORY_LINES.hints.find(([cond]) => cond());
+  return h ? h[plain ? 2 : 1] : null;
 }
 
 // ---------- loop ----------
@@ -1082,7 +1281,12 @@ renderer.setAnimationLoop(() => {
   // idle: the narrator nudges, once in a while
   state.idle += dt;
   if (state.mode === 'free' && !panel && !nar.visible && state.idle > 22 && performance.now() - lastSpeak > 20000) {
-    state.idle = 0; const line = LINES.idle[(state.idleN = (state.idleN || 0) + 1) % LINES.idle.length]; say(line);
+    state.idle = 0;
+    // in the story, being stuck gets a nudge first and the plain instruction the next time
+    const gentle = STORY && nextHint(false);
+    const line = gentle ? (state.hinted === gentle ? nextHint(true) : gentle) : LINES.idle[(state.idleN = (state.idleN || 0) + 1) % LINES.idle.length];
+    if (gentle) state.hinted = gentle;
+    say(line);
     if (/drawer/.test(line)) gsap.fromTo(drawer.position, { z: DRAWER_SHUT }, { z: DRAWER_SHUT + 0.04, duration: 0.25, yoyo: true, repeat: 1 });
   }
   tickNarrator(dt);
@@ -1097,6 +1301,6 @@ renderer.setAnimationLoop(() => {
 // ---------- power on ----------
 gsap.to(crtMat.uniforms.uPower, { value: 1, duration: reduce ? 0.2 : 0.9, ease: 'power2.out', delay: 0.2 });
 if (!reduce) crtMat.uniforms.uBurst.value = 0.9;
-setTimeout(() => { queue(LINES.boot, 2.6); }, reduce ? 300 : 1300);
-setTimeout(() => { loadRest(); if (state.mode === 'boot') state.mode = 'free'; highlight(Object.keys(PLAYS)); setTimeout(() => highlight([]), 2600); }, reduce ? 1500 : 6500);
-window.__room = { THREE, look, crtMat, objects, goSpot, state, camera, use: activate, eject, openLetter, get panel() { return panel; }, tray, TRAY, doorPivot, frameObject };
+setTimeout(() => { queue(STORY ? (returning ? STORY_LINES.back : STORY_LINES.boot) : LINES.boot, 2.6); }, reduce ? 300 : 1300);
+setTimeout(() => { loadRest(); if (state.mode === 'boot') state.mode = 'free'; highlight(Object.keys(PLAYS).filter(isFound)); setTimeout(() => highlight([]), 2600); }, reduce ? 1500 : (STORY ? 4200 : 6500));
+window.__room = { THREE, look, crtMat, objects, goSpot, state, camera, activate, story, reveal, skipStory, eject, openLetter, get panel() { return panel; }, tray, TRAY, doorPivot, frameObject };
