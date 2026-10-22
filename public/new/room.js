@@ -317,7 +317,10 @@ function resize() {
   // The picture keeps the glass's own shape, so nothing is ever stretched. A phone sideways with the
   // browser bar showing is wider than 2.4:1 (a Pixel 10 is about 2.7:1), so the cap is generous.
   W = Math.round(H * Math.min(3.4, Math.max(1, r.width / r.height)));
-  rt.setSize(W, H); ui.width = W; ui.height = H;
+  rt.setSize(W, H);
+  // a canvas texture keeps the size it was first uploaded at: a new size needs a new texture,
+  // or the tube shows the old picture smeared (turning a phone sideways did exactly that)
+  if (ui.width !== W || ui.height !== H) { ui.width = W; ui.height = H; uiTex.dispose(); }
   // past 16:9 the lens stops widening (a wide window gets more room, not a fisheye): hold the horizontal angle
   if (cam) { cam.aspect = W / H; cam.fov = 2 * Math.atan(Math.tan(25 * Math.PI / 180) * Math.min(1, 1.78 / cam.aspect)) * 180 / Math.PI; cam.updateProjectionMatrix(); }
 }
