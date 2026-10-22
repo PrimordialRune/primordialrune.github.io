@@ -297,7 +297,18 @@ quadScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), crtMat));
 const quadCam = new THREE.Camera();
 
 let cam = null; // the room camera, once it exists
+// Phones sideways become a handheld: a 4:3 tube in the middle, the pad and the nav on the left bezel, A and B on the right.
+const navEl = document.getElementById('nav'), bezelL = document.querySelector('.bezel.left');
+let coarse = matchMedia('(pointer: coarse)').matches, handheld = false;
+function layout() {
+  const hh = coarse && innerWidth / innerHeight > 1.75;
+  if (hh === handheld) return;
+  handheld = hh;
+  document.body.classList.toggle('handheld', hh);
+  if (hh) bezelL.prepend(navEl); else document.body.insertBefore(navEl, document.querySelector('.credits'));
+}
 function resize() {
+  layout();
   const r = canvas.getBoundingClientRect();
   if (!r.width || !r.height) return;
   renderer.setSize(r.width, r.height, false);
@@ -307,7 +318,8 @@ function resize() {
   // browser bar showing is wider than 2.4:1 (a Pixel 10 is about 2.7:1), so the cap is generous.
   W = Math.round(H * Math.min(3.4, Math.max(1, r.width / r.height)));
   rt.setSize(W, H); ui.width = W; ui.height = H;
-  if (cam) { cam.aspect = W / H; cam.updateProjectionMatrix(); }
+  // past 16:9 the lens stops widening (a wide window gets more room, not a fisheye): hold the horizontal angle
+  if (cam) { cam.aspect = W / H; cam.fov = 2 * Math.atan(Math.tan(25 * Math.PI / 180) * Math.min(1, 1.78 / cam.aspect)) * 180 / Math.PI; cam.updateProjectionMatrix(); }
 }
 addEventListener('resize', resize);
 // rotating a phone or going fullscreen can resize the glass after the window event, so watch the canvas itself
@@ -1120,12 +1132,21 @@ function drawPanel(t) {
   const short = H < 480; // phones sideways: wider windows, bigger rows for thumbs, clear of the bigger nav
   // with a finger, the game window grows and keeps clear of the A/B buttons on the right
   const big = touchUI && !wide;
-  const w = wide ? Math.min(W - 96, short ? 780 : 600) : big ? 360 : (short ? 300 : 260), x = wide ? Math.round((W - w) / 2) : W - w - (big ? 150 : 28), y = wide ? (short ? 24 : 36) : (short ? 82 : 70);
+  // handheld: the nav and A/B live on the bezel, so the window can sit high and right
+  // while a game plays on the handheld, its window shrinks to the corner so the console's screen stays in view
+  const compact = handheld && !wide && !!state.playing;
+  const w = compact ? 220 : wide ? (handheld ? W - 28 : Math.min(W - 96, short ? 780 : 600)) : handheld ? 300 : big ? 360 : (short ? 300 : 260);
+  const x = wide ? Math.round((W - w) / 2) : W - w - (handheld ? 16 : big ? 150 : 28); let y = wide ? (short ? 24 : 36) : handheld ? 28 : (short ? 82 : 70);
   g2.font = `900 ${wide ? 15 : 14}px "FK Grotesk"`;
-  const bodyLines = panel.body.flatMap((p) => [...wrap(p, w - 40), '']);
+  const bodyLines = compact ? [] : panel.body.flatMap((p) => [...wrap(p, w - 40), '']);
   const lineH = wide ? 18 : 17;
-  const itemH = big ? 36 : short ? (wide ? 23 : 28) : wide ? 19 : 22;
+  const itemH = handheld ? 30 : big ? 36 : short ? (wide ? 23 : 28) : wide ? 19 : 22;
   const h = 84 + (letter && !short ? 30 : 0) + bodyLines.length * lineH + (panel.extra ? 22 : 0) + panel.items.length * itemH + 14;
+  if (compact) y = H - h - 14;
+  // a window taller than the tube shrinks to fit it (the letter on a phone's 4:3 tube)
+  const k = Math.min(1, (H - 10 - (handheld && !wide && !compact ? 96 : 0) - y) / h), cx0 = x + w / 2;
+  g2.save();
+  if (k < 1) { g2.translate(cx0, y); g2.scale(k, k); g2.translate(-cx0, -y); }
   // window: same family as the dialogue box
   g2.fillStyle = 'rgba(16,47,65,0.96)'; g2.fillRect(x, y, w, h);
   g2.strokeStyle = '#fce8cd'; g2.lineWidth = 2; g2.strokeRect(x + 4, y + 4, w - 8, h - 8);
@@ -1155,9 +1176,10 @@ function drawPanel(t) {
     g2.font = `${big ? 15 : 12}px "8bitDarling"`; g2.fillStyle = on ? '#fce8cd' : 'rgba(252,232,205,0.85)';
     g2.fillText((on ? '▶ ' : '  ') + it.label, x + 22, cy + 1);
     if (it.note) { g2.font = '900 12px "FK Grotesk"'; g2.fillStyle = on ? '#fce8cd' : '#4eb99f'; g2.textAlign = 'right'; g2.fillText(it.note, x + w - 24, cy + 1); g2.textAlign = 'left'; }
-    panelHits.push({ i, x: x + 14, y: cy - itemH / 2, w: w - 28, h: itemH });
+    panelHits.push({ i, x: cx0 + (x + 14 - cx0) * k, y: y + (cy - itemH / 2 - y) * k, w: (w - 28) * k, h: itemH * k });
     cy += itemH;
   });
+  g2.restore();
 }
 function panelAt(u, v) {
   const [cu, cv] = curve(u, v); const px = cu * W, py = (1 - cv) * H;
@@ -1172,6 +1194,7 @@ let navHits = [], navHover = null;
 const NAV = [['desk', '01', 'DESK', 'デスク'], ['table', '02', 'TABLE', 'テーブル'], ['drawer', '03', 'DRAWER', 'ひきだし']];
 function drawNav() {
   navHits = [];
+  if (handheld) return syncBezel(); // the bezel carries the nav and the small print
   if (panel && panel.kind !== 'project') return;
   // on short screens (phones sideways) the bars grow so a thumb can hit them
   const ns = canvas.clientHeight < 520 ? 1.35 : 1;
@@ -1241,7 +1264,7 @@ let swipeFrom = null, swiped = false;
 canvas.addEventListener('pointerdown', (e) => {
   pointerType = e.pointerType; setMouse(e);
   swiped = false;
-  if (e.pointerType === 'touch') { touchUI = true; swipeFrom = { x: e.clientX, y: e.clientY, t: performance.now() }; }
+  if (e.pointerType === 'touch') { touchUI = true; if (!coarse) { coarse = true; resize(); } swipeFrom = { x: e.clientX, y: e.clientY, t: performance.now() }; }
 });
 canvas.addEventListener('pointerup', (e) => {
   if (e.pointerType !== 'touch') return;
@@ -1298,7 +1321,8 @@ canvas.addEventListener('click', (e) => {
 // The handheld's buttons. A uses what's aimed at (or the chosen row), B steps back.
 function pressA() {
   if (panel) return panel.items[panel.sel].act();
-  if (state.mode === 'boot' || state.busy || state.playing || !state.hover) return;
+  if (state.mode === 'boot' || state.busy || state.playing) return;
+  if (!state.hover) return step(1, 'x'); // nothing aimed yet: A aims at the first thing
   const id = state.hover; state.hover = null; activate(id);
 }
 function pressB() {
@@ -1306,6 +1330,23 @@ function pressB() {
   if (state.busy) return;
   state.hover = null;
   if (state.mode === 'choose') { resetChoice(); goSpot(spot); } else if (spot !== 'desk') goSpot('desk');
+}
+// The bezel's buttons (handheld layout)
+function bez(sel, fn) { document.querySelectorAll(sel).forEach((b) => b.addEventListener('click', (e) => { e.preventDefault(); state.idle = 0; touchUI = true; fn(b); })); }
+bez('.ab .a', pressA); bez('.ab .b', pressB);
+bez('.dpad [data-d]', (b) => { const d = b.dataset.d; step(d === 'left' || d === 'up' ? -1 : 1, d === 'left' || d === 'right' ? 'x' : 'y'); });
+bez('[data-link="credits"]', () => openPanel(creditsPanel()));
+bez('[data-link="skip"]', () => openPanel(skipPanel()));
+function syncBezel() {
+  const t = clock.elapsedTime;
+  for (const b of navEl.querySelectorAll('button')) {
+    const id = b.dataset.spot, hide = !spotOpen(id);
+    if (b.hidden !== hide) b.hidden = hide;
+    const fresh = navFlash[id] !== undefined && t - navFlash[id] < 2.4 && Math.floor((t - navFlash[id]) * 4) % 2 === 0;
+    if (b.classList.contains('fresh') !== fresh) b.classList.toggle('fresh', fresh);
+  }
+  const sk = document.querySelector('[data-link="skip"]'), noSkip = !(STORY && !story.flags.has('skipped') && !story.flags.has('complete'));
+  if (sk.hidden !== noSkip) sk.hidden = noSkip;
 }
 // D-pad: along x through the objects in view, left to right as they sit on screen; along y through menu rows.
 function step(dir, axis) {
@@ -1378,7 +1419,11 @@ function drawUI(t) {
   // the dialogue box
   if (nar.visible && !(panel && panel.kind === 'letter')) {
     // on short screens the box keeps to the bottom left so it hides less of the room
-    const short = H < 480, bw = short ? Math.min(Math.round(W * 0.56), 560) : Math.min(W - 80, 760), bx = short ? 24 : Math.round((W - bw) / 2), by = H - 92, bh = 72;
+    // the handheld's 4:3 tube is narrow: there the box spans it and grows with the line
+    const short = H < 480, bw = handheld ? W - 40 : short ? Math.min(Math.round(W * 0.56), 560) : Math.min(W - 80, 760), bx = handheld ? 20 : short ? 24 : Math.round((W - bw) / 2);
+    g2.font = `900 17px "${FONT_G}"`;
+    const lines = wrap(nar.text.slice(0, Math.floor(nar.shown)), bw - 50).slice(0, 3);
+    const bh = handheld ? 30 + Math.max(2, wrap(nar.text, bw - 50).length) * 22 : 72, by = H - bh - 20;
     g2.fillStyle = 'rgba(16,47,65,0.94)'; g2.fillRect(bx, by, bw, bh);
     g2.strokeStyle = '#fce8cd'; g2.lineWidth = 2; g2.strokeRect(bx + 4, by + 4, bw - 8, bh - 8);
     g2.font = `12px "${FONT_PIX}"`;
@@ -1386,8 +1431,7 @@ function drawUI(t) {
     g2.fillStyle = '#ec563b'; g2.fillRect(bx + 14, by - 12, nw, 22);
     g2.fillStyle = '#fce8cd'; g2.fillText(nar.name, bx + 22, by - 1);
     g2.font = `900 17px "${FONT_G}"`; g2.fillStyle = '#fce8cd';
-    const shown = nar.text.slice(0, Math.floor(nar.shown));
-    wrap(shown, bw - 50).slice(0, 3).forEach((l, i) => g2.fillText(l, bx + 22, by + 28 + i * 22));
+    lines.forEach((l, i) => g2.fillText(l, bx + 22, by + 28 + i * 22));
     if (nar.shown >= nar.text.length && Math.sin(t * 6) > 0) { g2.fillStyle = '#fadb68'; g2.beginPath(); g2.moveTo(bx + bw - 26, by + bh - 22); g2.lineTo(bx + bw - 16, by + bh - 22); g2.lineTo(bx + bw - 21, by + bh - 15); g2.fill(); }
   }
   drawNav();
@@ -1399,7 +1443,7 @@ function drawUI(t) {
     g2.fillText({ desk: 'CH 01 DESK', table: 'CH 02 TABLE', drawer: 'CH 03 DRAWER' }[spot], 18, 20);
     if (STORY) drawMemories(t);
   }
-  if (touchUI) drawPad();
+  if (touchUI && !handheld) drawPad();
   uiTex.needsUpdate = true;
 }
 
@@ -1509,7 +1553,7 @@ gsap.to(crtMat.uniforms.uPower, { value: 1, duration: reduce ? 0.2 : 0.9, ease: 
 if (!reduce) crtMat.uniforms.uBurst.value = 0.9;
 setTimeout(() => {
   queue(STORY ? (returning ? STORY_LINES.back : STORY_LINES.boot) : LINES.boot, 2.6);
-  if (touchUI) queue('* tap something to point at it, tap again to use it. a and b work too.', 3.4);
+  if (touchUI) queue(handheld ? '* tap a thing to point at it, tap again to use it. or the pad and a, like a game boy.' : '* tap something to point at it, tap again to use it. a and b work too.', 3.4);
 }, reduce ? 300 : 1300);
 setTimeout(() => { loadRest(); if (state.mode === 'boot') state.mode = 'free'; highlight(Object.keys(PLAYS).filter(isFound)); setTimeout(() => highlight([]), 2600); }, reduce ? 1500 : (STORY ? 4200 : 6500));
 window.__room = { lampGoes, pressA, pressB, step, THREE, look, crtMat, objects, goSpot, state, camera, activate, story, reveal, skipStory, eject, openLetter, get panel() { return panel; }, tray, TRAY, doorPivot, frameObject };
