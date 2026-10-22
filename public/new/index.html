@@ -37,7 +37,34 @@ canvas { display: block; width: 100%; height: 100%; cursor: crosshair; touch-act
 .badge { position: absolute; bottom: max(4px, calc(env(safe-area-inset-bottom) - 12px)); left: 50%; transform: translateX(-50%); font: 900 9px/12px var(--grotesk); letter-spacing: .35em; color: #5d5d64; pointer-events: none; }
 /* The DOM nav and credits stay for keyboards and screen readers; the tube draws what you see. */
 .sr, nav, .credits, .quick { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-nav button:focus-visible, .quick:focus-visible { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); width: auto; height: auto; clip: auto; z-index: 3; padding: 8px 14px; background: var(--orange); color: var(--cream); border: 0; border-radius: 999px; font: 400 11px/1 var(--pixel); outline: 2px solid var(--gold); }
+body:not(.handheld) nav button:focus-visible, .quick:focus-visible { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); width: auto; height: auto; clip: auto; z-index: 3; padding: 8px 14px; background: var(--orange); color: var(--cream); border: 0; border-radius: 999px; font: 400 11px/1 var(--pixel); outline: 2px solid var(--gold); }
+/* Phones sideways play the room like a handheld: the tube keeps a television's 4:3 (never a stretched
+   picture), and the controls sit on the bezel either side of it, under the thumbs. */
+.bezel { display: none; }
+body.handheld .tv { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); column-gap: 12px; }
+body.handheld .glass { width: auto; height: 100%; aspect-ratio: 4 / 3; }
+body.handheld .bezel { display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 10px; padding: 4px 0; min-height: 0; }
+.bezel button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; cursor: pointer; font: 400 11px/1 var(--pixel); color: var(--cream); border: 0; }
+body.handheld .bezel nav { position: static; width: 100%; max-width: 176px; height: auto; overflow: visible; clip: auto; white-space: normal; display: flex; flex-direction: column; gap: 7px; }
+.bezel nav button { display: grid; grid-template-columns: auto 1fr; column-gap: 9px; align-content: center; height: 46px; padding: 0 12px 0 7px; border-radius: 23px; background: rgba(236,86,59,.32); text-align: left; transition: background .15s; }
+.bezel nav button[hidden] { display: none; }
+.bezel nav button[aria-current="true"] { background: var(--orange); }
+.bezel nav button.fresh { background: var(--gold); color: var(--peacock); }
+.bezel nav .num { grid-row: 1 / 3; align-self: center; padding: 5px 4px; border-radius: 3px; background: var(--peacock); color: var(--cream); font-size: 8px; }
+.bezel nav small { font: 900 9px/1.3 var(--grotesk); opacity: .85; }
+.dpad { display: grid; grid-template: repeat(3, min(42px, 11vh)) / repeat(3, min(42px, 11vh)); }
+.dpad button { background: #232328; border-radius: 6px; font-size: 12px; color: rgba(252,232,205,.75); box-shadow: inset 0 -3px 0 rgba(0,0,0,.45); }
+.dpad button:active, .ab button:active { transform: translateY(2px); box-shadow: none; }
+.dpad [data-d="up"] { grid-area: 1 / 2; } .dpad [data-d="left"] { grid-area: 2 / 1; } .dpad [data-d="right"] { grid-area: 2 / 3; } .dpad [data-d="down"] { grid-area: 3 / 2; }
+.dpad i { grid-area: 2 / 2; background: #232328; }
+.ab { position: relative; width: min(150px, 100%); aspect-ratio: 150 / 128; margin-top: auto; margin-bottom: auto; }
+.ab button { position: absolute; width: 43%; aspect-ratio: 1; border-radius: 50%; background: var(--orange); font-size: 18px; box-shadow: inset 0 -4px 0 rgba(0,0,0,.35), 0 0 0 2px rgba(252,232,205,.35); }
+.ab .a { right: 0; top: 0; } .ab .b { left: 0; bottom: 0; }
+.ab small { position: absolute; font: 900 9px var(--grotesk); color: rgba(252,232,205,.5); letter-spacing: .1em; }
+.ab .la { right: 12%; top: 55%; } .ab .lb { left: 11%; bottom: -11%; }
+.fine { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.fine button, .fine a { background: none; padding: 8px 6px; font: 400 9px/1 var(--pixel); letter-spacing: .06em; color: rgba(252,232,205,.55); text-decoration: none; }
+.fine [hidden] { display: none; }
 /* Phones held upright: the room only plays sideways. */
 .tilt { display: none; }
 @media (orientation: portrait) and (max-width: 900px) {
@@ -53,8 +80,15 @@ nav button:focus-visible, .quick:focus-visible { position: fixed; top: 16px; lef
 </head>
 <body>
   <div class="tv">
+    <div class="bezel left">
+      <div class="dpad" role="group" aria-label="Pad"><button data-d="up" aria-label="Up">▲</button><button data-d="left" aria-label="Previous object">◀</button><i></i><button data-d="right" aria-label="Next object">▶</button><button data-d="down" aria-label="Down">▼</button></div>
+    </div>
     <div class="glass">
       <canvas id="crt" aria-label="Omar's room, seen through a Trinitron. Press 1, 2 or 3 to move, the arrow keys to pick an object and Enter to use it."></canvas>
+    </div>
+    <div class="bezel right">
+      <div class="ab"><button class="a" aria-label="A, use">A</button><button class="b" aria-label="B, back">B</button><small class="la">USE</small><small class="lb">BACK</small></div>
+      <div class="fine"><button data-link="skip">SKIP STORY</button><button data-link="credits">CREDITS</button><a href="quick/">QUICK VIEW →</a></div>
     </div>
     <div class="badge">TRINITRON</div>
   </div>
