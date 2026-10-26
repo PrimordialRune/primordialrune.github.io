@@ -1,0 +1,4604 @@
+{
+  "date": "2026-10-26",
+  "bytes": 888516,
+  "limitBytes": 900000,
+  "sourceBytes": 5064128,
+  "tris": 57839,
+  "sourceTris": 104815,
+  "publicChanged": false,
+  "models": [
+    {
+      "id": "gb-console",
+      "sha256": "46bff3f0f9e18cb6300afc537daca481374caa57c9652163d87b3ea9436d19d0",
+      "audit": {
+        "id": "gb-console",
+        "before": {
+          "tris": 18081,
+          "bounds": {
+            "min": [
+              -1.0394628576738774,
+              -1.0991495847702026,
+              -0.6752179861068726
+            ],
+            "max": [
+              0.0987374802521732,
+              3.675319790840149,
+              2.201846480369568
+            ],
+            "size": [
+              1.1382003379260506,
+              4.774469375610352,
+              2.8770644664764404
+            ],
+            "center": [
+              -0.4703626887108521,
+              1.2880851030349731,
+              0.7633142471313477
+            ]
+          },
+          "materials": [
+            "Base",
+            "Pink_Buttons",
+            "D-Pad",
+            "Start-Select_Button",
+            "Front_Panel",
+            "Red_Light",
+            "Metal",
+            "Power_Switch",
+            "Screen",
+            "Screen_Edge",
+            "Glass",
+            "Decal_02",
+            "Decal_01",
+            "Blue_Line",
+            "Red_Line",
+            "On_off",
+            "Rear_text",
+            "D_Pad_Normal",
+            "Cart",
+            "Sticker",
+            "NormalMap"
+          ],
+          "nodes": [
+            "Sketchfab_model",
+            "root",
+            "GLTF_SceneRootNode",
+            "Cube.001_2",
+            "Object_6",
+            "Object_7",
+            "Object_8",
+            "Object_9",
+            "Object_10",
+            "Object_11",
+            "Object_12",
+            "Object_13",
+            "Object_14",
+            "Object_15",
+            "Cube.002_3",
+            "Object_17",
+            "Plane_4",
+            "Object_19",
+            "Plane.001_5",
+            "Object_21",
+            "Plane.002_6",
+            "Object_23",
+            "Plane.003_7",
+            "Object_25",
+            "Plane.004_8",
+            "Object_27",
+            "Plane.005_9",
+            "Object_29",
+            "Object_30",
+            "Plane.006_10",
+            "Object_32",
+            "Plane.007_11",
+            "Object_34",
+            "Plane.008_12",
+            "Object_36",
+            "Plane.010_13",
+            "Object_38",
+            "Cube_14",
+            "Object_40",
+            "Object_41",
+            "Object_42"
+          ],
+          "textures": [
+            {
+              "name": "",
+              "size": [
+                512,
+                256
+              ],
+              "bytes": 29926,
+              "mime": "image/webp"
+            },
+            {
+              "name": "",
+              "size": [
+                512,
+                256
+              ],
+              "bytes": 9852,
+              "mime": "image/webp"
+            },
+            {
+              "name": "Sticker-real",
+              "size": [
+                1024,
+                1024
+              ],
+              "bytes": 99762,
+              "mime": "image/webp"
+            },
+            {
+              "name": "Screen-real",
+              "size": [
+                256,
+                256
+              ],
+              "bytes": 9702,
+              "mime": "image/webp"
+            }
+          ],
+          "bytes": 835612
+        },
+        "after": {
+          "tris": 13490,
+          "bounds": {
+            "min": [
+              -1.0394643103789787,
+              -1.0991495095256678,
+              -0.6752774649773087
+            ],
+            "max": [
+              0.09865556753337612,
+              3.6753195392386075,
+              2.2019058547315256
+            ],
+            "size": [
+              1.138119877912355,
+              4.774469048764275,
+              2.877183319708834
+            ],
+            "center": [
+              -0.4704043714228013,
+              1.28808501485647,
+              0.7633141948771085
+            ]
+          },
+          "materials": [
+            "Screen",
+            "Screen_Edge",
+            "Decal_01",
+            "PaletteMaterial001",
+            "PaletteMaterial002",
+            "PaletteMaterial003"
+          ],
+          "nodes": [
+            "Object_6",
+            "Object_11",
+            "Object_12",
+            "Object_14",
+            "Object_15",
+            "Object_21"
+          ],
+          "textures": [
+            {
+              "name": "Screen-real",
+              "size": [
+                256,
+                256
+              ],
+              "bytes": 9702,
+              "mime": "image/webp"
+            },
+            {
+              "name": "Image_1",
+              "size": [
+                512,
+                256
+              ],
+              "bytes": 13584,
+              "mime": "image/webp"
+            },
+            {
+              "name": "Image_0",
+              "size": [
+                512,
+                256
+              ],
+              "bytes": 39786,
+              "mime": "image/webp"
+            },
+            {
+              "name": "Screen_Edge-solid",
+              "size": [
+                2,
+                2
+              ],
+              "bytes": 38,
+              "mime": "image/webp"
+            },
+            {
+              "name": "PaletteBaseColor",
+              "size": [
+                64,
+                4
+              ],
+              "bytes": 136,
+              "mime": "image/webp"
+            },
+            {
+              "name": "PaletteEmissive",
+              "size": [
+                64,
+                4
+              ],
+              "bytes": 50,
+              "mime": "image/webp"
+            },
+            {
+              "name": "PaletteMetallicRoughness",
+              "size": [
+                64,
+                4
+              ],
+              "bytes": 70,
+              "mime": "image/webp"
+            }
+          ],
+          "bytes": 165600
+        },
+        "boxDeltaPercent": [
+          -0.007069055509356659,
+          -6.845704736413438e-06,
+          0.004131059063094966
+        ],
+        "centerDeltaPercentOfLongest": [
+          -0.0008730333921951393,
+          -1.8468754583773976e-06,
+          -1.09445123734215e-06
+        ],
+        "art": [
+          {
+            "artSource": "source/web/gb-console.glb",
+            "material": "Screen",
+            "source": [
+              256,
+              256
+            ],
+            "output": [
+              256,
+              256
+            ],
+            "pixelsEqual": true,
+            "sourcePixelsSHA256": "8081bac8e0f64534c2551ad6ab7dccf24786a227ef120e78f5211d9128d32b05",
+            "outputPixelsSHA256": "8081bac8e0f64534c2551ad6ab7dccf24786a227ef120e78f5211d9128d32b05"
+          }
+        ],
+        "nodeChecks": [],
+        "screenChecks": [
+          {
+            "name": "Screen",
+            "present": true
+          },
+          {
+            "name": "Screen_Edge",
+            "present": true
+          }
+        ],
+        "ownColorChecks": [],
+        "checks": {
+          "ownColors": true,
+          "screens": true,
+          "triangleLimit": 15000,
+          "triangles": true,
+          "textureCap": true,
+          "webp": true,
+          "bounds": true,
+          "art": true,
+          "nodes": true
+        },
+        "boxRatioDeltaPercent": [
+          -0.007062210288077964,
+          0.0,
+          0.004137905051115887
+        ]
+      },
+      "validation": {
+        "id": "gb-console",
+        "compressed": {
+          "uri": "restoration/out/gb-console.glb",
+          "mimeType": "model/gltf-binary",
+          "validatorVersion": "2.0.0-dev.3.10",
+          "validatedAt": "2026-10-26T12:20:49.008Z",
+          "issues": {
+            "numErrors": 0,
+            "numWarnings": 0,
+            "numInfos": 1,
+            "numHints": 0,
+            "messages": [
+              {
+                "code": "UNSUPPORTED_EXTENSION",
+                "message": "Cannot validate an extension as it is not supported by the validator: 'EXT_meshopt_compression'.",
+                "severity": 2,
+                "pointer": "/extensionsUsed/0"
+              }
+            ],
+            "truncated": false
+          },
+          "info": {
+            "version": "2.0",
+            "generator": "glTF-Transform v4.5.1",
+            "extensionsUsed": [
+              "EXT_meshopt_compression",
+              "EXT_texture_webp",
+              "KHR_materials_emissive_strength",
+              "KHR_materials_specular",
+              "KHR_mesh_quantization"
+            ],
+            "extensionsRequired": [
+              "EXT_meshopt_compression",
+              "EXT_texture_webp",
+              "KHR_mesh_quantization"
+            ],
+            "resources": [
+              {
+                "pointer": "/buffers/0",
+                "mimeType": "application/gltf-buffer",
+                "storage": "glb",
+                "byteLength": 153204
+              },
+              {
+                "pointer": "/buffers/1",
+                "mimeType": "application/gltf-buffer"
+              },
+              {
+                "pointer": "/images/0",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 256,
+                  "height": 256,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/1",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 512,
+                  "height": 256,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/2",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 512,
+                  "height": 256,
+                  "format": "rgba",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/3",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 2,
+                  "height": 2,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/4",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 64,
+                  "height": 4,
+                  "format": "rgba",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/5",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 64,
+                  "height": 4,
+                  "format": "rgba",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/6",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 64,
+                  "height": 4,
+                  "format": "rgba",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              }
+            ],
+            "animationCount": 0,
+            "materialCount": 6,
+            "hasMorphTargets": false,
+            "hasSkins": false,
+            "hasTextures": true,
+            "hasDefaultScene": true,
+            "drawCallCount": 6,
+            "totalVertexCount": 14175,
+            "totalTriangleCount": 13490,
+            "maxUVs": 1,
+            "maxInfluences": 0,
+            "maxAttributes": 4
+          }
+        },
+        "decoded": {
+          "uri": "restoration/work/gb-console-render.glb",
+          "mimeType": "model/gltf-binary",
+          "validatorVersion": "2.0.0-dev.3.10",
+          "validatedAt": "2026-10-26T12:20:49.032Z",
+          "issues": {
+            "numErrors": 0,
+            "numWarnings": 0,
+            "numInfos": 0,
+            "numHints": 0,
+            "messages": [],
+            "truncated": false
+          },
+          "info": {
+            "version": "2.0",
+            "generator": "glTF-Transform v4.5.1",
+            "extensionsUsed": [
+              "EXT_texture_webp",
+              "KHR_materials_emissive_strength",
+              "KHR_materials_specular"
+            ],
+            "extensionsRequired": [
+              "EXT_texture_webp"
+            ],
+            "resources": [
+              {
+                "pointer": "/buffers/0",
+                "mimeType": "application/gltf-buffer",
+                "storage": "glb",
+                "byteLength": 598376
+              },
+              {
+                "pointer": "/images/0",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 256,
+                  "height": 256,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/1",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 512,
+                  "height": 256,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/2",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 512,
+                  "height": 256,
+                  "format": "rgba",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/3",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 2,
+                  "height": 2,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/4",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 64,
+                  "height": 4,
+                  "format": "rgba",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/5",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 64,
+                  "height": 4,
+                  "format": "rgba",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/6",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 64,
+                  "height": 4,
+                  "format": "rgba",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              }
+            ],
+            "animationCount": 0,
+            "materialCount": 6,
+            "hasMorphTargets": false,
+            "hasSkins": false,
+            "hasTextures": true,
+            "hasDefaultScene": true,
+            "drawCallCount": 6,
+            "totalVertexCount": 14175,
+            "totalTriangleCount": 13490,
+            "maxUVs": 1,
+            "maxInfluences": 0,
+            "maxAttributes": 4
+          }
+        }
+      },
+      "restoration": {
+        "id": "gb-console",
+        "original_meshes_used": [
+          "Object_6",
+          "Object_7",
+          "Object_8",
+          "Object_9",
+          "Object_10",
+          "Object_11",
+          "Object_12",
+          "Object_13",
+          "Object_14",
+          "Object_15",
+          "Object_17",
+          "Object_19",
+          "Object_21",
+          "Object_23",
+          "Object_25",
+          "Object_27",
+          "Object_29",
+          "Object_30",
+          "Object_32",
+          "Object_34",
+          "Object_36",
+          "Object_38",
+          "Object_40",
+          "Object_41",
+          "Object_42"
+        ],
+        "bounds_before": {
+          "min": [
+            -1.0394628047943115,
+            -2.2018470764160156,
+            -1.0991497039794922
+          ],
+          "max": [
+            0.09873747825622559,
+            0.6752181649208069,
+            3.675320625305176
+          ],
+          "size": [
+            1.138200283050537,
+            2.8770652413368225,
+            4.774470329284668
+          ],
+          "center": [
+            -0.47036266326904297,
+            -0.7633144557476044,
+            1.2880854606628418
+          ]
+        },
+        "bounds_restored": {
+          "min": [
+            -1.0394628047943115,
+            -2.2018470764160156,
+            -1.0991497039794922
+          ],
+          "max": [
+            0.09873747825622559,
+            0.6752181649208069,
+            3.675320625305176
+          ],
+          "size": [
+            1.138200283050537,
+            2.8770652413368225,
+            4.774470329284668
+          ],
+          "center": [
+            -0.47036266326904297,
+            -0.7633144557476044,
+            1.2880854606628418
+          ]
+        },
+        "notes": [
+          "Removed dimming screen overlay and preinserted hidden cartridge; retained the slot."
+        ]
+      }
+    },
+    {
+      "id": "gba-console",
+      "sha256": "eca0bc8b96f10e0ef76199ada1fcbcb898e2f723c7dc9250c7d590c3a98cda73",
+      "audit": {
+        "id": "gba-console",
+        "before": {
+          "tris": 12083,
+          "bounds": {
+            "min": [
+              -6.7376298904418945,
+              3.827054500579834,
+              5.523982524871826
+            ],
+            "max": [
+              6.596134185791016,
+              12.65676498413086,
+              7.150719165802002
+            ],
+            "size": [
+              13.33376407623291,
+              8.829710483551025,
+              1.6267366409301758
+            ],
+            "center": [
+              -0.07074785232543945,
+              8.241909742355347,
+              6.337350845336914
+            ]
+          },
+          "materials": [
+            "lambert5",
+            "lambert1",
+            "blinn2",
+            "typeBlinn",
+            "lambert9",
+            "typeBlinn3",
+            "lambert10",
+            "lambert12",
+            "lambert13",
+            "lambert6",
+            "lambert7",
+            "Nintendo"
+          ],
+          "nodes": [
+            "Sketchfab_model",
+            "2155a0ec0bfb446f9bb0ecb85f4a93c8.fbx",
+            "RootNode",
+            "pCube13",
+            "pCube13_lambert5_0",
+            "pCylinder3",
+            "pCylinder3_lambert1_0",
+            "pCube14",
+            "pCube14_lambert1_0",
+            "pCube15",
+            "pCube15_lambert1_0",
+            "pCube16",
+            "pCube16_blinn2_0",
+            "typeMesh1",
+            "typeMesh1_typeBlinn_0",
+            "pCylinder12",
+            "pCylinder12_lambert1_0",
+            "typeMesh4",
+            "typeMesh4_lambert9_0",
+            "typeMesh5",
+            "typeMesh5_typeBlinn3_0",
+            "pCube21",
+            "pCube21_lambert10_0",
+            "pasted__pCylinder2",
+            "pasted__pCylinder2_lambert1_0",
+            "pasted__pCylinder2_lambert12_0",
+            "pCylinder13",
+            "pCylinder13_lambert1_0",
+            "pCylinder13_lambert13_0",
+            "pCube24",
+            "pCube24_lambert6_0",
+            "pCube24_lambert7_0",
+            "pCube24_lambert14_0",
+            "pCube24_Nintendo_0",
+            "pCube29",
+            "pCube29_lambert1_0",
+            "typeMesh9",
+            "typeMesh9_typeBlinn7_0"
+          ],
+          "textures": [
+            {
+              "name": "blinn2-real",
+              "size": [
+                960,
+                640
+              ],
+              "bytes": 26206,
+              "mime": "image/webp"
+            }
+          ],
+          "bytes": 445976
+        },
+        "after": {
+          "tris": 8203,
+          "bounds": {
+            "min": [
+              -6.7376298904418945,
+              3.827162739337588,
+              5.524034337937404
+            ],
+            "max": [
+              6.596134185791016,
+              12.656655616939496,
+              7.15066652531499
+            ],
+            "size": [
+              13.33376407623291,
+              8.829492877601908,
+              1.6266321873775862
+            ],
+            "center": [
+              -0.07074785232543945,
+              8.241909178138542,
+              6.337350431626197
+            ]
+          },
+          "materials": [
+            "blinn2",
+            "PaletteMaterial001",
+            "PaletteMaterial002"
+          ],
+          "nodes": [
+            "pasted__pCylinder2_lambert1_0",
+            "pCube16_blinn2_0",
+            "pCube21_lambert10_0"
+          ],
+          "textures": [
+            {
+              "name": "blinn2-real",
+              "size": [
+                960,
+                640
+              ],
+              "bytes": 26206,
+              "mime": "image/webp"
+            },
+            {
+              "name": "PaletteBaseColor",
+              "size": [
+                32,
+                4
+              ],
+              "bytes": 104,
+              "mime": "image/webp"
+            },
+            {
+              "name": "PaletteMetallicRoughness",
+              "size": [
+                32,
+                4
+              ],
+              "bytes": 64,
+              "mime": "image/webp"
+            }
+          ],
+          "bytes": 82792
+        },
+        "boxDeltaPercent": [
+          0,
+          -0.0024644743394808266,
+          -0.006421048740246071
+        ],
+        "centerDeltaPercentOfLongest": [
+          0,
+          -4.231489334945127e-06,
+          -3.1027301433745352e-06
+        ],
+        "art": [
+          {
+            "artSource": "source/web/gba-console.glb",
+            "material": "blinn2",
+            "source": [
+              960,
+              640
+            ],
+            "output": [
+              960,
+              640
+            ],
+            "pixelsEqual": true,
+            "sourcePixelsSHA256": "e526350d631e6a6953e06482f2a7d85a7d8afb92fc55dfeb12993847552a79da",
+            "outputPixelsSHA256": "e526350d631e6a6953e06482f2a7d85a7d8afb92fc55dfeb12993847552a79da"
+          }
+        ],
+        "nodeChecks": [],
+        "screenChecks": [
+          {
+            "name": "blinn2",
+            "present": true
+          }
+        ],
+        "ownColorChecks": [],
+        "checks": {
+          "ownColors": true,
+          "screens": true,
+          "triangleLimit": 15000,
+          "triangles": true,
+          "textureCap": true,
+          "webp": true,
+          "bounds": true,
+          "art": true,
+          "nodes": true
+        },
+        "boxRatioDeltaPercent": [
+          0.0,
+          -0.0024644743394808266,
+          -0.006421048740246071
+        ]
+      },
+      "validation": {
+        "id": "gba-console",
+        "compressed": {
+          "uri": "restoration/out/gba-console.glb",
+          "mimeType": "model/gltf-binary",
+          "validatorVersion": "2.0.0-dev.3.10",
+          "validatedAt": "2026-10-26T12:21:22.743Z",
+          "issues": {
+            "numErrors": 0,
+            "numWarnings": 0,
+            "numInfos": 2,
+            "numHints": 0,
+            "messages": [
+              {
+                "code": "UNSUPPORTED_EXTENSION",
+                "message": "Cannot validate an extension as it is not supported by the validator: 'EXT_meshopt_compression'.",
+                "severity": 2,
+                "pointer": "/extensionsUsed/0"
+              },
+              {
+                "code": "IMAGE_NPOT_DIMENSIONS",
+                "message": "Image has non-power-of-two dimensions: 960x640.",
+                "severity": 2,
+                "pointer": "/images/0"
+              }
+            ],
+            "truncated": false
+          },
+          "info": {
+            "version": "2.0",
+            "generator": "glTF-Transform v4.5.1",
+            "extensionsUsed": [
+              "EXT_meshopt_compression",
+              "EXT_texture_webp",
+              "KHR_materials_specular",
+              "KHR_mesh_quantization"
+            ],
+            "extensionsRequired": [
+              "EXT_meshopt_compression",
+              "EXT_texture_webp",
+              "KHR_mesh_quantization"
+            ],
+            "resources": [
+              {
+                "pointer": "/buffers/0",
+                "mimeType": "application/gltf-buffer",
+                "storage": "glb",
+                "byteLength": 76392
+              },
+              {
+                "pointer": "/buffers/1",
+                "mimeType": "application/gltf-buffer"
+              },
+              {
+                "pointer": "/images/0",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 960,
+                  "height": 640,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/1",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 32,
+                  "height": 4,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/2",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 32,
+                  "height": 4,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              }
+            ],
+            "animationCount": 0,
+            "materialCount": 3,
+            "hasMorphTargets": false,
+            "hasSkins": false,
+            "hasTextures": true,
+            "hasDefaultScene": true,
+            "drawCallCount": 3,
+            "totalVertexCount": 8611,
+            "totalTriangleCount": 8203,
+            "maxUVs": 1,
+            "maxInfluences": 0,
+            "maxAttributes": 3
+          }
+        },
+        "decoded": {
+          "uri": "restoration/work/gba-console-render.glb",
+          "mimeType": "model/gltf-binary",
+          "validatorVersion": "2.0.0-dev.3.10",
+          "validatedAt": "2026-10-26T12:21:22.762Z",
+          "issues": {
+            "numErrors": 0,
+            "numWarnings": 0,
+            "numInfos": 1,
+            "numHints": 0,
+            "messages": [
+              {
+                "code": "IMAGE_NPOT_DIMENSIONS",
+                "message": "Image has non-power-of-two dimensions: 960x640.",
+                "severity": 2,
+                "pointer": "/images/0"
+              }
+            ],
+            "truncated": false
+          },
+          "info": {
+            "version": "2.0",
+            "generator": "glTF-Transform v4.5.1",
+            "extensionsUsed": [
+              "EXT_texture_webp",
+              "KHR_materials_specular"
+            ],
+            "extensionsRequired": [
+              "EXT_texture_webp"
+            ],
+            "resources": [
+              {
+                "pointer": "/buffers/0",
+                "mimeType": "application/gltf-buffer",
+                "storage": "glb",
+                "byteLength": 351152
+              },
+              {
+                "pointer": "/images/0",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 960,
+                  "height": 640,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/1",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 32,
+                  "height": 4,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/2",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 32,
+                  "height": 4,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              }
+            ],
+            "animationCount": 0,
+            "materialCount": 3,
+            "hasMorphTargets": false,
+            "hasSkins": false,
+            "hasTextures": true,
+            "hasDefaultScene": true,
+            "drawCallCount": 3,
+            "totalVertexCount": 8611,
+            "totalTriangleCount": 8203,
+            "maxUVs": 1,
+            "maxInfluences": 0,
+            "maxAttributes": 3
+          }
+        }
+      },
+      "restoration": {
+        "id": "gba-console",
+        "original_meshes_used": [
+          "pCube13_lambert5_0",
+          "pCylinder3_lambert1_0",
+          "pCube14_lambert1_0",
+          "pCube15_lambert1_0",
+          "pCube16_blinn2_0",
+          "typeMesh1_typeBlinn_0",
+          "pCylinder12_lambert1_0",
+          "typeMesh4_lambert9_0",
+          "typeMesh5_typeBlinn3_0",
+          "pCube21_lambert10_0",
+          "pasted__pCylinder2_lambert1_0",
+          "pasted__pCylinder2_lambert12_0",
+          "pCylinder13_lambert1_0",
+          "pCylinder13_lambert13_0",
+          "pCube24_lambert6_0",
+          "pCube24_lambert7_0",
+          "pCube24_lambert14_0",
+          "pCube24_Nintendo_0",
+          "pCube29_lambert1_0",
+          "typeMesh9_typeBlinn7_0"
+        ],
+        "bounds_before": {
+          "min": [
+            -6.7376298904418945,
+            -7.150721073150635,
+            3.8270554542541504
+          ],
+          "max": [
+            6.596134185791016,
+            -5.523983955383301,
+            12.656767845153809
+          ],
+          "size": [
+            13.33376407623291,
+            1.626737117767334,
+            8.829712390899658
+          ],
+          "center": [
+            -0.07074785232543945,
+            -6.337352514266968,
+            8.24191164970398
+          ]
+        },
+        "bounds_restored": {
+          "min": [
+            -6.7376298904418945,
+            -7.150721073150635,
+            3.8270554542541504
+          ],
+          "max": [
+            6.596134185791016,
+            -5.523983955383301,
+            12.656767845153809
+          ],
+          "size": [
+            13.33376407623291,
+            1.626737117767334,
+            8.829712390899658
+          ],
+          "center": [
+            -0.07074785232543945,
+            -6.337352514266968,
+            8.24191164970398
+          ]
+        },
+        "notes": [
+          "Launch indigo/violet shell, grey controls, 3:2 display aperture without changing UVs; reduced geometric wordmark tessellation."
+        ]
+      }
+    },
+    {
+      "id": "ds-console",
+      "sha256": "296711e5f801ce7f776ef05aa66aa866befd928b93e32c2be5ee75109a76a527",
+      "audit": {
+        "id": "ds-console",
+        "before": {
+          "tris": 49560,
+          "bounds": {
+            "min": [
+              -0.06650000065565109,
+              -0.01781843975186348,
+              -0.037249842490041776
+            ],
+            "max": [
+              0.06650000810623169,
+              0.06187769809801769,
+              0.06989957392215729
+            ],
+            "size": [
+              0.13300000876188278,
+              0.07969613784988117,
+              0.10714941641219906
+            ],
+            "center": [
+              3.725290298461914e-09,
+              0.022029629173077107,
+              0.016324865716057756
+            ]
+          },
+          "materials": [
+            "button_general.001",
+            "top.002",
+            "screen_up.002",
+            "neon.001",
+            "neon_droite.001",
+            "base.002",
+            "base.002_0",
+            "screen_down.002"
+          ],
+          "nodes": [
+            "Sketchfab_model",
+            "root",
+            "GLTF_SceneRootNode",
+            "Y.001_0",
+            "Object_4",
+            "X.001_1",
+            "Object_6",
+            "TOP.001_2",
+            "Object_8",
+            "Object_9",
+            "START.001_3",
+            "Object_11",
+            "SIDES.001_4",
+            "Object_13",
+            "Object_14",
+            "Object_15",
+            "SELECT.001_5",
+            "Object_17",
+            "LR.001_6",
+            "Object_19",
+            "PAD.001_7",
+            "Object_21",
+            "GBACARD.001_8",
+            "Object_23",
+            "DSCARD.001_9",
+            "Object_25",
+            "BASE.001_10",
+            "Object_27",
+            "Object_28",
+            "B.001_11",
+            "Object_30",
+            "A.001_12",
+            "Object_32"
+          ],
+          "textures": [
+            {
+              "name": "",
+              "size": [
+                1024,
+                1024
+              ],
+              "bytes": 4952,
+              "mime": "image/webp"
+            },
+            {
+              "name": "",
+              "size": [
+                1024,
+                1024
+              ],
+              "bytes": 3902,
+              "mime": "image/webp"
+            },
+            {
+              "name": "",
+              "size": [
+                1024,
+                1024
+              ],
+              "bytes": 26068,
+              "mime": "image/webp"
+            },
+            {
+              "name": "",
+              "size": [
+                1024,
+                1024
+              ],
+              "bytes": 4604,
+              "mime": "image/webp"
+            },
+            {
+              "name": "",
+              "size": [
+                1024,
+                1024
+              ],
+              "bytes": 10116,
+              "mime": "image/webp"
+            },
+            {
+              "name": "",
+              "size": [
+                1024,
+                1024
+              ],
+              "bytes": 2686,
+              "mime": "image/webp"
+            },
+            {
+              "name": "",
+              "size": [
+                1024,
+                1024
+              ],
+              "bytes": 4642,
+              "mime": "image/webp"
+            },
+            {
+              "name": "",
+              "size": [
+                1024,
+                1024
+              ],
+              "bytes": 36324,
+              "mime": "image/webp"
+            },
+            {
+              "name": "",
+              "size": [
+                1024,
+                1024
+              ],
+              "bytes": 5710,
+              "mime": "image/webp"
+            },
+            {
+              "name": "",
+              "size": [
+                1024,
+                1024
+              ],
+              "bytes": 19612,
+              "mime": "image/webp"
+            },
+            {
+              "name": "",
+              "size": [
+                1024,
+                1024
+              ],
+              "bytes": 45924,
+              "mime": "image/webp"
+            },
+            {
+              "name": "",
+              "size": [
+                1024,
+                1024
+              ],
+              "bytes": 8778,
+              "mime": "image/webp"
+            },
+            {
+              "name": "screen_up.002-real",
+              "size": [
+                1024,
+                1024
+              ],
+              "bytes": 40938,
+              "mime": "image/webp"
+            },
+            {
+              "name": "screen_down.002-real",
+              "size": [
+                1024,
+                1024
+              ],
+              "bytes": 4348,
+              "mime": "image/webp"
+            }
+          ],
+          "bytes": 2354176
+        },
+        "after": {
+          "tris": 14443,
+          "bounds": {
+            "min": [
+              -0.06650043278932571,
+              -0.017805866651567685,
+              -0.03725216050095949
+            ],
+            "max": [
+              0.06650044769048691,
+              0.06188174782592134,
+              0.06990222925035118
+            ],
+            "size": [
+              0.13300088047981262,
+              0.07968761447748902,
+              0.10715438975131067
+            ],
+            "center": [
+              7.450580596923828e-09,
+              0.022037940587176827,
+              0.016325034374695846
+            ]
+          },
+          "materials": [
+            "button_general.001",
+            "screen_down.002",
+            "Graphite_plastic_atlas",
+            "screen_up.002",
+            "PaletteMaterial001",
+            "PaletteMaterial002"
+          ],
+          "nodes": [
+            "Object_32",
+            "Object_28",
+            "Object_14",
+            "Object_15",
+            "Graphite_shell_and_controls",
+            "Object_9"
+          ],
+          "textures": [
+            {
+              "name": "Image_0",
+              "size": [
+                1024,
+                1024
+              ],
+              "bytes": 4896,
+              "mime": "image/webp"
+            },
+            {
+              "name": "screen_down.002-real",
+              "size": [
+                1024,
+                1024
+              ],
+              "bytes": 4348,
+              "mime": "image/webp"
+            },
+            {
+              "name": "DS_source_detail_normal",
+              "size": [
+                512,
+                512
+              ],
+              "bytes": 19276,
+              "mime": "image/webp"
+            },
+            {
+              "name": "DS_graphite_atlas",
+              "size": [
+                1024,
+                1024
+              ],
+              "bytes": 4510,
+              "mime": "image/webp"
+            },
+            {
+              "name": "screen_up.002-real",
+              "size": [
+                1024,
+                1024
+              ],
+              "bytes": 40938,
+              "mime": "image/webp"
+            },
+            {
+              "name": "PaletteBaseColor",
+              "size": [
+                8,
+                4
+              ],
+              "bytes": 42,
+              "mime": "image/webp"
+            },
+            {
+              "name": "PaletteEmissive",
+              "size": [
+                8,
+                4
+              ],
+              "bytes": 38,
+              "mime": "image/webp"
+            },
+            {
+              "name": "PaletteMetallicRoughness",
+              "size": [
+                8,
+                4
+              ],
+              "bytes": 38,
+              "mime": "image/webp"
+            }
+          ],
+          "bytes": 249400
+        },
+        "boxDeltaPercent": [
+          0.0006554269717407024,
+          -0.0106948374439364,
+          0.004641499018975814
+        ],
+        "centerDeltaPercentOfLongest": [
+          2.800969964694894e-06,
+          0.00624918312193543,
+          0.00012681099772876694
+        ],
+        "art": [
+          {
+            "artSource": "source/web/ds-console.glb",
+            "material": "screen_up.002",
+            "source": [
+              1024,
+              1024
+            ],
+            "output": [
+              1024,
+              1024
+            ],
+            "pixelsEqual": true,
+            "sourcePixelsSHA256": "85ae454441d020e52dd57e9a7d8bec6b9b10f639caf55924957c594ec28ae4b8",
+            "outputPixelsSHA256": "85ae454441d020e52dd57e9a7d8bec6b9b10f639caf55924957c594ec28ae4b8"
+          },
+          {
+            "artSource": "source/web/ds-console.glb",
+            "material": "screen_down.002",
+            "source": [
+              1024,
+              1024
+            ],
+            "output": [
+              1024,
+              1024
+            ],
+            "pixelsEqual": true,
+            "sourcePixelsSHA256": "b33532192abcc1f9641af24b209f83956e695eac5b0947507df3d869a62c8b9a",
+            "outputPixelsSHA256": "b33532192abcc1f9641af24b209f83956e695eac5b0947507df3d869a62c8b9a"
+          }
+        ],
+        "nodeChecks": [],
+        "screenChecks": [
+          {
+            "name": "screen_up.002",
+            "present": true
+          },
+          {
+            "name": "screen_down.002",
+            "present": true
+          }
+        ],
+        "ownColorChecks": [],
+        "checks": {
+          "ownColors": true,
+          "screens": true,
+          "triangleLimit": 15000,
+          "triangles": true,
+          "textureCap": true,
+          "webp": true,
+          "bounds": true,
+          "art": true,
+          "nodes": true
+        },
+        "boxRatioDeltaPercent": [
+          0.0,
+          -0.011350190023462492,
+          0.003986045921622328
+        ]
+      },
+      "validation": {
+        "id": "ds-console",
+        "compressed": {
+          "uri": "restoration/out/ds-console.glb",
+          "mimeType": "model/gltf-binary",
+          "validatorVersion": "2.0.0-dev.3.10",
+          "validatedAt": "2026-10-26T12:21:52.481Z",
+          "issues": {
+            "numErrors": 0,
+            "numWarnings": 0,
+            "numInfos": 1,
+            "numHints": 0,
+            "messages": [
+              {
+                "code": "UNSUPPORTED_EXTENSION",
+                "message": "Cannot validate an extension as it is not supported by the validator: 'EXT_meshopt_compression'.",
+                "severity": 2,
+                "pointer": "/extensionsUsed/0"
+              }
+            ],
+            "truncated": false
+          },
+          "info": {
+            "version": "2.0",
+            "generator": "glTF-Transform v4.5.1",
+            "extensionsUsed": [
+              "EXT_meshopt_compression",
+              "EXT_texture_webp",
+              "KHR_materials_emissive_strength",
+              "KHR_materials_specular",
+              "KHR_materials_transmission",
+              "KHR_mesh_quantization"
+            ],
+            "extensionsRequired": [
+              "EXT_meshopt_compression",
+              "EXT_texture_webp",
+              "KHR_mesh_quantization"
+            ],
+            "resources": [
+              {
+                "pointer": "/buffers/0",
+                "mimeType": "application/gltf-buffer",
+                "storage": "glb",
+                "byteLength": 236560
+              },
+              {
+                "pointer": "/buffers/1",
+                "mimeType": "application/gltf-buffer"
+              },
+              {
+                "pointer": "/images/0",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 1024,
+                  "height": 1024,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/1",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 1024,
+                  "height": 1024,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/2",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 512,
+                  "height": 512,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/3",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 1024,
+                  "height": 1024,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/4",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 1024,
+                  "height": 1024,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/5",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 8,
+                  "height": 4,
+                  "format": "rgba",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/6",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 8,
+                  "height": 4,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/7",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 8,
+                  "height": 4,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              }
+            ],
+            "animationCount": 0,
+            "materialCount": 6,
+            "hasMorphTargets": false,
+            "hasSkins": false,
+            "hasTextures": true,
+            "hasDefaultScene": true,
+            "drawCallCount": 6,
+            "totalVertexCount": 14620,
+            "totalTriangleCount": 14443,
+            "maxUVs": 1,
+            "maxInfluences": 0,
+            "maxAttributes": 4
+          }
+        },
+        "decoded": {
+          "uri": "restoration/work/ds-console-render.glb",
+          "mimeType": "model/gltf-binary",
+          "validatorVersion": "2.0.0-dev.3.10",
+          "validatedAt": "2026-10-26T12:21:52.509Z",
+          "issues": {
+            "numErrors": 0,
+            "numWarnings": 0,
+            "numInfos": 0,
+            "numHints": 0,
+            "messages": [],
+            "truncated": false
+          },
+          "info": {
+            "version": "2.0",
+            "generator": "glTF-Transform v4.5.1",
+            "extensionsUsed": [
+              "EXT_texture_webp",
+              "KHR_materials_emissive_strength",
+              "KHR_materials_specular",
+              "KHR_materials_transmission"
+            ],
+            "extensionsRequired": [
+              "EXT_texture_webp"
+            ],
+            "resources": [
+              {
+                "pointer": "/buffers/0",
+                "mimeType": "application/gltf-buffer",
+                "storage": "glb",
+                "byteLength": 824936
+              },
+              {
+                "pointer": "/images/0",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 1024,
+                  "height": 1024,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/1",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 1024,
+                  "height": 1024,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/2",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 512,
+                  "height": 512,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/3",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 1024,
+                  "height": 1024,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/4",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 1024,
+                  "height": 1024,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/5",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 8,
+                  "height": 4,
+                  "format": "rgba",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/6",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 8,
+                  "height": 4,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/7",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 8,
+                  "height": 4,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              }
+            ],
+            "animationCount": 0,
+            "materialCount": 6,
+            "hasMorphTargets": false,
+            "hasSkins": false,
+            "hasTextures": true,
+            "hasDefaultScene": true,
+            "drawCallCount": 6,
+            "totalVertexCount": 14620,
+            "totalTriangleCount": 14443,
+            "maxUVs": 1,
+            "maxInfluences": 0,
+            "maxAttributes": 4
+          }
+        }
+      },
+      "restoration": {
+        "id": "ds-console",
+        "original_meshes_used": [
+          "Object_4",
+          "Object_6",
+          "Object_8",
+          "Object_9",
+          "Object_11",
+          "Object_13",
+          "Object_14",
+          "Object_15",
+          "Object_17",
+          "Object_19",
+          "Object_21",
+          "Object_23",
+          "Object_25",
+          "Object_27",
+          "Object_28",
+          "Object_30",
+          "Object_32"
+        ],
+        "bounds_before": {
+          "min": [
+            -0.06650000065565109,
+            -0.06989958882331848,
+            -0.017818443477153778
+          ],
+          "max": [
+            0.06650000810623169,
+            0.0372498445212841,
+            0.06187770515680313
+          ],
+          "size": [
+            0.13300000876188278,
+            0.10714943334460258,
+            0.07969614863395691
+          ],
+          "center": [
+            3.725290298461914e-09,
+            -0.01632487215101719,
+            0.022029630839824677
+          ]
+        },
+        "bounds_restored": {
+          "min": [
+            -0.06650043278932571,
+            -0.06989959627389908,
+            -0.017809728160500526
+          ],
+          "max": [
+            0.06650044769048691,
+            0.0372498482465744,
+            0.06187795475125313
+          ],
+          "size": [
+            0.13300088047981262,
+            0.10714944452047348,
+            0.07968768291175365
+          ],
+          "center": [
+            7.450580596923828e-09,
+            -0.016324874013662338,
+            0.0220341132953763
+          ]
+        },
+        "notes": [
+          "Graphite shell atlas; high-to-low tangent normal bake retains source embossing, screws and vents; separate screen art."
+        ]
+      }
+    },
+    {
+      "id": "pc",
+      "sha256": "5ee60a3a25ebc83770b2d73592736e62437de5ac87179497d111c5790914d309",
+      "audit": {
+        "id": "pc",
+        "before": {
+          "tris": 11891,
+          "bounds": {
+            "min": [
+              -399.9999933242798,
+              -640.0000317060619,
+              -459.53172103510076
+            ],
+            "max": [
+              389.99999237060547,
+              300.0000154774604,
+              446.9999945167854
+            ],
+            "size": [
+              789.9999856948853,
+              940.0000471835224,
+              906.5317155518862
+            ],
+            "center": [
+              -5.000000476837158,
+              -170.00000811430075,
+              -6.265863259157669
+            ]
+          },
+          "materials": [
+            "Monitor",
+            "MonitorGlass"
+          ],
+          "nodes": [
+            "Sketchfab_model",
+            "Computer.fbx",
+            "RootNode",
+            "Monitor",
+            "Monitor_Monitor_0",
+            "Monitor_MonitorGlass_0",
+            "UnderMonitor",
+            "UnderMonitor_MonitorBase_0",
+            "MonitorBase",
+            "MonitorBase_StandBase_0",
+            "MonitorBaseConnector",
+            "MonitorBaseConnector_MonitorStand_0",
+            "ComputerTower",
+            "ComputerTower_Tower_0",
+            "Keyboard",
+            "Keyboard_Keyboard_0",
+            "Keys",
+            "Keys_KeyboardKeys_0"
+          ],
+          "textures": [],
+          "bytes": 435724
+        },
+        "after": {
+          "tris": 9285,
+          "bounds": {
+            "min": [
+              -399.99686397438603,
+              -640.0000024595327,
+              -459.61297947488356
+            ],
+            "max": [
+              389.99688543205815,
+              299.9999858639477,
+              447.0740204153584
+            ],
+            "size": [
+              789.9937494064442,
+              939.9999883234804,
+              906.686999890242
+            ],
+            "center": [
+              -4.99998927116394,
+              -170.00000829779248,
+              -6.269479529762577
+            ]
+          },
+          "materials": [
+            "PaletteMaterial001",
+            "PaletteMaterial002"
+          ],
+          "nodes": [
+            "ComputerTower_Tower_0",
+            "Monitor_MonitorGlass_0"
+          ],
+          "textures": [
+            {
+              "name": "PaletteBaseColor",
+              "size": [
+                8,
+                4
+              ],
+              "bytes": 40,
+              "mime": "image/webp"
+            },
+            {
+              "name": "PaletteMetallicRoughness",
+              "size": [
+                8,
+                4
+              ],
+              "bytes": 38,
+              "mime": "image/webp"
+            }
+          ],
+          "bytes": 71316
+        },
+        "boxDeltaPercent": [
+          -0.0007894036144318051,
+          -6.261706286814217e-06,
+          0.01712949869174807
+        ],
+        "centerDeltaPercentOfLongest": [
+          1.1920928356704305e-06,
+          -1.9520394910889896e-08,
+          -0.00038470961950944397
+        ],
+        "art": [],
+        "nodeChecks": [],
+        "screenChecks": [],
+        "ownColorChecks": [],
+        "checks": {
+          "ownColors": true,
+          "screens": true,
+          "triangleLimit": 12000,
+          "triangles": true,
+          "textureCap": true,
+          "webp": true,
+          "bounds": true,
+          "art": true,
+          "nodes": true
+        },
+        "boxRatioDeltaPercent": [
+          -0.0007831419571835418,
+          0.0,
+          0.017135761471021027
+        ]
+      },
+      "validation": {
+        "id": "pc",
+        "compressed": {
+          "uri": "restoration/out/pc.glb",
+          "mimeType": "model/gltf-binary",
+          "validatorVersion": "2.0.0-dev.3.10",
+          "validatedAt": "2026-10-26T12:22:45.743Z",
+          "issues": {
+            "numErrors": 0,
+            "numWarnings": 0,
+            "numInfos": 1,
+            "numHints": 0,
+            "messages": [
+              {
+                "code": "UNSUPPORTED_EXTENSION",
+                "message": "Cannot validate an extension as it is not supported by the validator: 'EXT_meshopt_compression'.",
+                "severity": 2,
+                "pointer": "/extensionsUsed/0"
+              }
+            ],
+            "truncated": false
+          },
+          "info": {
+            "version": "2.0",
+            "generator": "glTF-Transform v4.5.1",
+            "extensionsUsed": [
+              "EXT_meshopt_compression",
+              "EXT_texture_webp",
+              "KHR_materials_clearcoat",
+              "KHR_materials_specular",
+              "KHR_mesh_quantization"
+            ],
+            "extensionsRequired": [
+              "EXT_meshopt_compression",
+              "EXT_texture_webp",
+              "KHR_mesh_quantization"
+            ],
+            "resources": [
+              {
+                "pointer": "/buffers/0",
+                "mimeType": "application/gltf-buffer",
+                "storage": "glb",
+                "byteLength": 66648
+              },
+              {
+                "pointer": "/buffers/1",
+                "mimeType": "application/gltf-buffer"
+              },
+              {
+                "pointer": "/images/0",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 8,
+                  "height": 4,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/1",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 8,
+                  "height": 4,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              }
+            ],
+            "animationCount": 0,
+            "materialCount": 2,
+            "hasMorphTargets": false,
+            "hasSkins": false,
+            "hasTextures": true,
+            "hasDefaultScene": true,
+            "drawCallCount": 2,
+            "totalVertexCount": 9980,
+            "totalTriangleCount": 9285,
+            "maxUVs": 1,
+            "maxInfluences": 0,
+            "maxAttributes": 3
+          }
+        },
+        "decoded": {
+          "uri": "restoration/work/pc-render.glb",
+          "mimeType": "model/gltf-binary",
+          "validatorVersion": "2.0.0-dev.3.10",
+          "validatedAt": "2026-10-26T12:22:45.762Z",
+          "issues": {
+            "numErrors": 0,
+            "numWarnings": 0,
+            "numInfos": 0,
+            "numHints": 0,
+            "messages": [],
+            "truncated": false
+          },
+          "info": {
+            "version": "2.0",
+            "generator": "glTF-Transform v4.5.1",
+            "extensionsUsed": [
+              "EXT_texture_webp",
+              "KHR_materials_clearcoat",
+              "KHR_materials_specular"
+            ],
+            "extensionsRequired": [
+              "EXT_texture_webp"
+            ],
+            "resources": [
+              {
+                "pointer": "/buffers/0",
+                "mimeType": "application/gltf-buffer",
+                "storage": "glb",
+                "byteLength": 375152
+              },
+              {
+                "pointer": "/images/0",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 8,
+                  "height": 4,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/1",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 8,
+                  "height": 4,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              }
+            ],
+            "animationCount": 0,
+            "materialCount": 2,
+            "hasMorphTargets": false,
+            "hasSkins": false,
+            "hasTextures": true,
+            "hasDefaultScene": true,
+            "drawCallCount": 2,
+            "totalVertexCount": 9980,
+            "totalTriangleCount": 9285,
+            "maxUVs": 1,
+            "maxInfluences": 0,
+            "maxAttributes": 3
+          }
+        }
+      },
+      "restoration": {
+        "id": "pc",
+        "original_meshes_used": [],
+        "bounds_before": {
+          "min": [
+            -400.0,
+            -447.0000915527344,
+            -640.0001220703125
+          ],
+          "max": [
+            390.0,
+            459.53179931640625,
+            300.00006103515625
+          ],
+          "size": [
+            790.0,
+            906.5318908691406,
+            940.0001831054688
+          ],
+          "center": [
+            -5.0,
+            6.2658538818359375,
+            -170.00003051757812
+          ]
+        },
+        "bounds_restored": {
+          "min": [
+            -400.0,
+            -447.0000915527344,
+            -640.0001220703125
+          ],
+          "max": [
+            390.0,
+            459.5390319824219,
+            300.00006103515625
+          ],
+          "size": [
+            790.0,
+            906.5391235351562,
+            940.0001831054688
+          ],
+          "center": [
+            -5.0,
+            6.26947021484375,
+            -170.00003051757812
+          ]
+        },
+        "notes": [
+          "Warm beige ABS and reduced hidden/coplanar bevel tessellation; glass retained."
+        ]
+      }
+    },
+    {
+      "id": "crossfader-player",
+      "sha256": "65973e5631f18d32b1f352d1fa14b57f7fe230623429e0287055fbc1904a576e",
+      "audit": {
+        "id": "crossfader-player",
+        "before": {
+          "tris": 7800,
+          "bounds": {
+            "min": [
+              -0.19500000774860382,
+              0,
+              -0.07099999487400055
+            ],
+            "max": [
+              0.21449999883770943,
+              0.29320001043379307,
+              0.07499999925494194
+            ],
+            "size": [
+              0.40950000658631325,
+              0.29320001043379307,
+              0.1459999941289425
+            ],
+            "center": [
+              0.009749995544552803,
+              0.14660000521689653,
+              0.0020000021904706955
+            ]
+          },
+          "materials": [
+            "MAT_bianco",
+            "MAT_viola",
+            "MAT_inchiostro",
+            "MAT_magenta",
+            "MAT_ciano_lato_A",
+            "MAT_limone",
+            "MAT_firma",
+            "MAT_inchiostro_etichetta",
+            "MAT_bianco_etichetta",
+            "MAT_giallo",
+            "MAT_ciano",
+            "MAT_lime",
+            "MAT_rosa"
+          ],
+          "nodes": [
+            "CassettePlayer",
+            "Device",
+            "Cassette",
+            "CassetteSpin",
+            "CassetteSide",
+            "ReelRight",
+            "ReelLeft",
+            "CassetteShell",
+            "Body",
+            "VolumeWheel",
+            "Door",
+            "ButtonEject",
+            "ButtonForward",
+            "ButtonPlay",
+            "ButtonRewind",
+            "ButtonStop"
+          ],
+          "textures": [],
+          "bytes": 323888
+        },
+        "after": {
+          "tris": 7018,
+          "bounds": {
+            "min": [
+              -0.19500000774860382,
+              1.1325146723611956e-05,
+              -0.07098959321170072
+            ],
+            "max": [
+              0.21388878673315048,
+              0.2931999588813922,
+              0.07499786358007544
+            ],
+            "size": [
+              0.4088887944817543,
+              0.29318863373466864,
+              0.14598745679177616
+            ],
+            "center": [
+              0.00944438949227333,
+              0.1466056420140579,
+              0.002004135184187364
+            ]
+          },
+          "materials": [
+            "MAT_giallo",
+            "MAT_viola",
+            "MAT_bianco",
+            "MAT_ciano",
+            "MAT_inchiostro",
+            "MAT_rosa",
+            "MAT_lime",
+            "MAT_magenta",
+            "MAT_ciano_lato_A",
+            "MAT_limone",
+            "MAT_firma",
+            "MAT_inchiostro_etichetta",
+            "MAT_bianco_etichetta"
+          ],
+          "nodes": [
+            "Body",
+            "ButtonEject",
+            "ButtonForward",
+            "ButtonPlay",
+            "ButtonRewind",
+            "ButtonStop",
+            "CassetteShell",
+            "ReelLeft",
+            "ReelRight",
+            "CassetteSide",
+            "CassetteSpin",
+            "Cassette",
+            "Door",
+            "VolumeWheel",
+            "Device",
+            "CassettePlayer",
+            "DoorSurface"
+          ],
+          "textures": [],
+          "bytes": 79372
+        },
+        "boxDeltaPercent": [
+          -0.14925814279079797,
+          -0.0038801837379254245,
+          -0.00858721758252301
+        ],
+        "centerDeltaPercentOfLongest": [
+          -0.0746290713954012,
+          0.001376507221173852,
+          0.0010092780586554839
+        ],
+        "art": [],
+        "nodeChecks": [
+          {
+            "name": "Door",
+            "present": true,
+            "maxWorldMatrixError": 0
+          },
+          {
+            "name": "Cassette",
+            "present": true,
+            "maxWorldMatrixError": 0
+          }
+        ],
+        "screenChecks": [],
+        "ownColorChecks": [
+          {
+            "name": "MAT_bianco",
+            "equal": true
+          },
+          {
+            "name": "MAT_viola",
+            "equal": true
+          },
+          {
+            "name": "MAT_inchiostro",
+            "equal": true
+          },
+          {
+            "name": "MAT_magenta",
+            "equal": true
+          },
+          {
+            "name": "MAT_ciano_lato_A",
+            "equal": true
+          },
+          {
+            "name": "MAT_limone",
+            "equal": true
+          },
+          {
+            "name": "MAT_firma",
+            "equal": true
+          },
+          {
+            "name": "MAT_inchiostro_etichetta",
+            "equal": true
+          },
+          {
+            "name": "MAT_bianco_etichetta",
+            "equal": true
+          },
+          {
+            "name": "MAT_giallo",
+            "equal": true
+          },
+          {
+            "name": "MAT_ciano",
+            "equal": true
+          },
+          {
+            "name": "MAT_lime",
+            "equal": true
+          },
+          {
+            "name": "MAT_rosa",
+            "equal": true
+          }
+        ],
+        "checks": {
+          "ownColors": true,
+          "screens": true,
+          "triangleLimit": 8000,
+          "triangles": true,
+          "textureCap": true,
+          "webp": true,
+          "bounds": true,
+          "art": true,
+          "nodes": true
+        },
+        "boxRatioDeltaPercent": [
+          0.0,
+          0.14559527185165066,
+          0.14088120187372155
+        ]
+      },
+      "validation": {
+        "id": "crossfader-player",
+        "compressed": {
+          "uri": "restoration/out/crossfader-player.glb",
+          "mimeType": "model/gltf-binary",
+          "validatorVersion": "2.0.0-dev.3.10",
+          "validatedAt": "2026-10-26T12:03:02.811Z",
+          "issues": {
+            "numErrors": 0,
+            "numWarnings": 0,
+            "numInfos": 2,
+            "numHints": 0,
+            "messages": [
+              {
+                "code": "UNSUPPORTED_EXTENSION",
+                "message": "Cannot validate an extension as it is not supported by the validator: 'EXT_meshopt_compression'.",
+                "severity": 2,
+                "pointer": "/extensionsUsed/0"
+              },
+              {
+                "code": "UNUSED_OBJECT",
+                "message": "This object may be unused.",
+                "severity": 2,
+                "pointer": "/buffers/0"
+              }
+            ],
+            "truncated": false
+          },
+          "info": {
+            "version": "2.0",
+            "generator": "glTF-Transform v4.5.1",
+            "extensionsUsed": [
+              "EXT_meshopt_compression",
+              "KHR_mesh_quantization"
+            ],
+            "extensionsRequired": [
+              "EXT_meshopt_compression",
+              "KHR_mesh_quantization"
+            ],
+            "resources": [
+              {
+                "pointer": "/buffers/0",
+                "mimeType": "application/gltf-buffer",
+                "storage": "glb",
+                "byteLength": 47016
+              },
+              {
+                "pointer": "/buffers/1",
+                "mimeType": "application/gltf-buffer"
+              }
+            ],
+            "animationCount": 0,
+            "materialCount": 13,
+            "hasMorphTargets": false,
+            "hasSkins": false,
+            "hasTextures": false,
+            "hasDefaultScene": true,
+            "drawCallCount": 33,
+            "totalVertexCount": 7043,
+            "totalTriangleCount": 7018,
+            "maxUVs": 0,
+            "maxInfluences": 0,
+            "maxAttributes": 2
+          }
+        },
+        "decoded": {
+          "uri": "restoration/work/crossfader-player-render.glb",
+          "mimeType": "model/gltf-binary",
+          "validatorVersion": "2.0.0-dev.3.10",
+          "validatedAt": "2026-10-26T12:03:02.828Z",
+          "issues": {
+            "numErrors": 0,
+            "numWarnings": 0,
+            "numInfos": 0,
+            "numHints": 0,
+            "messages": [],
+            "truncated": false
+          },
+          "info": {
+            "version": "2.0",
+            "generator": "glTF-Transform v4.5.1",
+            "resources": [
+              {
+                "pointer": "/buffers/0",
+                "mimeType": "application/gltf-buffer",
+                "storage": "glb",
+                "byteLength": 183660
+              }
+            ],
+            "animationCount": 0,
+            "materialCount": 13,
+            "hasMorphTargets": false,
+            "hasSkins": false,
+            "hasTextures": false,
+            "hasDefaultScene": true,
+            "drawCallCount": 33,
+            "totalVertexCount": 7043,
+            "totalTriangleCount": 7018,
+            "maxUVs": 0,
+            "maxInfluences": 0,
+            "maxAttributes": 2
+          }
+        }
+      },
+      "restoration": {
+        "id": "crossfader-player",
+        "original_meshes_used": [
+          "ReelRight",
+          "ReelLeft",
+          "CassetteShell",
+          "Body",
+          "VolumeWheel",
+          "Door",
+          "ButtonEject",
+          "ButtonForward",
+          "ButtonPlay",
+          "ButtonRewind",
+          "ButtonStop"
+        ],
+        "bounds_before": {
+          "min": [
+            -0.19500000774860382,
+            -0.07500000298023224,
+            0.0
+          ],
+          "max": [
+            0.21449999511241913,
+            0.07099999487400055,
+            0.2932000160217285
+          ],
+          "size": [
+            0.40950000286102295,
+            0.1459999978542328,
+            0.2932000160217285
+          ],
+          "center": [
+            0.009749993681907654,
+            -0.0020000040531158447,
+            0.14660000801086426
+          ]
+        },
+        "bounds_restored": {
+          "min": [
+            -0.19500000774860382,
+            -0.07500000298023224,
+            0.0
+          ],
+          "max": [
+            0.21388879418373108,
+            0.07099999487400055,
+            0.2932000160217285
+          ],
+          "size": [
+            0.4088888019323349,
+            0.1459999978542328,
+            0.2932000160217285
+          ],
+          "center": [
+            0.00944439321756363,
+            -0.0020000040531158447,
+            0.14660000801086426
+          ]
+        },
+        "notes": [
+          "Retained all artwork, Door and complete Cassette hierarchy for insertion and opening."
+        ]
+      }
+    },
+    {
+      "id": "gb-cart",
+      "sha256": "0fac98fc3e3afe75982c0b030f7a5d23693ebb3376163af93872f5b25f64eb78",
+      "audit": {
+        "id": "gb-cart",
+        "before": {
+          "tris": 2320,
+          "bounds": {
+            "min": [
+              0.7751576042499202,
+              -2.062149269940172,
+              -4.726698993673639
+            ],
+            "max": [
+              2.559910763509822,
+              2.4359207741963234,
+              -0.612280867444106
+            ],
+            "size": [
+              1.7847531592599017,
+              4.498070044136496,
+              4.114418126229533
+            ],
+            "center": [
+              1.6675341838798712,
+              0.1868857521280758,
+              -2.6694899305588726
+            ]
+          },
+          "materials": [
+            "Cart",
+            "Sticker",
+            "NormalMap"
+          ],
+          "nodes": [
+            "Sketchfab_model",
+            "6410e5b3f9d14c2eacbf71c808685237.fbx",
+            "RootNode",
+            "Cube",
+            "Cube_Cart_0",
+            "Cube_Sticker_0",
+            "Cube_NormalMap_0"
+          ],
+          "textures": [
+            {
+              "name": "",
+              "size": [
+                512,
+                128
+              ],
+              "bytes": 5330,
+              "mime": "image/webp"
+            },
+            {
+              "name": "Sticker-real",
+              "size": [
+                1024,
+                1024
+              ],
+              "bytes": 99680,
+              "mime": "image/webp"
+            }
+          ],
+          "bytes": 206428
+        },
+        "after": {
+          "tris": 2320,
+          "bounds": {
+            "min": [
+              0.7752384297882083,
+              -2.0621479477695916,
+              -4.7266797625803925
+            ],
+            "max": [
+              2.5598474347519353,
+              2.4358303700217223,
+              -0.6121601237755252
+            ],
+            "size": [
+              1.7846090049637269,
+              4.497978317791314,
+              4.114519638804867
+            ],
+            "center": [
+              1.6675429322700719,
+              0.18684121112606533,
+              -2.669419943177959
+            ]
+          },
+          "materials": [
+            "Cart",
+            "NormalMap",
+            "Sticker"
+          ],
+          "nodes": [
+            "Cube_Cart_0",
+            "Cube_NormalMap_0",
+            "Cube_Sticker_0"
+          ],
+          "textures": [
+            {
+              "name": "Image_0",
+              "size": [
+                512,
+                128
+              ],
+              "bytes": 7492,
+              "mime": "image/webp"
+            },
+            {
+              "name": "Galactic_News_master",
+              "size": [
+                480,
+                432
+              ],
+              "bytes": 1458,
+              "mime": "image/webp"
+            }
+          ],
+          "bytes": 32584
+        },
+        "boxDeltaPercent": [
+          -0.00807698786955413,
+          -0.002039237812700989,
+          0.002467240135040072
+        ],
+        "centerDeltaPercentOfLongest": [
+          0.00019449208471335384,
+          -0.0009902247313493546,
+          0.0015559424425821656
+        ],
+        "art": [
+          {
+            "artSource": "source/labels/galactic-news-cart.png",
+            "uvRegistration": "Photo-atlas UV rectangle normalized to 0..1; V reversed for the upright PNG master",
+            "material": "Sticker",
+            "source": [
+              1024,
+              1024
+            ],
+            "output": [
+              480,
+              432
+            ],
+            "pixelsEqual": true,
+            "sourcePixelsSHA256": "1129f0890dc1c8186c2a032feea29c6ff7a9c36c9c77096a09c98cca60d6318b",
+            "outputPixelsSHA256": "1129f0890dc1c8186c2a032feea29c6ff7a9c36c9c77096a09c98cca60d6318b"
+          }
+        ],
+        "nodeChecks": [],
+        "screenChecks": [],
+        "ownColorChecks": [],
+        "checks": {
+          "ownColors": true,
+          "screens": true,
+          "triangleLimit": 3000,
+          "triangles": true,
+          "textureCap": true,
+          "webp": true,
+          "bounds": true,
+          "art": true,
+          "nodes": true
+        },
+        "boxRatioDeltaPercent": [
+          -0.006037873183439846,
+          0.0,
+          0.004506569847428921
+        ]
+      },
+      "validation": {
+        "id": "gb-cart",
+        "compressed": {
+          "uri": "restoration/out/gb-cart.glb",
+          "mimeType": "model/gltf-binary",
+          "validatorVersion": "2.0.0-dev.3.10",
+          "validatedAt": "2026-10-26T12:34:37.262Z",
+          "issues": {
+            "numErrors": 0,
+            "numWarnings": 0,
+            "numInfos": 2,
+            "numHints": 0,
+            "messages": [
+              {
+                "code": "UNSUPPORTED_EXTENSION",
+                "message": "Cannot validate an extension as it is not supported by the validator: 'EXT_meshopt_compression'.",
+                "severity": 2,
+                "pointer": "/extensionsUsed/0"
+              },
+              {
+                "code": "IMAGE_NPOT_DIMENSIONS",
+                "message": "Image has non-power-of-two dimensions: 480x432.",
+                "severity": 2,
+                "pointer": "/images/1"
+              }
+            ],
+            "truncated": false
+          },
+          "info": {
+            "version": "2.0",
+            "generator": "glTF-Transform v4.5.1",
+            "extensionsUsed": [
+              "EXT_meshopt_compression",
+              "EXT_texture_webp",
+              "KHR_materials_specular",
+              "KHR_mesh_quantization"
+            ],
+            "extensionsRequired": [
+              "EXT_meshopt_compression",
+              "EXT_texture_webp",
+              "KHR_mesh_quantization"
+            ],
+            "resources": [
+              {
+                "pointer": "/buffers/0",
+                "mimeType": "application/gltf-buffer",
+                "storage": "glb",
+                "byteLength": 26080
+              },
+              {
+                "pointer": "/buffers/1",
+                "mimeType": "application/gltf-buffer"
+              },
+              {
+                "pointer": "/images/0",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 512,
+                  "height": 128,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/1",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 480,
+                  "height": 432,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              }
+            ],
+            "animationCount": 0,
+            "materialCount": 3,
+            "hasMorphTargets": false,
+            "hasSkins": false,
+            "hasTextures": true,
+            "hasDefaultScene": true,
+            "drawCallCount": 3,
+            "totalVertexCount": 2562,
+            "totalTriangleCount": 2320,
+            "maxUVs": 1,
+            "maxInfluences": 0,
+            "maxAttributes": 4
+          }
+        },
+        "decoded": {
+          "uri": "restoration/work/gb-cart-render.glb",
+          "mimeType": "model/gltf-binary",
+          "validatorVersion": "2.0.0-dev.3.10",
+          "validatedAt": "2026-10-26T12:34:37.273Z",
+          "issues": {
+            "numErrors": 0,
+            "numWarnings": 0,
+            "numInfos": 1,
+            "numHints": 0,
+            "messages": [
+              {
+                "code": "IMAGE_NPOT_DIMENSIONS",
+                "message": "Image has non-power-of-two dimensions: 480x432.",
+                "severity": 2,
+                "pointer": "/images/1"
+              }
+            ],
+            "truncated": false
+          },
+          "info": {
+            "version": "2.0",
+            "generator": "glTF-Transform v4.5.1",
+            "extensionsUsed": [
+              "EXT_texture_webp",
+              "KHR_materials_specular"
+            ],
+            "extensionsRequired": [
+              "EXT_texture_webp"
+            ],
+            "resources": [
+              {
+                "pointer": "/buffers/0",
+                "mimeType": "application/gltf-buffer",
+                "storage": "glb",
+                "byteLength": 85360
+              },
+              {
+                "pointer": "/images/0",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 512,
+                  "height": 128,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/1",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 480,
+                  "height": 432,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              }
+            ],
+            "animationCount": 0,
+            "materialCount": 3,
+            "hasMorphTargets": false,
+            "hasSkins": false,
+            "hasTextures": true,
+            "hasDefaultScene": true,
+            "drawCallCount": 3,
+            "totalVertexCount": 2562,
+            "totalTriangleCount": 2320,
+            "maxUVs": 1,
+            "maxInfluences": 0,
+            "maxAttributes": 4
+          }
+        }
+      },
+      "restoration": {
+        "id": "gb-cart",
+        "original_meshes_used": [
+          "Cube_Cart_0",
+          "Cube_Sticker_0",
+          "Cube_NormalMap_0"
+        ],
+        "bounds_before": {
+          "min": [
+            0.7751575708389282,
+            0.6122810244560242,
+            -2.0621497631073
+          ],
+          "max": [
+            2.559910774230957,
+            4.7266998291015625,
+            2.4359211921691895
+          ],
+          "size": [
+            1.7847532033920288,
+            4.114418804645538,
+            4.498070955276489
+          ],
+          "center": [
+            1.6675341725349426,
+            2.6694904267787933,
+            0.18688571453094482
+          ]
+        },
+        "bounds_restored": {
+          "min": [
+            0.7751575708389282,
+            0.6122810244560242,
+            -2.0621497631073
+          ],
+          "max": [
+            2.559910774230957,
+            4.7266998291015625,
+            2.4359211921691895
+          ],
+          "size": [
+            1.7847532033920288,
+            4.114418804645538,
+            4.498070955276489
+          ],
+          "center": [
+            1.6675341725349426,
+            2.6694904267787933,
+            0.18688571453094482
+          ]
+        },
+        "notes": [
+          "Neutral grey DMG cartridge plastic; retained the authored tilt and label UVs."
+        ]
+      }
+    },
+    {
+      "id": "gba-cart",
+      "sha256": "de1956ebe3f7244807fb8416cd5fe1f44deab682bd16d03c7efd3ccbe9ff6d6e",
+      "audit": {
+        "id": "gba-cart",
+        "before": {
+          "tris": 1522,
+          "bounds": {
+            "min": [
+              -0.04064028989523649,
+              -0.2640855014324188,
+              -0.4616163321873046
+            ],
+            "max": [
+              0.07147947124892529,
+              0.27645276673307606,
+              0.4616163321873046
+            ],
+            "size": [
+              0.11211976114416178,
+              0.5405382681654949,
+              0.9232326643746092
+            ],
+            "center": [
+              0.015419590676844397,
+              0.006183632650328619,
+              0
+            ]
+          },
+          "materials": [
+            "Cartrough",
+            "cARTsmooth",
+            "gblabel",
+            "Motherboard",
+            "triscrew"
+          ],
+          "nodes": [
+            "Sketchfab_model",
+            "root",
+            "GLTF_SceneRootNode",
+            "Cube_0",
+            "Object_4",
+            "Object_5",
+            "Object_6",
+            "Cube.003_1",
+            "Object_8",
+            "Sphere.001_2",
+            "Object_10"
+          ],
+          "textures": [
+            {
+              "name": "",
+              "size": [
+                1024,
+                1024
+              ],
+              "bytes": 4436,
+              "mime": "image/webp"
+            },
+            {
+              "name": "",
+              "size": [
+                1024,
+                1024
+              ],
+              "bytes": 6310,
+              "mime": "image/webp"
+            },
+            {
+              "name": "",
+              "size": [
+                1024,
+                1024
+              ],
+              "bytes": 15856,
+              "mime": "image/webp"
+            },
+            {
+              "name": "",
+              "size": [
+                1024,
+                512
+              ],
+              "bytes": 106064,
+              "mime": "image/webp"
+            },
+            {
+              "name": "",
+              "size": [
+                128,
+                128
+              ],
+              "bytes": 1968,
+              "mime": "image/webp"
+            },
+            {
+              "name": "gblabel-real",
+              "size": [
+                1024,
+                1024
+              ],
+              "bytes": 38468,
+              "mime": "image/webp"
+            }
+          ],
+          "bytes": 311916
+        },
+        "after": {
+          "tris": 1522,
+          "bounds": {
+            "min": [
+              -0.040641107076715643,
+              -0.2592626223170633,
+              -0.46165544118348234
+            ],
+            "max": [
+              0.07147946640634117,
+              0.2716298867710941,
+              0.46165544118348234
+            ],
+            "size": [
+              0.11212057348305682,
+              0.5308925090881574,
+              0.9233108823669647
+            ],
+            "center": [
+              0.015419179664812765,
+              0.006183632227015401,
+              0
+            ]
+          },
+          "materials": [
+            "Motherboard",
+            "Cartrough",
+            "cARTsmooth",
+            "gblabel",
+            "triscrew"
+          ],
+          "nodes": [
+            "Object_8",
+            "Object_4",
+            "Object_5",
+            "Object_6",
+            "Object_10"
+          ],
+          "textures": [
+            {
+              "name": "Image_3",
+              "size": [
+                256,
+                128
+              ],
+              "bytes": 12772,
+              "mime": "image/webp"
+            },
+            {
+              "name": "Image_2",
+              "size": [
+                256,
+                256
+              ],
+              "bytes": 2010,
+              "mime": "image/webp"
+            },
+            {
+              "name": "Image_0",
+              "size": [
+                256,
+                256
+              ],
+              "bytes": 260,
+              "mime": "image/webp"
+            },
+            {
+              "name": "Image_1",
+              "size": [
+                256,
+                256
+              ],
+              "bytes": 528,
+              "mime": "image/webp"
+            },
+            {
+              "name": "gblabel-real",
+              "size": [
+                384,
+                384
+              ],
+              "bytes": 54076,
+              "mime": "image/webp"
+            },
+            {
+              "name": "Image_4",
+              "size": [
+                128,
+                128
+              ],
+              "bytes": 2184,
+              "mime": "image/webp"
+            }
+          ],
+          "bytes": 103476
+        },
+        "boxDeltaPercent": [
+          0.0007245278501821772,
+          -1.7844729310421803,
+          0.00847218641344405
+        ],
+        "centerDeltaPercentOfLongest": [
+          -4.45187922277235e-05,
+          -4.5851195927837175e-08,
+          0
+        ],
+        "art": [
+          {
+            "artSource": "source/web/gba-cart.glb",
+            "material": "gblabel",
+            "source": [
+              1024,
+              1024
+            ],
+            "output": [
+              384,
+              384
+            ],
+            "pixelsEqual": true,
+            "sourcePixelsSHA256": "c5babbacbc3faacd477f84f1e65c33ca538e1bd201d14b37bc7f2b0fd7c8fa7e",
+            "outputPixelsSHA256": "c5babbacbc3faacd477f84f1e65c33ca538e1bd201d14b37bc7f2b0fd7c8fa7e"
+          }
+        ],
+        "nodeChecks": [],
+        "screenChecks": [],
+        "ownColorChecks": [],
+        "checks": {
+          "ownColors": true,
+          "screens": true,
+          "triangleLimit": 3000,
+          "triangles": true,
+          "textureCap": true,
+          "webp": true,
+          "bounds": true,
+          "art": true,
+          "nodes": true
+        },
+        "boxRatioDeltaPercent": [
+          -0.0077470022227799085,
+          -1.7927932286712522,
+          0.0
+        ]
+      },
+      "validation": {
+        "id": "gba-cart",
+        "compressed": {
+          "uri": "restoration/out/gba-cart.glb",
+          "mimeType": "model/gltf-binary",
+          "validatorVersion": "2.0.0-dev.3.10",
+          "validatedAt": "2026-10-26T12:24:32.086Z",
+          "issues": {
+            "numErrors": 0,
+            "numWarnings": 0,
+            "numInfos": 2,
+            "numHints": 0,
+            "messages": [
+              {
+                "code": "UNSUPPORTED_EXTENSION",
+                "message": "Cannot validate an extension as it is not supported by the validator: 'EXT_meshopt_compression'.",
+                "severity": 2,
+                "pointer": "/extensionsUsed/0"
+              },
+              {
+                "code": "IMAGE_NPOT_DIMENSIONS",
+                "message": "Image has non-power-of-two dimensions: 384x384.",
+                "severity": 2,
+                "pointer": "/images/4"
+              }
+            ],
+            "truncated": false
+          },
+          "info": {
+            "version": "2.0",
+            "generator": "glTF-Transform v4.5.1",
+            "extensionsUsed": [
+              "EXT_meshopt_compression",
+              "EXT_texture_webp",
+              "KHR_mesh_quantization"
+            ],
+            "extensionsRequired": [
+              "EXT_meshopt_compression",
+              "EXT_texture_webp",
+              "KHR_mesh_quantization"
+            ],
+            "resources": [
+              {
+                "pointer": "/buffers/0",
+                "mimeType": "application/gltf-buffer",
+                "storage": "glb",
+                "byteLength": 93584
+              },
+              {
+                "pointer": "/buffers/1",
+                "mimeType": "application/gltf-buffer"
+              },
+              {
+                "pointer": "/images/0",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 256,
+                  "height": 128,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/1",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 256,
+                  "height": 256,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/2",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 256,
+                  "height": 256,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/3",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 256,
+                  "height": 256,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/4",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 384,
+                  "height": 384,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/5",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 128,
+                  "height": 128,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              }
+            ],
+            "animationCount": 0,
+            "materialCount": 5,
+            "hasMorphTargets": false,
+            "hasSkins": false,
+            "hasTextures": true,
+            "hasDefaultScene": true,
+            "drawCallCount": 5,
+            "totalVertexCount": 2417,
+            "totalTriangleCount": 1522,
+            "maxUVs": 1,
+            "maxInfluences": 0,
+            "maxAttributes": 4
+          }
+        },
+        "decoded": {
+          "uri": "restoration/work/gba-cart-render.glb",
+          "mimeType": "model/gltf-binary",
+          "validatorVersion": "2.0.0-dev.3.10",
+          "validatedAt": "2026-10-26T12:24:32.098Z",
+          "issues": {
+            "numErrors": 0,
+            "numWarnings": 0,
+            "numInfos": 1,
+            "numHints": 0,
+            "messages": [
+              {
+                "code": "IMAGE_NPOT_DIMENSIONS",
+                "message": "Image has non-power-of-two dimensions: 384x384.",
+                "severity": 2,
+                "pointer": "/images/4"
+              }
+            ],
+            "truncated": false
+          },
+          "info": {
+            "version": "2.0",
+            "generator": "glTF-Transform v4.5.1",
+            "extensionsUsed": [
+              "EXT_texture_webp"
+            ],
+            "extensionsRequired": [
+              "EXT_texture_webp"
+            ],
+            "resources": [
+              {
+                "pointer": "/buffers/0",
+                "mimeType": "application/gltf-buffer",
+                "storage": "glb",
+                "byteLength": 169712
+              },
+              {
+                "pointer": "/images/0",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 256,
+                  "height": 128,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/1",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 256,
+                  "height": 256,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/2",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 256,
+                  "height": 256,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/3",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 256,
+                  "height": 256,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/4",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 384,
+                  "height": 384,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/5",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 128,
+                  "height": 128,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              }
+            ],
+            "animationCount": 0,
+            "materialCount": 5,
+            "hasMorphTargets": false,
+            "hasSkins": false,
+            "hasTextures": true,
+            "hasDefaultScene": true,
+            "drawCallCount": 5,
+            "totalVertexCount": 2417,
+            "totalTriangleCount": 1522,
+            "maxUVs": 1,
+            "maxInfluences": 0,
+            "maxAttributes": 4
+          }
+        }
+      },
+      "restoration": {
+        "id": "gba-cart",
+        "original_meshes_used": [
+          "Object_4",
+          "Object_5",
+          "Object_6",
+          "Object_8",
+          "Object_10"
+        ],
+        "bounds_before": {
+          "min": [
+            -0.04064029082655907,
+            -0.4616164267063141,
+            -0.2640855610370636
+          ],
+          "max": [
+            0.07147946953773499,
+            0.4616164267063141,
+            0.27645283937454224
+          ],
+          "size": [
+            0.11211976036429405,
+            0.9232328534126282,
+            0.5405384004116058
+          ],
+          "center": [
+            0.01541958935558796,
+            0.0,
+            0.006183639168739319
+          ]
+        },
+        "bounds_restored": {
+          "min": [
+            -0.04064029082655907,
+            -0.4616164267063141,
+            -0.2592458128929138
+          ],
+          "max": [
+            0.07147946953773499,
+            0.4616164267063141,
+            0.27161309123039246
+          ],
+          "size": [
+            0.11211976036429405,
+            0.9232328534126282,
+            0.5308589041233063
+          ],
+          "center": [
+            0.01541958935558796,
+            0.0,
+            0.006183639168739319
+          ]
+        },
+        "notes": [
+          "Corrected height to the Nintendo 60 x 34.5 mm envelope within 2%; dielectric ABS; retained ribs, contacts, screw and Minamoto label."
+        ]
+      }
+    },
+    {
+      "id": "ds-cart",
+      "sha256": "edd25e1c296e4389dbcac758d04521376d2891db36f72044db0e32dfa472037a",
+      "audit": {
+        "id": "ds-cart",
+        "before": {
+          "tris": 1026,
+          "bounds": {
+            "min": [
+              -0.03452199459279317,
+              0.0993972036385894,
+              -0.03558327568857184
+            ],
+            "max": [
+              0.03502456717811242,
+              0.10466761208160977,
+              0.03426514706593056
+            ],
+            "size": [
+              0.0695465617709056,
+              0.005270408443020375,
+              0.0698484227545024
+            ],
+            "center": [
+              0.00025128629265962557,
+              0.10203240786009958,
+              -0.0006590643113206403
+            ]
+          },
+          "materials": [
+            "Material",
+            "Material.005",
+            "presetNdsiCartridgeFront4"
+          ],
+          "nodes": [
+            "Sketchfab_model",
+            "root",
+            "GLTF_SceneRootNode",
+            "nintendo Ds model_0",
+            "Object_4",
+            "Object_5",
+            "Object_6",
+            "Object_7",
+            "substituir foto_1",
+            "Object_9"
+          ],
+          "textures": [
+            {
+              "name": "",
+              "size": [
+                512,
+                512
+              ],
+              "bytes": 4296,
+              "mime": "image/webp"
+            },
+            {
+              "name": "",
+              "size": [
+                512,
+                512
+              ],
+              "bytes": 35948,
+              "mime": "image/webp"
+            },
+            {
+              "name": "presetNdsiCartridgeFront4-real",
+              "size": [
+                512,
+                512
+              ],
+              "bytes": 16906,
+              "mime": "image/webp"
+            }
+          ],
+          "bytes": 109196
+        },
+        "after": {
+          "tris": 1026,
+          "bounds": {
+            "min": [
+              -0.03452370610841899,
+              0.09939692164322951,
+              -0.03558327493712694
+            ],
+            "max": [
+              0.03502627870579495,
+              0.10466790187708651,
+              0.03426514629427908
+            ],
+            "size": [
+              0.06954998481421394,
+              0.005270980233856998,
+              0.06984842123140601
+            ],
+            "center": [
+              0.00025128629868798047,
+              0.10203241176015801,
+              -0.00065906432142393
+            ]
+          },
+          "materials": [
+            "Material",
+            "Material.005",
+            "presetNdsiCartridgeFront4",
+            "Gold_contacts"
+          ],
+          "nodes": [
+            "Object_4",
+            "Object_5",
+            "Object_6",
+            "Object_9"
+          ],
+          "textures": [
+            {
+              "name": "Image_0",
+              "size": [
+                256,
+                256
+              ],
+              "bytes": 2124,
+              "mime": "image/webp"
+            },
+            {
+              "name": "Image_1",
+              "size": [
+                256,
+                256
+              ],
+              "bytes": 11292,
+              "mime": "image/webp"
+            },
+            {
+              "name": "presetNdsiCartridgeFront4-real",
+              "size": [
+                384,
+                384
+              ],
+              "bytes": 43320,
+              "mime": "image/webp"
+            }
+          ],
+          "bytes": 86108
+        },
+        "boxDeltaPercent": [
+          0.004921944696012481,
+          0.010849080157737667,
+          -2.180573765997451e-06
+        ],
+        "centerDeltaPercentOfLongest": [
+          8.63062423011288e-09,
+          5.583602714541757e-06,
+          -1.4464592519319367e-08
+        ],
+        "art": [
+          {
+            "artSource": "source/web/ds-cart.glb",
+            "material": "presetNdsiCartridgeFront4",
+            "source": [
+              512,
+              512
+            ],
+            "output": [
+              384,
+              384
+            ],
+            "pixelsEqual": true,
+            "sourcePixelsSHA256": "a61e4289fba0bbb5efc64b0c16ce5ca17339f49ce68eaab8ca0375bb81722168",
+            "outputPixelsSHA256": "a61e4289fba0bbb5efc64b0c16ce5ca17339f49ce68eaab8ca0375bb81722168"
+          }
+        ],
+        "nodeChecks": [],
+        "screenChecks": [],
+        "ownColorChecks": [],
+        "checks": {
+          "ownColors": true,
+          "screens": true,
+          "triangleLimit": 3000,
+          "triangles": true,
+          "textureCap": true,
+          "webp": true,
+          "bounds": true,
+          "art": true,
+          "nodes": true
+        },
+        "boxRatioDeltaPercent": [
+          0.00492412537715925,
+          0.0108512609681366,
+          0.0
+        ]
+      },
+      "validation": {
+        "id": "ds-cart",
+        "compressed": {
+          "uri": "restoration/out/ds-cart.glb",
+          "mimeType": "model/gltf-binary",
+          "validatorVersion": "2.0.0-dev.3.10",
+          "validatedAt": "2026-10-26T12:24:47.457Z",
+          "issues": {
+            "numErrors": 0,
+            "numWarnings": 0,
+            "numInfos": 2,
+            "numHints": 0,
+            "messages": [
+              {
+                "code": "UNSUPPORTED_EXTENSION",
+                "message": "Cannot validate an extension as it is not supported by the validator: 'EXT_meshopt_compression'.",
+                "severity": 2,
+                "pointer": "/extensionsUsed/0"
+              },
+              {
+                "code": "IMAGE_NPOT_DIMENSIONS",
+                "message": "Image has non-power-of-two dimensions: 384x384.",
+                "severity": 2,
+                "pointer": "/images/2"
+              }
+            ],
+            "truncated": false
+          },
+          "info": {
+            "version": "2.0",
+            "generator": "glTF-Transform v4.5.1",
+            "extensionsUsed": [
+              "EXT_meshopt_compression",
+              "EXT_texture_webp",
+              "KHR_mesh_quantization"
+            ],
+            "extensionsRequired": [
+              "EXT_meshopt_compression",
+              "EXT_texture_webp",
+              "KHR_mesh_quantization"
+            ],
+            "resources": [
+              {
+                "pointer": "/buffers/0",
+                "mimeType": "application/gltf-buffer",
+                "storage": "glb",
+                "byteLength": 78772
+              },
+              {
+                "pointer": "/buffers/1",
+                "mimeType": "application/gltf-buffer"
+              },
+              {
+                "pointer": "/images/0",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 256,
+                  "height": 256,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/1",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 256,
+                  "height": 256,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/2",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 384,
+                  "height": 384,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              }
+            ],
+            "animationCount": 0,
+            "materialCount": 4,
+            "hasMorphTargets": false,
+            "hasSkins": false,
+            "hasTextures": true,
+            "hasDefaultScene": true,
+            "drawCallCount": 4,
+            "totalVertexCount": 2113,
+            "totalTriangleCount": 1026,
+            "maxUVs": 1,
+            "maxInfluences": 0,
+            "maxAttributes": 3
+          }
+        },
+        "decoded": {
+          "uri": "restoration/work/ds-cart-render.glb",
+          "mimeType": "model/gltf-binary",
+          "validatorVersion": "2.0.0-dev.3.10",
+          "validatedAt": "2026-10-26T12:24:47.467Z",
+          "issues": {
+            "numErrors": 0,
+            "numWarnings": 0,
+            "numInfos": 1,
+            "numHints": 0,
+            "messages": [
+              {
+                "code": "IMAGE_NPOT_DIMENSIONS",
+                "message": "Image has non-power-of-two dimensions: 384x384.",
+                "severity": 2,
+                "pointer": "/images/2"
+              }
+            ],
+            "truncated": false
+          },
+          "info": {
+            "version": "2.0",
+            "generator": "glTF-Transform v4.5.1",
+            "extensionsUsed": [
+              "EXT_texture_webp"
+            ],
+            "extensionsRequired": [
+              "EXT_texture_webp"
+            ],
+            "resources": [
+              {
+                "pointer": "/buffers/0",
+                "mimeType": "application/gltf-buffer",
+                "storage": "glb",
+                "byteLength": 129752
+              },
+              {
+                "pointer": "/images/0",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 256,
+                  "height": 256,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/1",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 256,
+                  "height": 256,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              },
+              {
+                "pointer": "/images/2",
+                "mimeType": "image/webp",
+                "storage": "buffer-view",
+                "image": {
+                  "width": 384,
+                  "height": 384,
+                  "format": "rgb",
+                  "primaries": "srgb",
+                  "transfer": "srgb",
+                  "bits": 8
+                }
+              }
+            ],
+            "animationCount": 0,
+            "materialCount": 4,
+            "hasMorphTargets": false,
+            "hasSkins": false,
+            "hasTextures": true,
+            "hasDefaultScene": true,
+            "drawCallCount": 4,
+            "totalVertexCount": 2113,
+            "totalTriangleCount": 1026,
+            "maxUVs": 1,
+            "maxInfluences": 0,
+            "maxAttributes": 3
+          }
+        }
+      },
+      "restoration": {
+        "id": "ds-cart",
+        "original_meshes_used": [
+          "Object_4",
+          "Object_5",
+          "Object_6",
+          "Object_7",
+          "Object_9"
+        ],
+        "bounds_before": {
+          "min": [
+            -0.03452199324965477,
+            -0.03426515311002731,
+            0.0993972197175026
+          ],
+          "max": [
+            0.03502456471323967,
+            0.03558328375220299,
+            0.10466764122247696
+          ],
+          "size": [
+            0.06954655796289444,
+            0.0698484368622303,
+            0.005270421504974365
+          ],
+          "center": [
+            0.00025128573179244995,
+            0.0006590653210878372,
+            0.10203243046998978
+          ]
+        },
+        "bounds_restored": {
+          "min": [
+            -0.03452199324965477,
+            -0.03426515311002731,
+            0.0993972197175026
+          ],
+          "max": [
+            0.03502456471323967,
+            0.03558328375220299,
+            0.10466764122247696
+          ],
+          "size": [
+            0.06954655796289444,
+            0.0698484368622303,
+            0.005270421504974365
+          ],
+          "center": [
+            0.00025128573179244995,
+            0.0006590653210878372,
+            0.10203243046998978
+          ]
+        },
+        "notes": [
+          "Replaced baked unlit shading with matte ABS and metallic gold contacts; retained notch and Legends Arise label."
+        ]
+      }
+    },
+    {
+      "id": "crossfader-cassette",
+      "sha256": "937540f6e6595e2bdc65996c6d04d34352b30789d59d4ab1e03c03c4f8595713",
+      "audit": {
+        "id": "crossfader-cassette",
+        "before": {
+          "tris": 532,
+          "bounds": {
+            "min": [
+              -0.302500013113022,
+              -0.17600000119149684,
+              -0.04162400641357911
+            ],
+            "max": [
+              0.302500013113022,
+              0.1267200022035837,
+              0.04162399821794027
+            ],
+            "size": [
+              0.605000026226044,
+              0.30272000339508054,
+              0.08324800463151938
+            ],
+            "center": [
+              0,
+              -0.024639999493956566,
+              -4.0978194171259474e-09
+            ]
+          },
+          "materials": [
+            "Ink",
+            "White",
+            "Violet",
+            "Shell3",
+            "Label",
+            "Lemon",
+            "Signature",
+            "Indigo"
+          ],
+          "nodes": [
+            "Model",
+            "CassetteMemory",
+            "LabelA",
+            "LabelB",
+            "ReelLeft",
+            "ReelRight",
+            "Shell"
+          ],
+          "textures": [],
+          "bytes": 41212
+        },
+        "after": {
+          "tris": 532,
+          "bounds": {
+            "min": [
+              -0.302500013113022,
+              -0.175993653779861,
+              -0.041625969311975264
+            ],
+            "max": [
+              0.302500013113022,
+              0.12671365479194788,
+              0.04162596111633643
+            ],
+            "size": [
+              0.605000026226044,
+              0.3027073085718089,
+              0.0832519304283117
+            ],
+            "center": [
+              0,
+              -0.024639999493956566,
+              -4.0978194171259474e-09
+            ]
+          },
+          "materials": [
+            "Ink",
+            "White",
+            "Violet",
+            "Label",
+            "Lemon",
+            "Signature",
+            "Indigo"
+          ],
+          "nodes": [
+            "LabelA",
+            "LabelB",
+            "ReelLeft",
+            "ReelRight",
+            "Shell",
+            "CassetteMemory",
+            "Model",
+            "LabelBSurface"
+          ],
+          "textures": [],
+          "bytes": 17868
+        },
+        "boxDeltaPercent": [
+          0,
+          -0.004193585864586957,
+          0.004715784852371563
+        ],
+        "centerDeltaPercentOfLongest": [
+          0,
+          0,
+          0
+        ],
+        "art": [],
+        "nodeChecks": [
+          {
+            "name": "LabelB",
+            "present": true,
+            "maxWorldMatrixError": 0
+          }
+        ],
+        "screenChecks": [],
+        "ownColorChecks": [
+          {
+            "name": "Ink",
+            "equal": true
+          },
+          {
+            "name": "White",
+            "equal": true
+          },
+          {
+            "name": "Violet",
+            "equal": true
+          },
+          {
+            "name": "Shell3",
+            "equal": true
+          },
+          {
+            "name": "Label",
+            "equal": true
+          },
+          {
+            "name": "Lemon",
+            "equal": true
+          },
+          {
+            "name": "Signature",
+            "equal": true
+          },
+          {
+            "name": "Indigo",
+            "equal": true
+          }
+        ],
+        "checks": {
+          "ownColors": true,
+          "screens": true,
+          "triangleLimit": 3000,
+          "triangles": true,
+          "textureCap": true,
+          "webp": true,
+          "bounds": true,
+          "art": true,
+          "nodes": true
+        },
+        "boxRatioDeltaPercent": [
+          0.0,
+          -0.004193585864575855,
+          0.004715784852371563
+        ]
+      },
+      "validation": {
+        "id": "crossfader-cassette",
+        "compressed": {
+          "uri": "restoration/out/crossfader-cassette.glb",
+          "mimeType": "model/gltf-binary",
+          "validatorVersion": "2.0.0-dev.3.10",
+          "validatedAt": "2026-10-26T12:16:28.902Z",
+          "issues": {
+            "numErrors": 0,
+            "numWarnings": 0,
+            "numInfos": 2,
+            "numHints": 0,
+            "messages": [
+              {
+                "code": "UNSUPPORTED_EXTENSION",
+                "message": "Cannot validate an extension as it is not supported by the validator: 'EXT_meshopt_compression'.",
+                "severity": 2,
+                "pointer": "/extensionsUsed/0"
+              },
+              {
+                "code": "UNUSED_OBJECT",
+                "message": "This object may be unused.",
+                "severity": 2,
+                "pointer": "/buffers/0"
+              }
+            ],
+            "truncated": false
+          },
+          "info": {
+            "version": "2.0",
+            "generator": "glTF-Transform v4.5.1",
+            "extensionsUsed": [
+              "EXT_meshopt_compression",
+              "KHR_mesh_quantization"
+            ],
+            "extensionsRequired": [
+              "EXT_meshopt_compression",
+              "KHR_mesh_quantization"
+            ],
+            "resources": [
+              {
+                "pointer": "/buffers/0",
+                "mimeType": "application/gltf-buffer",
+                "storage": "glb",
+                "byteLength": 4032
+              },
+              {
+                "pointer": "/buffers/1",
+                "mimeType": "application/gltf-buffer"
+              }
+            ],
+            "animationCount": 0,
+            "materialCount": 7,
+            "hasMorphTargets": false,
+            "hasSkins": false,
+            "hasTextures": false,
+            "hasDefaultScene": true,
+            "drawCallCount": 14,
+            "totalVertexCount": 543,
+            "totalTriangleCount": 532,
+            "maxUVs": 0,
+            "maxInfluences": 0,
+            "maxAttributes": 2
+          }
+        },
+        "decoded": {
+          "uri": "restoration/work/crossfader-cassette-render.glb",
+          "mimeType": "model/gltf-binary",
+          "validatorVersion": "2.0.0-dev.3.10",
+          "validatedAt": "2026-10-26T12:16:28.910Z",
+          "issues": {
+            "numErrors": 0,
+            "numWarnings": 0,
+            "numInfos": 0,
+            "numHints": 0,
+            "messages": [],
+            "truncated": false
+          },
+          "info": {
+            "version": "2.0",
+            "generator": "glTF-Transform v4.5.1",
+            "resources": [
+              {
+                "pointer": "/buffers/0",
+                "mimeType": "application/gltf-buffer",
+                "storage": "glb",
+                "byteLength": 14472
+              }
+            ],
+            "animationCount": 0,
+            "materialCount": 7,
+            "hasMorphTargets": false,
+            "hasSkins": false,
+            "hasTextures": false,
+            "hasDefaultScene": true,
+            "drawCallCount": 14,
+            "totalVertexCount": 543,
+            "totalTriangleCount": 532,
+            "maxUVs": 0,
+            "maxInfluences": 0,
+            "maxAttributes": 2
+          }
+        }
+      },
+      "restoration": {
+        "id": "crossfader-cassette",
+        "original_meshes_used": [
+          "LabelA",
+          "LabelB",
+          "ReelLeft",
+          "ReelRight",
+          "Shell"
+        ],
+        "bounds_before": {
+          "min": [
+            -0.30250000953674316,
+            -0.04162399843335152,
+            -0.17599999904632568
+          ],
+          "max": [
+            0.30250000953674316,
+            0.041624005883932114,
+            0.12672001123428345
+          ],
+          "size": [
+            0.6050000190734863,
+            0.08324800431728363,
+            0.30272001028060913
+          ],
+          "center": [
+            0.0,
+            3.725290298461914e-09,
+            -0.024639993906021118
+          ]
+        },
+        "bounds_restored": {
+          "min": [
+            -0.30250000953674316,
+            -0.04162399843335152,
+            -0.17599999904632568
+          ],
+          "max": [
+            0.30250000953674316,
+            0.041624005883932114,
+            0.12672001123428345
+          ],
+          "size": [
+            0.6050000190734863,
+            0.08324800431728363,
+            0.30272001028060913
+          ],
+          "center": [
+            0.0,
+            3.725290298461914e-09,
+            -0.024639993906021118
+          ]
+        },
+        "notes": [
+          "Preserved Omar's original palette, geometric art, reels and LabelB nodes."
+        ]
+      }
+    }
+  ],
+  "renders": [
+    {
+      "file": "renders/gb-console_before.png",
+      "width": 1200,
+      "height": 900,
+      "sha256": "eb6c273ff11690825470aa31ba0ce357ec1d70d261bddf4d476dd52678c586c2"
+    },
+    {
+      "file": "renders/gb-console_after.png",
+      "width": 1200,
+      "height": 900,
+      "sha256": "74cc725698845e099f798205bb0993f7dd6b1c3ee2994e32eda7162b03ae6d0e"
+    },
+    {
+      "file": "renders/gb-console_after_back.png",
+      "width": 1200,
+      "height": 900,
+      "sha256": "038eade102cbb35f4813e1dc4f1ca2fd1b199eca61693fa188a662f00cbf4c57"
+    },
+    {
+      "file": "renders/gba-console_before.png",
+      "width": 1200,
+      "height": 900,
+      "sha256": "694f3886f4f3c78df933134bcf71b66c5fdc978ad9d5db16d3e04fad93a48f76"
+    },
+    {
+      "file": "renders/gba-console_after.png",
+      "width": 1200,
+      "height": 900,
+      "sha256": "c77ac892e7673f9d186e2b873d62e7dd679a52d8fdf4fc255a21ada4ad65c14c"
+    },
+    {
+      "file": "renders/gba-console_after_back.png",
+      "width": 1200,
+      "height": 900,
+      "sha256": "52faf382401bf89196c2ad543c6e6ff75f129bb33831a63af75a500ee12a7a89"
+    },
+    {
+      "file": "renders/ds-console_before.png",
+      "width": 1200,
+      "height": 900,
+      "sha256": "4d11362faba3fa277655566ae0ab4856845383c583c5b59c81fea0ca45e63202"
+    },
+    {
+      "file": "renders/ds-console_after.png",
+      "width": 1200,
+      "height": 900,
+      "sha256": "d5d3adaab67bb1c9c05dc1bc168029222ec2604fff373f9e2c596194d92382bd"
+    },
+    {
+      "file": "renders/ds-console_after_back.png",
+      "width": 1200,
+      "height": 900,
+      "sha256": "eb25dd2c946e5192d208a9e174de7d9db91890536bda413265ea737515f2a5aa"
+    },
+    {
+      "file": "renders/pc_before.png",
+      "width": 1200,
+      "height": 900,
+      "sha256": "ae09a45770c6c53964dd7a40f7e96afb64ce4575a6a22160ac89e72e0cb3789c"
+    },
+    {
+      "file": "renders/pc_after.png",
+      "width": 1200,
+      "height": 900,
+      "sha256": "b7b229e5b648bc5d5388735f5685ef5decb2d9773dc9df26c498319f67063cbc"
+    },
+    {
+      "file": "renders/crossfader-player_before.png",
+      "width": 1200,
+      "height": 900,
+      "sha256": "031c6645b4393728b01575289ee687842391b744591fd83033623e25526e9e9e"
+    },
+    {
+      "file": "renders/crossfader-player_after.png",
+      "width": 1200,
+      "height": 900,
+      "sha256": "f49bf7022d4f2dca4d561b530ba2cf384b3b16b9fe92d39ffb105b11de6d4e84"
+    },
+    {
+      "file": "renders/gb-cart_before.png",
+      "width": 1200,
+      "height": 900,
+      "sha256": "cb20d702f4a32c3c23a207c9bb2381e9136023e9d12642e6ae9e5e8b8e92d487"
+    },
+    {
+      "file": "renders/gb-cart_after.png",
+      "width": 1200,
+      "height": 900,
+      "sha256": "96b5aa8f108982949823455dd60cc2227b9111d18e84ee855b5eaba29dff2ef9"
+    },
+    {
+      "file": "renders/gba-cart_before.png",
+      "width": 1200,
+      "height": 900,
+      "sha256": "7541da923407ae631c33b05973ad299c490d5b7a5763378462272b9d48d0f20e"
+    },
+    {
+      "file": "renders/gba-cart_after.png",
+      "width": 1200,
+      "height": 900,
+      "sha256": "3aed2ddc34a2447d127ecccf06bac7e1e1646b1fb7155ed065455e0d3273eebc"
+    },
+    {
+      "file": "renders/ds-cart_before.png",
+      "width": 1200,
+      "height": 900,
+      "sha256": "98bbc55922501e64d135d7c4d3bbd20768816021a1a85cc34ffdec670ab89771"
+    },
+    {
+      "file": "renders/ds-cart_after.png",
+      "width": 1200,
+      "height": 900,
+      "sha256": "1455522e0a3a5fc570f72a1e9056e4596aecb4d2f80bdb41c28b486e1af1deee"
+    },
+    {
+      "file": "renders/crossfader-cassette_before.png",
+      "width": 1200,
+      "height": 900,
+      "sha256": "8dce5cde0db2867c5ef6ba69c8075c229ade3c3205716efe6d3351a60280e2a7"
+    },
+    {
+      "file": "renders/crossfader-cassette_after.png",
+      "width": 1200,
+      "height": 900,
+      "sha256": "803c120df4dacf483241e332f9ef503c0329770b5f06b3d8f4eb161e0200c5d4"
+    },
+    {
+      "file": "renders/crossfader-cassette_after_side_b.png",
+      "width": 1200,
+      "height": 900,
+      "sha256": "242a3277f0dbd6f1a09da97206e2077532ebb8a6bc529950d63768d823e79b05"
+    }
+  ],
+  "sourceSHA256": {
+    "source/LICENSES.md": "8c20b63035c7d8a2c107df358c6b91243a608961ee29f0210632a3d3682026ef",
+    "source/labels/galactic-news-cart.png": "f20be4ced6be80a0d4dfe7ef9ea4f72fc321dfc791c8174232aa4997c8d8288c",
+    "source/labels/galactic-news-screen.png": "c45f67f21215dfb83dd7f0c2e9a32043e653921098555885a6232442102fbd29",
+    "source/labels/legends-arise-ds.jpg": "572b5d1b3354408110d49e8fc58d00e871c8ad8625bb9bd6d0fc863441905e7b",
+    "source/labels/minamoto-gba-label.jpg": "128d50311e6a535b96cb5788dbad649883aa51ee9af209ffbe15f0f63cb3a50c",
+    "source/labels/minamoto-gba-screen.png": "b5bc799e94d17ce98c011ced36d0e5d20ce01a46752cb3da930e8e9e75f6bd73",
+    "source/original/cassette_memory.glb": "7295d678734acce62fd0d93e0be68043924eef5ad05e19696a52786272c4607a",
+    "source/original/cassette_player.glb": "e4dbab4dc79dccfccc5fc4738df0626d96614b3f67f78f4a9c7d56f497dd9b70",
+    "source/original/ds-cart.glb": "bb36e0188f72554c64269463d391c6fa0a04c5302d951c540aa131e8c69b3ba7",
+    "source/original/ds-console.glb": "d9258015706d04db3db4c5fd1935aea632115c24a7ab5b972ab5be2faf06b498",
+    "source/original/gb-cart.glb": "89b83bf8a4c32f339d1663f2ab837ebb48e362e920a0c56f16ff6e16de95c88c",
+    "source/original/gb-console.glb": "1f57933b571c70cf52a9a3b5738a30cf3b4687d234e7ab62aabc19c844beec61",
+    "source/original/gba-cart.glb": "eac76347cf3cc8c8fac1343a48ba3196233fdae7c5883502fba255e9d79d043b",
+    "source/original/gba-console.glb": "44fc456814d979b44b13c5947ae4291046bd8a70f2006c7993c43147f837164c",
+    "source/web/crossfader-cassette.glb": "7295d678734acce62fd0d93e0be68043924eef5ad05e19696a52786272c4607a",
+    "source/web/crossfader-player.glb": "e4dbab4dc79dccfccc5fc4738df0626d96614b3f67f78f4a9c7d56f497dd9b70",
+    "source/web/ds-cart.glb": "3d7b1b6d7c0de21ef1344f86e31536aff012169875d8b1e1d4b0c1b1f5dcf6f8",
+    "source/web/ds-console.glb": "83adbc17077197d2b045e91e61860b04b0c8023e90667e177bcdd53a14e73e8a",
+    "source/web/gb-cart.glb": "4617bbf1d9937e3e28293389e2c22ea86247fca783a046e9c799e697f7edde12",
+    "source/web/gb-console.glb": "adb538f3e34420fd95bae90fa42a273041538c4623440d5b9f7eb413e0b63250",
+    "source/web/gba-cart.glb": "b4b451a9b68af72a28d29f67fcc0818a6ddd4f1827e77b29ec9dc88a59b7f8c6",
+    "source/web/gba-console.glb": "a6ec237eab5775ae2edcb7c2abc120525b8cc45189c34f390534524698f8640e",
+    "source/web/pc.glb": "8c65cbc53763acb5701f48059707842c0ad6ce4afa7efd1fb3afc0f4dc8e11e5"
+  }
+}

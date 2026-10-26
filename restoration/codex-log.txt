@@ -1,0 +1,5 @@
+Completed all nine models, 22 renders, reproducible scripts, and licenses.
+
+Total: **888.5 KB, 57,839 triangles**. All budget, bounding-box, and validation checks pass. Deferred proportion fixes are documented in the [report](restoration/REPORT.md).
+
+[View the models](restoration/renders/overview.png). `public/` is unchanged; nothing committed or pushed.

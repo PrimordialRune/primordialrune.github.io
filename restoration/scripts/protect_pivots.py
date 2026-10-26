@@ -1,0 +1,3 @@
+﻿from pathlib import Path
+p=Path('restoration/scripts/finish.mjs');s=p.read_text(encoding='utf-8-sig').replace("await doc.transform(meshopt({encoder", "// Quantization may change mesh-node transforms. Keep runtime pivots on stable parent nodes.\nif(id==='crossfader-player'||id==='crossfader-cassette')for(const n of doc.getRoot().listNodes()){\n if(n.getMesh()&&(n.getName()==='Door'||n.getName()==='Cassette'||n.getName().startsWith('LabelB'))){\n  const surface=doc.createNode(n.getName()+'Surface').setMesh(n.getMesh());n.setMesh(null).addChild(surface);\n }\n}\nawait doc.transform(meshopt({encoder")
+p.write_text(s,encoding='utf-8')

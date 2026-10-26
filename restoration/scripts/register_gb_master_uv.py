@@ -1,0 +1,7 @@
+﻿from pathlib import Path
+p=Path('restoration/scripts/finish.mjs');s=p.read_text(encoding='utf-8-sig')
+s=s.replace(" if(label)label.setImage", " // The web label occupies a vertically reversed rectangle inside a cartridge photo.\n // Register the clean master to the full label surface, without rotating any geometry.\n const mat=doc.getRoot().listMaterials().find(m=>m.getName()==='Sticker');\n for(const mesh of doc.getRoot().listMeshes())for(const p of mesh.listPrimitives())if(p.getMaterial()===mat){\n  const old=p.getAttribute('TEXCOORD_0'),lo=old.getMin([]),hi=old.getMax([]),uv=new Float32Array(old.getCount()*2);\n  for(let i=0;i<old.getCount();i++){const pair=old.getElement(i,[]);uv[2*i]=(pair[0]-lo[0])/(hi[0]-lo[0]);uv[2*i+1]=1-(pair[1]-lo[1])/(hi[1]-lo[1]);}\n  p.setAttribute('TEXCOORD_0',doc.createAccessor('Clean_label_UV').setType('VEC2').setArray(uv).setBuffer(doc.getRoot().listBuffers()[0]));\n }\n if(label)label.setImage")
+s=s.replace("art.push({artSource,material:", "art.push({artSource,uvRegistration:id==='gb-cart'?'Photo-atlas UV rectangle normalized to 0..1; V reversed for the upright PNG master':'Source UV registration preserved',material:")
+p.write_text(s,encoding='utf-8')
+p=Path('restoration/scripts/report.py');s=p.read_text(encoding='utf-8-sig').replace('Retained the source shell, embossed logo, label UVs and authored tilt.', 'Retained the source shell, embossed logo and authored tilt. Remapped the label from its vertically reversed photo-atlas rectangle onto the full upright PNG master.')
+p.write_text(s,encoding='utf-8')
