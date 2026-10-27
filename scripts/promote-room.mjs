@@ -8,9 +8,8 @@ import { fileURLToPath } from 'node:url';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const room = readFileSync(join(root, 'public/new/index.html'), 'utf8');
 
+// the description and the canonical link are in the room's own head, so /new/ carries them too
 const head = `<base href="/new/">
-<meta name="description" content="Omar Golinelli (PrimordialRune), game designer and developer. Step into omar's room, seen through an old Trinitron, and find the games on the desk.">
-<link rel="canonical" href="https://www.primordialrune.com/">
 <link rel="icon" href="/favicon.ico">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Omar’s Room">

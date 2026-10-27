@@ -118,7 +118,7 @@ const LINES = {
     'ds-cart': '* legends arise. sinnoh, near veilstone.',
     'crossfader-cassette': '* side a. always side a first.',
     'holon-disc': '* holon. the logo took longer than some games.',
-    'spacerim-disc': '* spacerim. forty-eight hours. it shows, in a good way.',
+    'spacerim-disc': '* spacerim. i drew the bosses, and wrote what they cast.',
     'ptcg-cube-rulebook': '* the rulebook. i wrote every page. in italian.',
     'cd-jewel': '* that one’s old.',
   },
@@ -157,15 +157,16 @@ const STORY_LINES = {
   gbaAsleep: '* it’s asleep. give it something old. it remembers old things.',
   gbaRefuses: '* not that one yet. something older first.',
   gbaWakes: '* old game, new hardware. that’s minamoto.',
-  minamoto: '* minamoto. gen 1, read again.',
+  minamoto: '* gen 1 again. rereading it with my hands.',
   rulebook: '* a rulebook, on the table. i wrote it. it deals what comes next.',
   draft: ['* a cube is drafted. open the pack, keep one, pass the rest.', '* you pick first.'],
   draftNext: '* your turn again. the rulebook has another pick.',
+  draftAgain: '* another pack. keep one, pass the rest.',
   draftWait: '* play your pick first. then we draft again.',
   picked: {
     'crossfader-cassette': '* the cassette. two sides, and both of them matter.',
     'holon-disc': '* holon. heavy case. it’s mostly numbers.',
-    'ds-cart': '* the little card. two screens, two stories.',
+    'ds-cart': '* the little card. the smallest thing in the room.',
   },
   find: {
     'crossfader-player': ['* that needs its tape deck.', '* it was behind the monitor. here.'],
@@ -175,13 +176,15 @@ const STORY_LINES = {
   drawerOpens: ['* side b. that’s the drawer’s tune.', '* it’s open now. the old stuff is in there.'],
   complete: ['* that’s all eight.', '* the envelope’s still on the desk. if you want to write back.', '* ...you can stay, you know. i’ll keep the room as it is.'],
   torch: ['* hm. the lamp’s going.', '* here. a flashlight. point it at things.'],
+  // after 8/8, with nothing left to point at: each once, a long way apart
+  after: ['* take your time. i have plenty.', '* ...you can look around, you know.', '* i’ll be here.'],
   // each game's own line when it starts, in ?free too
   played: {
     'gb-cart': '* galactic news. nobody trusts the web out there. you deliver the paper.',
     'crossfader-cassette': '* crossfader. flip the side, and the song changes under you.',
     'holon-disc': '* holon. a card game rebuilt for a screen, not copied from a table.',
     'spacerim-disc': '* spacerim. the keyboard’s your only weapon. type the spell, or it hits you.',
-    'ds-cart': '* legends arise. veilstone city, on the real ds.',
+    'ds-cart': '* legends arise. two screens, and this time i looked at both.',
     'cd-jewel': '* haunt record. you’re not the hero in this one.',
   },
   ejectTip: '* when you’re done, take it out. things turn up.',
@@ -195,9 +198,9 @@ const STORY_LINES = {
     [() => !story.found.has('gba-console'), '* there’s something new on the table.', '* the table, top right. play the cartridge waiting there.'],
     [() => !story.flags.has('gba-awake'), '* the advance is asleep. it remembers old things.', '* use the advance, then the grey cartridge.'],
     [() => !story.played.has('gba-cart'), '* it’s awake now. minamoto fits.', '* use the advance, then the minamoto cartridge on the table.'],
-    [() => !story.played.has('ptcg-cube-rulebook'), '* the rulebook on the table. it’s your pick.', '* go to the table and use the rulebook, then pick a game.'],
+    [() => !DRAFT.some((g) => story.found.has(g)), '* the rulebook on the table. it’s your pick.', '* go to the table and use the rulebook, then pick a game.'],
     [() => DRAFT.some((g) => story.found.has(g) && !story.played.has(g)), '* you picked one. go on, play it.', '* play the game you picked: it’s on the table, choose PLAY IT.'],
-    [() => story.found.has('spacerim-disc') && !story.played.has('spacerim-disc'), '* holon left another disc on the table.', '* play spacerim: the second disc on the table.'],
+    [() => story.found.has('spacerim-disc') && !story.played.has('spacerim-disc'), '* there’s a second disc on the table now.', '* play spacerim: the second disc on the table.'],
     [() => story.found.has('cd-jewel') && !story.played.has('cd-jewel'), '* the drawer’s open now.', '* go to the drawer and play the disc inside.'],
     [() => DRAFT.some((g) => !story.found.has(g)), '* the rulebook has another pick.', '* use the rulebook on the table and pick the next game.'],
   ],
@@ -370,7 +373,11 @@ function resize() {
   // or the tube shows the old picture smeared (turning a phone sideways did exactly that)
   if (ui.width !== W || ui.height !== H) { ui.width = W; ui.height = H; uiTex.dispose(); }
   // past 16:9 the lens stops widening (a wide window gets more room, not a fisheye): hold the horizontal angle
-  if (cam) { cam.aspect = W / H; cam.fov = 2 * Math.atan(Math.tan(25 * Math.PI / 180) * Math.min(1, 1.78 / cam.aspect)) * 180 / Math.PI; cam.updateProjectionMatrix(); }
+  // narrower than 4:3 (a half-screen window, a tablet upright): open the lens upward so the desk's ends stay in the picture
+  if (cam) {
+    cam.aspect = W / H; const k = cam.aspect < 4 / 3 ? (4 / 3) / cam.aspect : Math.min(1, 1.78 / cam.aspect);
+    cam.fov = Math.min(80, 2 * Math.atan(Math.tan(25 * Math.PI / 180) * k) * 180 / Math.PI); cam.updateProjectionMatrix();
+  }
 }
 addEventListener('resize', resize);
 // rotating a phone or going fullscreen can resize the glass after the window event, so watch the canvas itself
@@ -742,7 +749,8 @@ function goSpot(s, said) {
   burst(0.35);
   speak(said || PLACE[s]);
 }
-document.getElementById('nav').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) goSpot(b.dataset.spot); });
+// a place picked from the DOM nav hands the keys back to the room (the handheld's pills stay where the thumb is)
+document.getElementById('nav').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; goSpot(b.dataset.spot); if (!handheld) canvas.focus({ preventScroll: true }); });
 // Look at an object from above and in front, at a distance that fits its size.
 function frameObject(id, dist = 1, dur = DUR) {
   const o = objects[id]; const b = new THREE.Box3().setFromObject(o.root);
@@ -754,13 +762,16 @@ function frameObject(id, dist = 1, dur = DUR) {
 let lastSpeak = performance.now();
 const nar = { name: 'OMAR', text: '', shown: 0, queue: [], until: 0, visible: false, cur: null, box: null };
 // say() cuts in: the narrator answers what you just did. queue() waits its turn (boot, idle).
-// A line can be a string or { t, keep }. Kept lines are story beats: a say() cutting in puts them back after itself.
+// A line can be a string or { t, keep, stale }. Kept lines are story beats: a say() cutting in puts them back after itself,
+// once (cut again, it's dropped; back, it shows whole). stale() says a line no longer applies, and it is never said.
+const live = (q) => q && !q.stale?.();
 const lineItems = (lines, hold, opts = {}) => [].concat(lines).map((l) => typeof l === 'string' ? { t: l, hold, keep: !!opts.keep } : { hold, ...l });
 const kept = (lines) => [].concat(lines).map((t) => ({ t, keep: true }));
 function say(lines, hold = 3.2, opts) {
   // the current beat counts as heard once it has been on screen whole for a second
-  const unheard = nar.visible && nar.cur?.keep && (nar.shown < nar.text.length || performance.now() < nar.until - (nar.hold - 1) * 1000);
-  nar.queue = [...lineItems(lines, hold, opts), ...(unheard ? [nar.cur] : []), ...nar.queue.filter((q) => q.keep)];
+  const unheard = nar.visible && nar.cur?.keep && !nar.cur.restored && (nar.shown < nar.text.length || performance.now() < nar.until - (nar.hold - 1) * 1000);
+  if (unheard) nar.cur.restored = true;
+  nar.queue = [...lineItems(lines, hold, opts), ...(unheard ? [nar.cur] : []), ...nar.queue.filter((q) => q.keep)].filter(live);
   next();
 }
 function queue(lines, hold = 3.2, opts) {
@@ -770,14 +781,15 @@ function queue(lines, hold = 3.2, opts) {
 function next() {
   if (nar.visible) lastSpeak = performance.now();
   nar.cur?.after?.(); // a line can hand over to what follows it (the end card)
-  const n = nar.queue.shift();
+  let n = nar.queue.shift(); while (n && !live(n)) n = nar.queue.shift();
   if (!n) { nar.visible = false; nar.cur = null; return; }
   nar.cur = n; nar.text = n.t; nar.shown = 0; nar.visible = true; nar.until = Infinity;
   // longer lines stay up longer
-  nar.hold = Math.max(n.hold, 1.2 + n.t.split(' ').length * 0.3);
-  if (quiet) { nar.shown = nar.text.length; nar.until = performance.now() + nar.hold * 1000; }
+  nar.hold = Math.max(n.hold || 3.2, 1.2 + n.t.split(' ').length * 0.3);
+  // a line put back after a cut comes back whole, so it reads as the same line, not a stutter
+  if (quiet || n.restored) { nar.shown = nar.text.length; nar.until = performance.now() + nar.hold * 1000; }
   document.getElementById('say').textContent = n.t.replace(/^\* /, '');
-  n.on?.(); // and do something as it starts (the envelope lights on its line)
+  n.on?.(); // and do something as it starts (the envelope lights on its line); a line put back does it again
 }
 // A click on the box (or Space, Enter, A) finishes the line; the next press moves on.
 function hurry() {
@@ -1013,7 +1025,7 @@ function started(game, sys) {
   // the first game of the run also says how the story moves: taking it out is what turns things up
   const tip = STORY && !story.flags.has('told-eject');
   if (tip) { story.flags.add('told-eject'); persist(); }
-  say(tip ? [line, { t: STORY_LINES.ejectTip, keep: true }] : line);
+  say(tip ? [line, { t: STORY_LINES.ejectTip, keep: true, stale: () => story.flags.has('ejected') }] : line);
   state.playedAt = performance.now();
   openProject(game, true);
 }
@@ -1050,9 +1062,11 @@ function storyEjected(game) {
       goSpot('drawer');
     }, 400);
   }
-  // picks left and none waiting: the rulebook glows until it is read again (the hint engine says so if the drawer just opened)
-  if (DRAFT.includes(game) && DRAFT.some((g) => !story.found.has(g)) && !DRAFT.some((g) => story.found.has(g) && !story.played.has(g))) {
-    if (!drawerNow) lines.push(STORY_LINES.draftNext);
+  // picks left and none waiting (SpaceRim counts, from the moment Holon leaves it): the rulebook glows until it is read again,
+  // and the camera goes to it (the hint engine says so if the drawer just opened)
+  const rimWaits = (story.found.has('spacerim-disc') || game === 'holon-disc') && !story.played.has('spacerim-disc');
+  if ((DRAFT.includes(game) || game === 'spacerim-disc') && DRAFT.some((g) => !story.found.has(g)) && !rimWaits && !DRAFT.some((g) => story.found.has(g) && !story.played.has(g))) {
+    if (!drawerNow) { lines.push(STORY_LINES.draftNext); setTimeout(() => goSpot('table'), 400); }
     beckon.add('ptcg-cube-rulebook');
   }
   // the desk lamp goes after the first draft game, once the eject lines are said
@@ -1060,26 +1074,39 @@ function storyEjected(game) {
   if (story.played.size === GAMES.length && !story.flags.has('complete')) {
     story.flags.add('complete'); persist();
     // the end card follows the last line, about a second after it (or 9s into that line at most, if it is held up)
-    const done = kept(STORY_LINES.complete);
-    Object.assign(done.at(-1), { on: () => setTimeout(finale, 9000), after: () => setTimeout(finale, 1000) });
-    lines.push(...done); setTimeout(finale, 30000); // and never later than this
+    lines.push(...endingLines());
   }
   // the ending speaks on its own: whatever was still waiting to be said is past now
   const ending = lines.some((l) => l.t === STORY_LINES.complete[0]);
   if (lines.length) setTimeout(() => { if (ending) { nar.queue = []; if (nar.cur) nar.cur.keep = false; } say(lines); }, 500);
 }
+// The three closing lines: the envelope lights on its line, and the end card follows the last one,
+// about a second after it (or 9s into that line at most, if it is held up), and never later than 30s.
+function endingLines() {
+  const done = kept(STORY_LINES.complete);
+  envelopeLine(done[1]);
+  Object.assign(done.at(-1), { on: () => setTimeout(finale, 9000), after: () => setTimeout(finale, 1000) });
+  setTimeout(finale, 30000);
+  return done;
+}
+// A line about the envelope: the envelope glows while it is said, and the box keeps off it so it can be clicked.
+function envelopeLine(item) {
+  return Object.assign(item, { near: 'envelope',
+    on: () => beckon.add('envelope'),
+    after: () => { if (!beckon.delete('envelope')) return; const o = objects['envelope']; if (o) { o.glow = 1; gsap.to(o, { glow: 0, duration: 1.2 }); } } });
+}
 // 8/8: the envelope lights and the end card lists where to read about every game.
 function finale() {
   if (state.ended) return;
   if (state.busy || state.playing || state.leaving) return void setTimeout(finale, 1000);
-  state.ended = true;
+  state.ended = true; if (STORY) { story.flags.add('ended'); persist(); }
   const o = objects['envelope']; if (o) { o.glow = 1; gsap.to(o, { glow: 0, duration: 2.4, delay: 1 }); }
   openPanel(endPanel());
 }
-function endPanel() {
+function endPanel(title = 'All eight') {
   const open = GAMES.filter((g) => PUBLISHED.has(SLUG[g])), rest = GAMES.filter((g) => !PUBLISHED.has(SLUG[g]));
   return {
-    kind: 'memories', tag: 'MEMORIES', title: 'All eight', kana: 'きおく  MEMORIES', body: ['Every game in the room, and where to read about it.'],
+    kind: 'memories', tag: 'MEMORIES', title, kana: 'きおく  MEMORIES', body: ['Every game in the room, and where to read about it.'],
     items: [...open.map((g) => ({ label: PROJECTS[g].title.toUpperCase(), note: 'case study', act: () => openStudy(g) })),
       ...rest.map((g) => ({ label: PROJECTS[g].title.toUpperCase(), note: PROJECTS[g].medium.toLowerCase(), act: () => { closePanel(); activate(g); } })),
       { label: 'THE LETTER', note: 'contact', act: () => { closePanel(); openLetter(); } },
@@ -1106,10 +1133,17 @@ function dimLamp() { lamp.intensity = LAMP_FULL * 0.45; bulb.material.color.set(
 function lampGoes() {
   if (story.flags.has('torch')) return;
   story.flags.add('torch'); persist();
-  const tl = gsap.timeline();
-  for (const k of [0.1, 1, 0.05, 0.8, 0.02, 0.6]) tl.set(lamp, { intensity: LAMP_FULL * k }, `+=${quiet ? 0 : 0.09}`);
-  tl.call(() => { dimLamp(); burst(0.3); queue(STORY_LINES.torch, undefined, { keep: true }); });
-  tl.to(torch, { intensity: TORCH, duration: quiet ? 0.01 : 0.6, ease: 'power2.out' }, '+=1.2');
+  // the lamp flickers as its line starts, and the flashlight comes on with the next; if the lines never get said, both happen anyway
+  let flickered = false, lit = false;
+  const flicker = () => {
+    if (flickered) return; flickered = true;
+    const tl = gsap.timeline();
+    for (const k of [0.1, 1, 0.05, 0.8, 0.02, 0.6]) tl.set(lamp, { intensity: LAMP_FULL * k }, `+=${quiet ? 0 : 0.09}`);
+    tl.call(() => { dimLamp(); burst(0.3); });
+  };
+  const light = () => { if (lit) return; lit = true; flicker(); gsap.to(torch, { intensity: TORCH, duration: quiet ? 0.01 : 0.6, ease: 'power2.out' }); };
+  queue([{ t: STORY_LINES.torch[0], keep: true, on: flicker }, { t: STORY_LINES.torch[1], keep: true, on: light }]);
+  setTimeout(light, 30000);
 }
 if (STORY && story.flags.has('torch')) { dimLamp(); torch.intensity = TORCH; }
 function openSpot(s) { if (story.spots.has(s)) return; story.spots.add(s); persist(); navFlash[s] = clock.elapsedTime; burst(0.3); }
@@ -1153,12 +1187,16 @@ function readRulebook() {
     if (waiting) highlight([waiting]);
     return;
   }
-  if (left.length === DRAFT.length) say(STORY_LINES.draft, undefined, { keep: true }); else say(STORY_LINES.draftNext);
+  if (left.length === DRAFT.length) say(STORY_LINES.draft, undefined, { keep: true }); else say(STORY_LINES.draftAgain);
   const draft = { kind: 'project', tag: 'DRAFT', title: left.length === DRAFT.length ? 'Pick one' : 'Next pick', kana: 'ドラフト  DRAFT',
     body: [`Pick ${DRAFT.length - left.length + 1} of ${DRAFT.length}. Keep one, the rest come round again.`],
     items: [...left.map((g) => ({ label: DRAFT_FACE[g][0], note: DRAFT_FACE[g][1], act: () => draftPick(g) })),
       { label: 'READ THE RULES', act: () => openPanel(rulesPanel(draft)) },
-      { label: 'BACK', act: () => { closePanel(); highlight([]); goSpot('table'); } }] };
+      { label: 'BACK', act: () => {
+        closePanel(); highlight([]); goSpot('table');
+        // nothing picked yet: the book keeps glowing, and its draft lines aren't said to an empty table
+        if (!DRAFT.some((g) => story.found.has(g))) { beckon.add('ptcg-cube-rulebook'); dropLines(STORY_LINES.draft); }
+      } }] };
   openPanel(draft);
 }
 // What a cube is, from the rulebook's own case study; BACK returns to the pick.
@@ -1170,10 +1208,14 @@ function rulesPanel(draft) {
 function draftPick(g) {
   closePanel(); highlight([]); goSpot('table');
   // picking answers "you pick first": drop it if it hadn't been said yet
-  const stale = (q) => q && STORY_LINES.draft.includes(q.t);
-  nar.queue = nar.queue.filter((q) => !stale(q)); if (stale(nar.cur)) nar.cur.keep = false;
+  dropLines(STORY_LINES.draft);
   say(STORY_LINES.picked[g]);
   setTimeout(() => reveal(g), DUR * 1000);
+}
+// Drop lines that are past (and don't put the current one back if it is one of them).
+function dropLines(lines) {
+  const stale = (q) => q && lines.includes(q.t);
+  nar.queue = nar.queue.filter((q) => !stale(q)); if (stale(nar.cur)) nar.cur.keep = false;
 }
 function skipStory() {
   for (const p of PLACES) story.found.add(p.id);
@@ -1181,10 +1223,14 @@ function skipStory() {
   story.flags.add('gba-awake'); story.flags.add('postcard-read'); story.flags.add('skipped');
   persist();
   // the four with case studies light up for a moment, so it's clear where to start
+  // then the same list as the end card: the case studies, the rest, the letter
   loadRest().then(() => {
     for (const o of Object.values(objects)) o.root.visible = true;
-    highlight(GAMES.filter((g) => PUBLISHED.has(SLUG[g]))); setTimeout(() => highlight([]), 2600);
+    highlight(GAMES.filter((g) => PUBLISHED.has(SLUG[g])));
+    setTimeout(() => { highlight([]); if (!panel && !state.busy && !state.playing) openPanel(endPanel('Everything’s out')); }, 2600);
   });
+  // no story now: whatever it still had to say is past
+  nar.queue = []; if (nar.cur) nar.cur.keep = false;
   say(STORY_LINES.skip);
 }
 
@@ -1193,6 +1239,7 @@ function eject(after) {
   const p = state.playing; if (!p || state.busy) return;
   const g = objects[p.game];
   state.busy = true; closePanel(); acted();
+  if (STORY && !story.flags.has('ejected')) { story.flags.add('ejected'); persist(); }
   const tl = ceremony(gsap.timeline({ onComplete: () => { state.busy = false; state.playing = null; resetChoice(); goSpot('desk'); storyEjected(p.game); if (typeof after === 'function') after(); } }));
   if (p.sys === 'pc') {
     showOnMonitor(desktopTex); frameDrive();
@@ -1234,7 +1281,9 @@ function openLetter() {
   state.busy = true; closePanel(); say(LINES.letter);
   frameObject('envelope', 1.1);
   const tl = ceremony(gsap.timeline({ onComplete: () => { state.busy = false; if (letterEl) showLetter(); else openPanel(letterPanel()); } }));
-  tl.to(flap.rotation, { x: FLAP_OPEN, duration: 0.6, ease: 'power2.out' }, DUR * 0.6);
+  // in full the first time (about 2.5s, and a press finishes it); after that it opens three times as fast (P2)
+  if (letterSeen) tl.timeScale(3);
+  tl.to(flap.rotation, { x: FLAP_OPEN, duration: 0.6, ease: 'power2.out' }, 0.2);
   tl.call(() => { letterMesh.visible = true; });
   // slide the folded letter out, lift it toward you, then open it a third at a time
   tl.to(letterMesh.position, { z: 0.17, y: 0.006, duration: 0.6, ease: 'power2.out' });
@@ -1246,7 +1295,7 @@ function openLetter() {
 }
 function closeLetter() {
   const tl = ceremony(gsap.timeline({ onComplete: () => { letterMesh.visible = false; state.busy = false; goSpot('desk', 'Letter folded away. Desk.'); } }));
-  state.busy = true;
+  state.busy = true; tl.timeScale(2); // putting it away is quicker than taking it out
   // fold it back in three, lay it down, slide it home
   tl.to(foldMid.rotation, { x: FOLD, duration: 0.4, ease: 'power2.inOut' });
   tl.to(foldTop.rotation, { x: -FOLD, duration: 0.4, ease: 'power2.inOut' }, '-=0.15');
@@ -1279,7 +1328,10 @@ if (letterEl) {
     if (e.shiftKey && i <= 0) { e.preventDefault(); f.at(-1).focus(); } else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); }
   });
 }
+let letterSeen = STORY && story.flags.has('letter-read');
 function showLetter() {
+  letterSeen = true;
+  if (STORY && !story.flags.has('letter-read')) { story.flags.add('letter-read'); persist(); }
   panel = { kind: 'letter', dom: true, sel: 0, items: [{ label: 'FOLD IT AWAY', act: () => foldLetter() }] };
   letterEl.hidden = false; letterEl.scrollTop = 0;
   letterEl.querySelector('#letter-h').focus({ preventScroll: true });
@@ -1449,7 +1501,7 @@ function drawNav() {
     const w = 34 + Math.max(lw, kw) + 12, h = 30, y = 10; x -= w;
     const on = spot === id, hot = navHover === id;
     // a channel that just opened blinks gold for a couple of seconds
-    const fresh = navFlash[id] !== undefined && clock.elapsedTime - navFlash[id] < 2.4 && Math.floor((clock.elapsedTime - navFlash[id]) * 4) % 2 === 0;
+    const fresh = navFlash[id] !== undefined && clock.elapsedTime - navFlash[id] < 2.4 && (quiet || Math.floor((clock.elapsedTime - navFlash[id]) * 4) % 2 === 0); // steady when quiet
     g2.fillStyle = fresh ? '#fadb68' : on ? '#ec563b' : hot ? 'rgba(236,86,59,0.6)' : 'rgba(236,86,59,0.35)';
     g2.beginPath(); g2.roundRect(x, y, w, h, 15); g2.fill();
     g2.fillStyle = '#102f41'; g2.fillRect(x + 8, y + 9, 20, 12);
@@ -1462,16 +1514,19 @@ function drawNav() {
   g2.restore();
   // small print, bottom right, above nothing else; while a keyboard is on the DOM row, its pills stand in for it
   if (panel || fineEl.matches(':focus-within')) return;
-  g2.font = `${Math.round(9 * ns)}px "${FONT_PIX}"`; g2.textAlign = 'right';
+  g2.font = `${Math.round(11 * ns)}px "${FONT_PIX}"`; g2.textAlign = 'right';
   // on a desktop the sticker on the bezel is the quick view, so the tube only lists it on a handheld
   const links = [['credits', 'CREDITS', () => openPanel(creditsPanel())]];
   if (handheld) links.unshift(['quick', 'QUICK VIEW →', () => { location.href = 'quick/' + location.search; }]);
   links.push(['crt', quiet ? 'CRT: QUIET' : 'CRT: FULL', toggleQuiet]);
   if (STORY && !story.flags.has('skipped') && !story.flags.has('complete')) links.push(['skip', 'SKIP STORY', () => openPanel(skipPanel())]);
   let rx = W - 18; const ry = H - 16;
+  // a dark plate under the row, like the channel plate, so it reads in the vignette's corner; the way out (SKIP STORY) in gold
+  const rowW = links.reduce((s, [, label]) => s + g2.measureText(label).width + 18, -18);
+  g2.fillStyle = 'rgba(6,9,11,0.6)'; g2.beginPath(); g2.roundRect(rx - rowW - 10, ry - 14 * ns, rowW + 20, 26 * ns, 8); g2.fill();
   for (const [id, label, act] of links) {
     const w = g2.measureText(label).width;
-    g2.fillStyle = navHover === id ? '#fadb68' : 'rgba(252,232,205,0.55)'; g2.fillText(label, rx, ry);
+    g2.fillStyle = navHover === id || id === 'skip' ? '#fadb68' : '#fce8cd'; g2.fillText(label, rx, ry);
     navHits.push({ id, x: rx - w - 6, y: ry - 12 * ns, w: w + 12, h: 24 * ns, act });
     rx -= w + 18;
   }
@@ -1596,7 +1651,7 @@ bez('.ab .a', pressA); bez('.ab .b', pressB);
 bez('.dpad [data-d]', (b) => { const d = b.dataset.d; step(d === 'left' || d === 'up' ? -1 : 1, d === 'left' || d === 'right' ? 'x' : 'y'); });
 bez('[data-link="credits"]', () => openPanel(creditsPanel()));
 bez('[data-link="skip"]', () => openPanel(skipPanel()));
-bez('[data-link="memories"]', () => openPanel(story.flags.has('complete') ? endPanel() : memoriesPanel()));
+bez('[data-link="memories"]', () => openPanel(memoriesOrEnd()));
 bez('[data-link="crt"]', () => toggleQuiet());
 document.querySelector('[data-link="memories"]').hidden = !STORY;
 // CRT: FULL / QUIET. The pick is saved on its own key; without one, the system's reduced motion decides, live.
@@ -1616,7 +1671,7 @@ function syncDomNav() {
   for (const b of navEl.querySelectorAll('button')) {
     const id = b.dataset.spot, hide = !spotOpen(id);
     if (b.hidden !== hide) b.hidden = hide;
-    const fresh = navFlash[id] !== undefined && t - navFlash[id] < 2.4 && Math.floor((t - navFlash[id]) * 4) % 2 === 0;
+    const fresh = navFlash[id] !== undefined && t - navFlash[id] < 2.4 && (quiet || Math.floor((t - navFlash[id]) * 4) % 2 === 0);
     if (b.classList.contains('fresh') !== fresh) b.classList.toggle('fresh', fresh);
   }
   const sk = document.querySelector('[data-link="skip"]'), noSkip = !(STORY && !story.flags.has('skipped') && !story.flags.has('complete'));
@@ -1638,11 +1693,14 @@ function step(dir, axis) {
 function inView() { return Object.entries(objects).filter(([id, o]) => (o.place.spot === spot || (state.mode === 'choose' && playable(state.system).includes(id))) && o.root.visible).map(([id]) => id); }
 addEventListener('keydown', (e) => {
   endBoot(false, e.key === 'Enter' || e.key === ' ');
+  // Escape on the DOM nav or the small print goes back to the room
+  if (e.key === 'Escape' && e.target.closest?.('nav, .fine') && !handheld) { canvas.focus({ preventScroll: true }); return; }
   if (e.target.closest && e.target.closest('nav, details, .letter')) return;
   // Enter and Space on a focused link or button belong to it
   const own = !!e.target.closest?.('a, button, input, textarea, select');
   if ((e.key === 'Enter' || e.key === ' ') && !own && skipCeremony()) { e.preventDefault(); return; }
   if (panel) {
+    if (own && (e.key === 'Enter' || e.key === ' ')) return;
     if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { panel.sel = (panel.sel + 1) % panel.items.length; e.preventDefault(); }
     else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { panel.sel = (panel.sel - 1 + panel.items.length) % panel.items.length; e.preventDefault(); }
     else if (e.key === 'Enter' || e.key === ' ') { useRow(panel.items[panel.sel]); e.preventDefault(); }
@@ -1650,9 +1708,10 @@ addEventListener('keydown', (e) => {
     if (panel && /^Arrow/.test(e.key)) speak(rowSpeech(panel.items[panel.sel]));
     return;
   }
-  const typing = !!e.target.closest?.('input, textarea, select');
-  if (e.key === '1') goSpot('desk'); else if (e.key === '2') goSpot('table'); else if (e.key === '3') goSpot('drawer');
-  else if ((e.key === 'q' || e.key === 'Q') && !typing && !e.ctrlKey && !e.metaKey && !e.altKey) location.href = 'quick/' + location.search;
+  // single-key shortcuts only while the room itself has the keys (WCAG 2.1.4)
+  const inRoom = (e.target === canvas || e.target === document.body) && !e.ctrlKey && !e.metaKey && !e.altKey;
+  if (inRoom && e.key === '1') goSpot('desk'); else if (inRoom && e.key === '2') goSpot('table'); else if (inRoom && e.key === '3') goSpot('drawer');
+  else if (inRoom && (e.key === 'q' || e.key === 'Q')) location.href = 'quick/' + location.search;
   else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
     // the same screen order (left to right) as the D-pad and swipes
     const r = step(e.key === 'ArrowRight' ? 1 : -1, 'x'); if (!r) return;
@@ -1704,16 +1763,19 @@ function drawUI(t) {
   if (nar.visible && !(panel && panel.kind === 'letter')) {
     // on short screens the box keeps to the bottom left so it hides less of the room
     // the handheld's 4:3 tube is narrow: there the box spans it and grows with the line
-    const short = H < 480, bw = handheld ? W - 40 : short ? Math.min(Math.round(W * 0.56), 560) : Math.min(W - 80, 760), bx = handheld ? 20 : short ? 24 : Math.round((W - bw) / 2);
+    const short = H < 480; let bw = handheld ? W - 40 : short ? Math.min(Math.round(W * 0.56), 560) : Math.min(W - 80, 760), bx = handheld ? 20 : short ? 24 : Math.round((W - bw) / 2);
+    // a tablet's A and B sit bottom right: the box stops short of them
+    if (touchUI && !handheld && bx + bw > W - 160) { bx = Math.max(24, Math.min(bx, W - 160 - bw)); bw = Math.min(bw, W - 160 - bx); }
     g2.font = `900 17px "${FONT_G}"`;
     const lines = wrap(nar.text.slice(0, Math.floor(nar.shown)), bw - 50).slice(0, 3);
     const bh = handheld ? 30 + Math.max(2, wrap(nar.text, bw - 50).length) * 22 : 72;
     let by = H - bh - 20;
-    // the box never covers what it's pointing at: the hovered or a glowing object sends it to the top (not on the handheld,
-    // nor over an open window), just under the channel plate and the bars so the name tag and the memories stay clear
-    if (!handheld && !panel) {
-      const under = (oid) => { const at = oid && screenOf(oid, true); return at && at[0] >= bx && at[0] <= bx + bw && at[1] >= by - 12 && at[1] <= by + bh; };
-      if (under(state.hover) || Object.entries(objects).some(([oid, o]) => (o.glow > 0 || beckon.has(oid)) && o.root.visible && under(oid))) by = STORY ? 92 : 58;
+    // the box never covers what it's pointing at: the thing its line is about, the hovered or a glowing object sends it to the top
+    // (not over an open window), just under the channel plate and the bars so the name tag and the memories stay clear
+    if (!panel) {
+      const under = (oid) => { const at = oid && objects[oid]?.root.visible && screenOf(oid, true); return at && at[0] >= bx && at[0] <= bx + bw && at[1] >= by - 12 && at[1] <= by + bh; };
+      // on the handheld the box is tall and the envelope (the contacts) sits under it: it always keeps clear of it
+      if (under(nar.cur?.near) || (handheld && under('envelope')) || under(state.hover) || Object.entries(objects).some(([oid, o]) => (o.glow > 0 || beckon.has(oid)) && under(oid))) by = STORY ? 92 : 58;
     }
     nar.box = { x: bx, y: by, w: bw, h: bh }; // for clicks: UI pixels, like the panel rows
     g2.fillStyle = 'rgba(16,47,65,0.94)'; g2.fillRect(bx, by, bw, bh);
@@ -1724,14 +1786,14 @@ function drawUI(t) {
     g2.fillStyle = '#fce8cd'; g2.fillText(nar.name, bx + 22, by - 1);
     g2.font = `900 17px "${FONT_G}"`; g2.fillStyle = '#fce8cd';
     lines.forEach((l, i) => g2.fillText(l, bx + 22, by + 28 + i * 22));
-    if (nar.shown >= nar.text.length && Math.sin(t * 6) > 0) { g2.fillStyle = '#fadb68'; g2.beginPath(); g2.moveTo(bx + bw - 26, by + bh - 22); g2.lineTo(bx + bw - 16, by + bh - 22); g2.lineTo(bx + bw - 21, by + bh - 15); g2.fill(); }
+    if (nar.shown >= nar.text.length && (quiet || Math.sin(t * 6) > 0)) { g2.fillStyle = '#fadb68'; g2.beginPath(); g2.moveTo(bx + bw - 26, by + bh - 22); g2.lineTo(bx + bw - 16, by + bh - 22); g2.lineTo(bx + bw - 21, by + bh - 15); g2.fill(); }
   }
   drawNav();
   // spot label, top-left, like a channel number
   if (!panel || panel.kind === 'project') {
     // a dark plate so the corner reads over a lit desk
     if (STORY) { g2.fillStyle = 'rgba(6,9,11,0.6)'; g2.beginPath(); g2.roundRect(8, 6, 184, 70, 8); g2.fill(); }
-    g2.font = `12px "${FONT_PIX}"`; g2.fillStyle = 'rgba(252,232,205,0.7)';
+    g2.font = `12px "${FONT_PIX}"`; g2.fillStyle = 'rgba(252,232,205,0.95)';
     g2.fillText({ desk: 'CH 01 DESK', table: 'CH 02 TABLE', drawer: 'CH 03 DRAWER' }[spot], 18, 20);
     if (STORY) drawMemories(t);
   }
@@ -1742,7 +1804,8 @@ function drawUI(t) {
 // A and B, drawn like a Game Boy's: A up and right, B down and left, big enough for a thumb.
 let padFlash = { id: null, t: -1 };
 function drawPad() {
-  const r = 30, ax = W - 46, ay = Math.round(H * 0.46), bx = ax - 70, by = ay + 40;
+  // bottom right, above the small print: the desk's objects sit across the middle band
+  const r = 30, ax = W - 46, ay = H - 112, bx = ax - 70, by = ay + 30;
   for (const [id, cx, cy, label, act] of [['btnB', bx, by, 'B', pressB], ['btnA', ax, ay, 'A', pressA]]) {
     const lit = padFlash.id === id && clock.elapsedTime - padFlash.t < 0.15;
     g2.fillStyle = lit ? '#fadb68' : 'rgba(236,86,59,0.9)';
@@ -1755,8 +1818,8 @@ function drawPad() {
 // The narrator's face in the corner: Omar's logo, its inside filling one step per memory given back.
 function drawMemories(t) {
   const n = story.played.size, size = 34, x = 18, y = 34;
-  const blink = t - memFlash < 1.6 && Math.floor((t - memFlash) * 5) % 2 === 0;
-  const shown = blink ? n - 1 : n;
+  const blink = t - memFlash < 1.6 && (quiet || Math.floor((t - memFlash) * 5) % 2 === 0);
+  const shown = blink && !quiet ? n - 1 : n;
   g2.save(); g2.translate(x, y); g2.scale(size / 555, size / 555);
   // the face talks: while a line types, its outline flicks gold in hard steps (steady gold when quiet)
   const talking = nar.visible && nar.shown < nar.text.length && (quiet || Math.floor(t / 0.12) % 2 === 0);
@@ -1770,8 +1833,10 @@ function drawMemories(t) {
   g2.font = `11px "${FONT_PIX}"`; g2.fillStyle = blink ? '#fadb68' : 'rgba(252,232,205,0.8)';
   const label = `MEMORIES ${n}/${GAMES.length}`;
   g2.fillText(label, x + size + 8, y + size / 2);
-  if (!panel) navHits.push({ id: 'memories', x: x - 4, y: y - 4, w: size + 16 + g2.measureText(label).width, h: size + 8, act: () => openPanel(story.flags.has('complete') ? endPanel() : memoriesPanel()) });
+  if (!panel) navHits.push({ id: 'memories', x: x - 4, y: y - 4, w: size + 16 + g2.measureText(label).width, h: size + 8, act: () => openPanel(memoriesOrEnd()) });
 }
+// After 8/8 the corner opens the end card; after a skip, the same list (everything is out, nothing is unknown).
+const memoriesOrEnd = () => story.flags.has('complete') ? endPanel() : story.flags.has('skipped') ? endPanel('Everything’s out') : memoriesPanel();
 // A trainer card of what's been given back: played games by name, the rest still unknown.
 function memoriesPanel() {
   return {
@@ -1785,8 +1850,11 @@ function memoriesPanel() {
 }
 // The hint for wherever the visitor is stuck: a nudge first, the plain instruction the second time.
 function nextHint(plain) {
+  if (story.flags.has('skipped')) return null; // the fast lane gets no story hints
   const h = STORY_LINES.hints.find(([cond]) => cond());
-  return h ? h[plain ? 2 : 1] : null;
+  if (!h) return null;
+  // a finger taps; on the handheld the table's pill is on the left bezel
+  return touchUI ? h[plain ? 2 : 1].replace(/^\* click/, '* tap').replace('the table, top right', handheld ? 'the table, on the left' : 'the table') : h[plain ? 2 : 1];
 }
 
 // ---------- loop ----------
@@ -1795,7 +1863,7 @@ const tmpCol = new THREE.Color(), GOLD = new THREE.Color(0xfadb68);
 const tweening = () => gsap.globalTimeline.getChildren(true, true, false).some((tw) => tw.isActive());
 // A phone held upright only shows the turn-it-sideways card: the room doesn't draw behind it,
 // and doesn't even switch on (or fetch the table and drawer) until the first sideways frame.
-const upright = matchMedia('(orientation: portrait) and (max-width: 900px)');
+const upright = matchMedia('(orientation: portrait) and (max-width: 900px) and (pointer: coarse)'); // a narrow desktop window gets the tube
 const loop = () => {
   if (!powered) { powered = true; clock.getDelta(); powerOn(); }
   const rawDt = clock.getDelta(), dt = Math.min(rawDt, 0.05), t = clock.elapsedTime;
@@ -1831,6 +1899,11 @@ const loop = () => {
       if (state.hintStage === 0 && now - lastAct > 15000) { state.hintStage = 1; say(nextHint(false)); }
       else if (state.hintStage === 1 && now - lastAct > 30000) { state.hintStage = 2; say(nextHint(true)); }
     }
+    // after 8/8 the room is quiet, but not empty: a line now and then, each once
+    else if (story.flags.has('complete') && !nextHint(false) && state.mode === 'free' && !panel && !nar.visible && now - lastSpeak > 25000 && now - lastAct > 25000) {
+      const k = state.afterN = (state.afterN || 0);
+      if (k < STORY_LINES.after.length) { state.afterN++; say(STORY_LINES.after[k]); }
+    }
   } else if (state.mode === 'free' && !panel && !nar.visible && state.idle > 22 && now - lastSpeak > 20000) {
     state.idle = 0;
     const line = LINES.idle[(state.idleN = (state.idleN || 0) + 1) % LINES.idle.length];
@@ -1860,7 +1933,9 @@ const loop = () => {
 const main = document.querySelector('main');
 const run = () => {
   const up = upright.matches;
-  for (const el of [main, navEl]) el.inert = up; // the card is the page while upright
+  // the card is the page while upright: nothing behind it takes focus, and it takes it first
+  for (const el of [main, navEl, fineEl, document.querySelector('.sticker'), document.querySelector('.credits'), document.querySelector('.quick')]) if (el) el.inert = up;
+  if (up) document.getElementById('tilt-name')?.focus({ preventScroll: true });
   if (!up) reshadow();
   renderer.setAnimationLoop(up ? null : loop);
 };
@@ -1871,15 +1946,25 @@ run();
 // On the first frame the room draws (on a phone, the first sideways one), so the boot's clocks count from the picture.
 function powerOn() {
   // the standby card leaves as the tube switches on, so the switch-on stays the only ceremony
-  document.getElementById('standby')?.remove(); document.body.classList.remove('cold');
+  document.getElementById('standby')?.remove(); document.body.classList.remove('cold', 'slow');
   lastAct = performance.now(); // the hint clock starts with the picture
   gsap.to(crtMat.uniforms.uPower, { value: 1, duration: quiet ? 0.2 : 0.9, ease: 'power2.out', delay: 0.2 });
   if (!quiet) crtMat.uniforms.uBurst.value = 0.9;
   setTimeout(() => {
-    if (touchUI) queue(handheld ? '* tap a thing to point at it, tap again to use it. or the pad and a, like a game boy.' : '* tap something to point at it, tap again to use it. a and b work too.', 3.4);
-    const boot = lineItems(STORY ? (returning ? STORY_LINES.back : STORY_LINES.boot) : LINES.boot, 2.6, { keep: STORY });
-    // the envelope's line lights the envelope, like a reveal
-    if (STORY && !returning) boot[2].on = () => { const o = objects['envelope']; if (o) { o.glow = 1; gsap.to(o, { glow: 0, duration: 2.4, delay: 1 }); } };
+    // a finished run that never saw its ending (the last game was left in) gets it now
+    const owed = STORY && story.flags.has('complete') && !story.flags.has('ended');
+    const boot = owed ? endingLines() : lineItems(STORY ? (returning ? STORY_LINES.back : STORY_LINES.boot) : LINES.boot, 2.6, { keep: STORY });
+    if (STORY && !returning) {
+      // the envelope glows while its line is said; once the letter is read, or a game is under way, those lines are past
+      envelopeLine(boot[2]).stale = () => story.flags.has('letter-read');
+      boot[3].stale = () => story.played.size > 0 || !!state.system || !!state.playing;
+    }
+    if (STORY && returning && story.flags.has('ended')) memFlash = clock.elapsedTime; // the counter is where the end card lives
+    // on touch, how to play comes right after "start with the grey one", short
+    if (touchUI) boot.push({ t: handheld ? '* tap to point, tap again to use. or the pad and a.' : '* tap to point, tap again to use. a and b work too.', hold: 2.6 });
+    // the stuck-hint clock starts once the boot has had its say
+    const last = boot.at(-1), was = last.after;
+    last.after = () => { was?.(); lastAct = performance.now(); };
     queue(boot);
   }, quiet ? 300 : 1300);
   // the boot ends on its own, or at the first press (see endBoot)

@@ -4,32 +4,37 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Omar’s Room · Omar Golinelli, game designer &amp; developer</title>
+<meta name="description" content="Omar Golinelli (PrimordialRune), game designer and developer. Step into omar's room, seen through an old Trinitron, and find the games on the desk.">
+<link rel="canonical" href="https://www.primordialrune.com/">
 <!-- The import map comes before any module fetch, so the preloads below resolve through it. -->
 <script type="importmap">
 { "imports": {
-  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js",
   "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
 } }
 </script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js">
 <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js">
+<!-- GLTFLoader's own import, so it isn't found one round trip late -->
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/utils/BufferGeometryUtils.js">
 <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/geometries/RoundedBoxGeometry.js">
 <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/meshopt_decoder.module.js">
 <link rel="modulepreload" href="room.js">
 <link rel="modulepreload" href="stage.js">
 <link rel="preload" href="manifest.json" as="fetch" crossorigin>
-<link rel="preload" href="models/pc.glb" as="fetch" crossorigin>
-<link rel="preload" href="models/gb-console.glb" as="fetch" crossorigin>
-<link rel="preload" href="models/gb-cart.glb" as="fetch" crossorigin>
-<link rel="preload" href="fonts/8bitDarling-Regular.otf" as="font" type="font/otf" crossorigin>
-<link rel="preload" href="fonts/FKGrotesk-Black.otf" as="font" type="font/otf" crossorigin>
+<!-- the standby card's type first, the models after it -->
+<link rel="preload" href="models/pc.glb" as="fetch" crossorigin fetchpriority="low">
+<link rel="preload" href="models/gb-console.glb" as="fetch" crossorigin fetchpriority="low">
+<link rel="preload" href="models/gb-cart.glb" as="fetch" crossorigin fetchpriority="low">
+<link rel="preload" href="fonts/8bitDarling-Regular.otf" as="font" type="font/otf" crossorigin fetchpriority="high">
+<link rel="preload" href="fonts/FKGrotesk-Black.otf" as="font" type="font/otf" crossorigin fetchpriority="high">
 <style>
 /* Layout: one Trinitron filling the window. The room renders inside the tube; the nav (three bars under the glass) only moves you around the room. Menus and the letter are drawn inside the tube too. */
-@font-face { font-family: "FK Grotesk"; src: url("fonts/FKGrotesk-Black.otf") format("opentype"); font-weight: 900; }
-@font-face { font-family: "FK Grotesk"; src: url("fonts/FKGrotesk-Thin.otf") format("opentype"); font-weight: 200; }
-@font-face { font-family: "8bitDarling"; src: url("fonts/8bitDarling-Regular.otf") format("opentype"); }
+@font-face { font-family: "FK Grotesk"; src: url("fonts/FKGrotesk-Black.otf") format("opentype"); font-weight: 900; font-display: swap; }
+@font-face { font-family: "FK Grotesk"; src: url("fonts/FKGrotesk-Thin.otf") format("opentype"); font-weight: 200; font-display: swap; }
+@font-face { font-family: "8bitDarling"; src: url("fonts/8bitDarling-Regular.otf") format("opentype"); font-display: swap; }
 :root {
   --bg: #07141c;
   --frame: #0b0b0d;
@@ -59,11 +64,13 @@ canvas { display: block; width: 100%; height: 100%; cursor: crosshair; touch-act
 body:not(.handheld) .tv { padding-bottom: max(34px, env(safe-area-inset-bottom)); }
 .badge, .plate { position: absolute; bottom: max(4px, calc(env(safe-area-inset-bottom) - 12px)); left: 50%; transform: translateX(-50%); font: 900 9px/12px var(--grotesk); letter-spacing: .35em; color: #5d5d64; pointer-events: none; }
 body:not(.handheld) .badge, body:not(.handheld) .plate { bottom: max(11px, calc(env(safe-area-inset-bottom) - 12px)); }
-.plate { left: max(16px, env(safe-area-inset-left)); transform: none; color: rgba(252,232,205,.7); white-space: nowrap; }
+.plate { left: max(16px, env(safe-area-inset-left)); transform: none; font-size: 11px; letter-spacing: .2em; color: rgba(252,232,205,.8); white-space: nowrap; }
+/* a narrow window: the plate keeps the chin, the badge steps aside */
+@media (max-width: 1100px) { body:not(.handheld) .badge { display: none; } }
 .sticker { position: fixed; z-index: 1; right: max(16px, env(safe-area-inset-right)); bottom: max(3px, calc(env(safe-area-inset-bottom) - 26px)); display: flex; flex-direction: column; align-items: center; gap: 2px;
-  padding: 4px 8px; border-radius: 4px; background: #232328; color: var(--cream); font: 400 9px/1 var(--pixel); letter-spacing: .06em; text-decoration: none; white-space: nowrap; }
-.sticker small { font: 900 8px/1 var(--grotesk); letter-spacing: .1em; color: rgba(252,232,205,.7); }
-.sticker:hover { color: var(--gold); }
+  padding: 3px 9px; border-radius: 4px; background: #232328; color: var(--gold); font: 400 11px/1 var(--pixel); letter-spacing: .06em; text-decoration: none; white-space: nowrap; }
+.sticker small { font: 900 9px/1 var(--grotesk); letter-spacing: .1em; color: rgba(252,232,205,.8); }
+.sticker:hover { color: var(--cream); }
 .sticker:focus-visible { background: var(--gold); color: var(--peacock); outline: 2px solid var(--orange); outline-offset: 2px; }
 .sticker:focus-visible small { color: var(--peacock); }
 body.handheld .plate, body.handheld .sticker { display: none; }
@@ -78,6 +85,9 @@ body.handheld .plate, body.handheld .sticker { display: none; }
 .standby a:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .standby .wait { display: contents; }
 .standby .fail, body.cold .standby .wait { display: none; }
+.standby .slow { display: none; }
+body.slow .standby .slow { display: block; }
+body.slow .standby .warm { display: none; }
 body.cold .standby .fail { display: contents; }
 /* The DOM nav and credits stay for keyboards and screen readers; the tube draws what you see. */
 .sr, nav, .credits, .quick { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -105,7 +115,8 @@ body.handheld .bezel { display: flex; flex-direction: column; align-items: cente
 body.handheld .bezel nav { position: static; width: 100%; max-width: 176px; height: auto; overflow: visible; clip: auto; white-space: normal; display: flex; flex-direction: column; gap: 7px; }
 .bezel nav button { display: grid; grid-template-columns: auto 1fr; column-gap: 9px; align-content: center; height: 46px; padding: 0 12px 0 7px; border-radius: 23px; background: rgba(236,86,59,.32); text-align: left; transition: background .15s; }
 .bezel nav button[hidden] { display: none; }
-.bezel nav button[aria-current="true"] { background: var(--orange); }
+.bezel nav button[aria-current="true"] { background: var(--orange); color: var(--bg); }
+.bezel nav button[aria-current="true"] small { opacity: 1; }
 .bezel nav button.fresh { background: var(--gold); color: var(--peacock); }
 .bezel nav .num { grid-row: 1 / 3; align-self: center; padding: 5px 4px; border-radius: 3px; background: var(--peacock); color: var(--cream); font-size: 8px; }
 .bezel nav small { font: 900 9px/1.3 var(--grotesk); opacity: .85; }
@@ -129,7 +140,9 @@ body:not(.handheld) .fine:focus-within { position: fixed; right: max(16px, env(s
   padding: 6px; border-radius: 999px; background: rgba(11,11,13,.92); }
 body:not(.handheld) .fine button, body:not(.handheld) .fine a { padding: 8px 14px; border: 0; border-radius: 999px; background: rgba(236,86,59,.35); color: var(--cream); font: 400 11px/1 var(--pixel); cursor: pointer; }
 body:not(.handheld) .fine :focus { background: var(--gold); color: var(--peacock); outline: 2px solid var(--orange); }
+/* the room is a focusable region: a keyboard sees a gold rim, a mouse sees nothing */
 canvas:focus { outline: none; }
+canvas:focus-visible { outline: 2px solid var(--gold); outline-offset: -4px; }
 /* The letter: the in-tube window's family (peacock, a cream rule, an orange tag), but real text. */
 .letter { position: absolute; z-index: 2; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(600px, calc(100% - 32px)); max-height: calc(100% - 32px); overflow: auto; overscroll-behavior: contain;
   padding: 18px 26px 16px; background: var(--peacock); color: var(--cream); outline: 2px solid var(--cream); outline-offset: -6px; font: 200 16px/1.5 var(--grotesk); cursor: auto; }
@@ -141,14 +154,15 @@ canvas:focus { outline: none; }
 .letter .kana { font: 900 11px/1.4 var(--grotesk); color: var(--aqua); }
 .letter .me { flex: none; width: 112px; height: 112px; image-rendering: pixelated; border: 4px solid var(--cream); }
 .letter .body p { margin: 12px 0 0; max-width: 60ch; }
-.letter .skills { margin: 14px 0 6px; font: 400 9px/1.6 var(--pixel); letter-spacing: .06em; color: var(--gold); text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.letter .skills { margin: 14px 0 6px; font: 400 9px/1.6 var(--pixel); letter-spacing: .06em; color: var(--gold); text-transform: uppercase; white-space: normal; }
 .letter ul { list-style: none; margin: 0; padding: 0; }
 .letter li a { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 44px; padding: 6px 8px; border-top: 1px solid rgba(252,232,205,.2); color: var(--cream); text-decoration: none; font: 900 15px/1.3 var(--grotesk); overflow-wrap: anywhere; user-select: text; }
 .letter li a span { font: 400 11px/1 var(--pixel); letter-spacing: .08em; }
 .letter .end { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(252,232,205,.2); }
 .letter .end a, .letter .end button { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border: 2px solid var(--orange); background: none; color: var(--cream); font: 400 11px/1 var(--pixel); letter-spacing: .06em; text-decoration: none; cursor: pointer; }
 .letter .end small { font: 900 10px/1 var(--grotesk); letter-spacing: .1em; opacity: .8; }
-.letter .end button { background: var(--orange); }
+.letter .end button { background: var(--orange); color: var(--bg); }
+.letter .tag { color: var(--bg); }
 .letter a:hover, .letter a:hover span { color: var(--gold); }
 .letter a:focus-visible, .letter button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 body.handheld .letter { width: calc(100% - 20px); max-height: calc(100% - 20px); padding: 12px 18px 12px; font-size: 14px; }
@@ -157,7 +171,7 @@ body.handheld .letter .me { width: 56px; height: 56px; border-width: 2px; }
 body.handheld .letter .body p { margin-top: 8px; }
 /* Phones held upright: the room only plays sideways. */
 .tilt { display: none; }
-@media (orientation: portrait) and (max-width: 900px) {
+@media (orientation: portrait) and (max-width: 900px) and (pointer: coarse) {
   .tilt { display: grid; position: fixed; inset: 0; z-index: 5; place-content: center; justify-items: center; gap: 14px; padding: 16px; background: var(--bg); text-align: center; }
   .tilt svg { width: 72px; height: 72px; animation: tilt 2.4s ease-in-out infinite; }
   .tilt h2 { margin: 0; font: 900 28px/1.1 var(--grotesk); letter-spacing: .02em; }
@@ -184,10 +198,10 @@ body.handheld .letter .body p { margin-top: 8px; }
     </div>
     <div class="glass">
       <div class="standby" id="standby" role="status"><div>
-        <div class="wait"><p class="pix">STANDBY</p><small lang="ja">スタンバイ</small><p>Omar’s room is warming up.</p><a href="quick/">IN A HURRY? QUICK VIEW →</a></div>
+        <div class="wait"><p class="pix">STANDBY</p><small lang="ja">スタンバイ</small><p class="warm">Omar’s room is warming up.</p><p class="slow">Slow connection. The room is still on its way; the quick view is lighter.</p><a href="quick/">IN A HURRY? QUICK VIEW →</a></div>
         <div class="fail"><p class="pix">NO SIGNAL</p><small lang="ja">ノーシグナル</small><p>The room couldn’t load on this connection.</p><a href="quick/">Open the quick view →</a><a href="mailto:primordialrune@gmail.com">primordialrune@gmail.com</a></div>
       </div></div>
-      <canvas id="crt" tabindex="-1" role="img" aria-label="Omar Golinelli’s portfolio: a 3D room seen through a Trinitron. Arrow keys pick an object, Enter uses it, Escape steps back, Q opens the quick view. Number keys move once a place opens."></canvas>
+      <canvas id="crt" tabindex="0" role="application" aria-roledescription="room" aria-label="Omar Golinelli’s portfolio: a 3D room seen through a Trinitron. Arrow keys pick an object, Enter uses it, Escape steps back, Q opens the quick view. Number keys move once a place opens."></canvas>
       <!-- The letter is real text over the glass (P1): selectable, copyable, no CRT on it. room.js fills it from LETTER. -->
       <section class="letter" id="letter" role="dialog" aria-modal="true" aria-labelledby="letter-h" hidden>
         <p class="tag">A LETTER</p>
@@ -218,7 +232,7 @@ body.handheld .letter .body p { margin-top: 8px; }
   <a class="sticker" href="quick/">IN A HURRY? QUICK VIEW →<small lang="ja">クイックビュー</small></a>
   <details class="credits"><summary>MODEL CREDITS</summary><p id="credits"></p></details>
 <div class="tilt" role="dialog" aria-modal="true" aria-labelledby="tilt-name">
-  <h2 id="tilt-name">OMAR GOLINELLI</h2>
+  <h2 id="tilt-name" tabindex="-1">OMAR GOLINELLI</h2>
   <p class="role">Game designer &amp; developer</p><small lang="ja">ゲームデザイナー</small>
   <svg viewBox="0 0 64 64" aria-hidden="true"><rect x="20" y="6" width="24" height="52" rx="5" fill="none" stroke="#fce8cd" stroke-width="3"/><rect x="24" y="12" width="16" height="36" fill="#ec563b"/><circle cx="32" cy="53" r="2" fill="#fce8cd"/></svg>
   <p>TURN THE SCREEN SIDEWAYS</p>
@@ -241,7 +255,15 @@ try { const c = document.createElement('canvas'); if (!(c.getContext('webgl2') |
 // The room removes the card when the tube powers on, so a slow connection still gets the room.
 window.__roomFail = () => { if (window.__room) return; document.body.classList.add('cold'); };
 addEventListener('error', (e) => { if (/jsdelivr|cdnjs|room\.js|stage\.js/.test((e.target && e.target.src) || e.filename || '')) window.__roomFail(); }, true);
-setTimeout(window.__roomFail, 25000);
+// It only fails when nothing new has arrived for 10s: a slow line that is still loading says so and keeps waiting.
+let seen = 0;
+const check = () => {
+  if (window.__room) return;
+  const n = performance.getEntriesByType('resource').length;
+  if (n > seen) { seen = n; document.body.classList.add('slow'); return setTimeout(check, 10000); }
+  window.__roomFail();
+};
+setTimeout(check, 15000);
 // The quick view keeps the query (?free and the rest).
 if (location.search) for (const a of document.querySelectorAll('a[href="quick/"]')) a.href = 'quick/' + location.search;
 </script>
