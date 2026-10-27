@@ -120,6 +120,38 @@ body.handheld .bezel nav { position: static; width: 100%; max-width: 176px; heig
 .fine { display: flex; flex-direction: column; align-items: center; gap: 2px; }
 .fine button, .fine a { background: none; padding: 8px 6px; font: 400 9px/1 var(--pixel); letter-spacing: .06em; color: rgba(252,232,205,.55); text-decoration: none; }
 .fine [hidden] { display: none; }
+/* Desktop: the small print leaves the bezel for the page; a keyboard on it shows the row as pills, bottom right. */
+body:not(.handheld) .fine { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+body:not(.handheld) .fine:focus-within { position: fixed; right: max(16px, env(safe-area-inset-right)); bottom: 44px; width: auto; height: auto; clip: auto; overflow: visible; flex-direction: row; gap: 6px; z-index: 3;
+  padding: 6px; border-radius: 999px; background: rgba(11,11,13,.92); }
+body:not(.handheld) .fine button, body:not(.handheld) .fine a { padding: 8px 14px; border: 0; border-radius: 999px; background: rgba(236,86,59,.35); color: var(--cream); font: 400 11px/1 var(--pixel); cursor: pointer; }
+body:not(.handheld) .fine :focus { background: var(--gold); color: var(--peacock); outline: 2px solid var(--orange); }
+canvas:focus { outline: none; }
+/* The letter: the in-tube window's family (peacock, a cream rule, an orange tag), but real text. */
+.letter { position: absolute; z-index: 2; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(600px, calc(100% - 32px)); max-height: calc(100% - 32px); overflow: auto; overscroll-behavior: contain;
+  padding: 18px 26px 16px; background: var(--peacock); color: var(--cream); outline: 2px solid var(--cream); outline-offset: -6px; font: 200 16px/1.5 var(--grotesk); cursor: auto; }
+.letter[hidden] { display: none; }
+.letter .tag { display: inline-block; margin: 0 0 10px; padding: 5px 8px; background: var(--orange); font: 400 11px/1 var(--pixel); letter-spacing: .08em; }
+.letter .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.letter h2 { margin: 0; font: 900 28px/1.05 var(--grotesk); letter-spacing: .01em; outline: none; }
+.letter .role { margin: 6px 0 0; font: 900 14px/1.3 var(--grotesk); color: var(--aqua); }
+.letter .kana { font: 900 11px/1.4 var(--grotesk); color: var(--aqua); }
+.letter .me { flex: none; width: 112px; height: 112px; image-rendering: pixelated; border: 4px solid var(--cream); }
+.letter .body p { margin: 12px 0 0; max-width: 60ch; }
+.letter .skills { margin: 14px 0 6px; font: 400 9px/1.6 var(--pixel); letter-spacing: .06em; color: var(--gold); text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.letter ul { list-style: none; margin: 0; padding: 0; }
+.letter li a { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 44px; padding: 6px 8px; border-top: 1px solid rgba(252,232,205,.2); color: var(--cream); text-decoration: none; font: 900 15px/1.3 var(--grotesk); overflow-wrap: anywhere; user-select: text; }
+.letter li a span { font: 400 11px/1 var(--pixel); letter-spacing: .08em; }
+.letter .end { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(252,232,205,.2); }
+.letter .end a, .letter .end button { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border: 2px solid var(--orange); background: none; color: var(--cream); font: 400 11px/1 var(--pixel); letter-spacing: .06em; text-decoration: none; cursor: pointer; }
+.letter .end small { font: 900 10px/1 var(--grotesk); letter-spacing: .1em; opacity: .8; }
+.letter .end button { background: var(--orange); }
+.letter a:hover, .letter a:hover span { color: var(--gold); }
+.letter a:focus-visible, .letter button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+body.handheld .letter { width: calc(100% - 20px); max-height: calc(100% - 20px); padding: 12px 18px 12px; font-size: 14px; }
+body.handheld .letter h2 { font-size: 22px; }
+body.handheld .letter .me { width: 56px; height: 56px; border-width: 2px; }
+body.handheld .letter .body p { margin-top: 8px; }
 /* Phones held upright: the room only plays sideways. */
 .tilt { display: none; }
 @media (orientation: portrait) and (max-width: 900px) {
@@ -152,11 +184,23 @@ body.handheld .bezel nav { position: static; width: 100%; max-width: 176px; heig
         <div class="wait"><p class="pix">STANDBY</p><small lang="ja">スタンバイ</small><p>Omar’s room is warming up.</p><a href="quick/">IN A HURRY? QUICK VIEW →</a></div>
         <div class="fail"><p class="pix">NO SIGNAL</p><small lang="ja">ノーシグナル</small><p>The room couldn’t load on this connection.</p><a href="quick/">Open the quick view →</a><a href="mailto:primordialrune@gmail.com">primordialrune@gmail.com</a></div>
       </div></div>
-      <canvas id="crt" role="img" aria-label="Omar Golinelli’s portfolio: a 3D room seen through a Trinitron. Arrow keys pick an object, Enter uses it, Escape steps back, Q opens the quick view. Number keys move once a place opens."></canvas>
+      <canvas id="crt" tabindex="-1" role="img" aria-label="Omar Golinelli’s portfolio: a 3D room seen through a Trinitron. Arrow keys pick an object, Enter uses it, Escape steps back, Q opens the quick view. Number keys move once a place opens."></canvas>
+      <!-- The letter is real text over the glass (P1): selectable, copyable, no CRT on it. room.js fills it from LETTER. -->
+      <section class="letter" id="letter" role="dialog" aria-modal="true" aria-labelledby="letter-h" hidden>
+        <p class="tag">A LETTER</p>
+        <div class="head">
+          <div><h2 id="letter-h" tabindex="-1">OMAR GOLINELLI</h2><p class="role"></p><small class="kana" lang="ja"></small></div>
+          <img class="me" src="labels/omar-pixel.png" alt="Omar’s photo, pixelated to four colours" width="112" height="112">
+        </div>
+        <div class="body"></div>
+        <p class="skills"></p>
+        <ul class="contacts"></ul>
+        <div class="end"><a class="games" href="quick/">ALL THE GAMES <small>quick view</small></a><button class="fold" type="button">FOLD IT AWAY</button></div>
+      </section>
     </div>
     <div class="bezel right">
       <div class="ab"><button class="a" aria-label="A, use">A</button><button class="b" aria-label="B, back">B</button><small class="la">USE</small><small class="lb">BACK</small></div>
-      <div class="fine"><button data-link="skip">SKIP STORY</button><button data-link="credits">CREDITS</button><a href="quick/">QUICK VIEW →</a></div>
+      <div class="fine"><button data-link="skip">SKIP STORY</button><button data-link="memories">MEMORIES</button><button data-link="credits">CREDITS</button><button data-link="crt">CRT: FULL</button><a href="quick/">QUICK VIEW →</a></div>
     </div>
     <div class="plate">OMAR GOLINELLI · GAME DESIGNER &amp; DEVELOPER</div>
     <div class="badge">TRINITRON</div>
@@ -180,6 +224,8 @@ body.handheld .bezel nav { position: static; width: 100%; max-width: 176px; heig
   <a class="mail" href="mailto:primordialrune@gmail.com">primordialrune@gmail.com</a>
 </div>
 <p class="sr" id="say" aria-live="polite"></p>
+<!-- #say is the narrator's voice; #status says where you are and what is under the cursor -->
+<p class="sr" id="status" aria-live="polite" aria-atomic="true"></p>
 <script>
 // No WebGL, no room: go straight to the quick view.
 try { const c = document.createElement('canvas'); if (!(c.getContext('webgl2') || c.getContext('webgl'))) location.replace('quick/'); } catch (e) { location.replace('quick/'); }

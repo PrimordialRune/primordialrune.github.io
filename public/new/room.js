@@ -7,11 +7,15 @@ import { loadItem, loadTexture } from './stage.js';
 
 // The picture is always 480 lines; its width follows the window, so the tube can fill it edge to edge.
 let H = 480, W = 640;
-const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+// Quiet CRT: no noise, no fringe, no bobbing, short moves. It follows the system's reduced motion until the
+// visitor picks one with CRT: FULL / QUIET; that pick is kept apart from the story save.
+const CRT_KEY = 'omars-room-crt', motionQ = matchMedia('(prefers-reduced-motion: reduce)');
+const crtPick = (() => { try { return localStorage.getItem(CRT_KEY); } catch { return null; } })();
+let quiet = crtPick ? crtPick === 'quiet' : motionQ.matches;
 // The room plays as an adventure: things are hidden until found, and each game unlocks the next.
 // Story mode is the default; ?free opens every object at once (no memories, no locks)
 const STORY = !new URLSearchParams(location.search).has('free');
-const DUR = reduce ? 0.35 : 1.1;
+let DUR = quiet ? 0.35 : 1.1;
 // Keep tweens on wall-clock time even when a slow GPU drops frames.
 gsap.ticker.lagSmoothing(0);
 
@@ -272,12 +276,12 @@ const CURVE = 'vec2 curve(vec2 uv){ uv = uv * 2.0 - 1.0; uv.x *= 1.0 + 0.045 * u
 function curve(u, v) { let x = u * 2 - 1, y = v * 2 - 1; x *= 1 + 0.045 * y * y; y *= 1 + 0.012 * x * x; return [x * 0.5 + 0.5, y * 0.5 + 0.5]; }
 
 const crtMat = new THREE.ShaderMaterial({
-  uniforms: { tScene: { value: rt.texture }, tUI: { value: uiTex }, uTime: { value: 0 }, uBurst: { value: 0 }, uPower: { value: 0 }, uOut: { value: new THREE.Vector2(1, 1) } },
+  uniforms: { tScene: { value: rt.texture }, tUI: { value: uiTex }, uTime: { value: 0 }, uBurst: { value: 0 }, uPower: { value: 0 }, uOut: { value: new THREE.Vector2(1, 1) }, uQuiet: { value: quiet ? 1 : 0 }, uClean: { value: 0 }, uRect: { value: new THREE.Vector4(0, 0, 0, 0) } },
   vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
   fragmentShader: `
     precision highp float;
     varying vec2 vUv;
-    uniform sampler2D tScene, tUI; uniform float uTime, uBurst, uPower; uniform vec2 uOut;
+    uniform sampler2D tScene, tUI; uniform float uTime, uBurst, uPower, uQuiet, uClean; uniform vec2 uOut; uniform vec4 uRect;
     ${CURVE}
     float hash(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
     vec3 tap(vec2 uv){
@@ -297,7 +301,7 @@ const crtMat = new THREE.ShaderMaterial({
       float tear = uBurst * (hash(vec2(line, floor(uTime * 30.0))) - 0.5) * 0.06 * step(0.7, hash(vec2(line * 0.37, floor(uTime * 12.0))));
       uv.x += tear;
       // convergence: a hair of red/blue misregistration
-      float c = 0.0009 + uBurst * 0.004;
+      float c = (0.0009 + uBurst * 0.004) * (1.0 - uQuiet);
       vec3 col;
       col.r = tap(uv + vec2(c, 0.0)).r;
       col.g = tap(uv).g;
@@ -316,9 +320,14 @@ const crtMat = new THREE.ShaderMaterial({
       col *= 1.0 - 0.18 * (1.0 - smoothstep(0.0, 0.0012, abs(uv.y - 0.333))) - 0.18 * (1.0 - smoothstep(0.0, 0.0012, abs(uv.y - 0.667)));
       // vignette + noise
       vec2 d = uv - 0.5; col *= 1.0 - dot(d, d) * 0.9;
-      col += (hash(uv * uOut + uTime) - 0.5) * (0.035 + uBurst * 0.25);
+      col += (hash(uv * uOut + uTime * (1.0 - uQuiet)) - 0.5) * (0.035 + uBurst * 0.25) * (1.0 - uQuiet);
       col *= 1.0 + 0.6 * (1.0 - smoothstep(0.0, 0.08, abs(band - open))) * (1.0 - open);
-      gl_FragColor = vec4(col * 1.12, 1.0);
+      col *= 1.12;
+      // an information window (project facts, memories, credits) is read, not looked at: it sits on the glass clean (P1)
+      vec4 ui = texture2D(tUI, uv);
+      float inRect = step(uRect.x, uv.x) * step(uv.x, uRect.z) * step(uRect.y, uv.y) * step(uv.y, uRect.w);
+      col = mix(col, ui.rgb, ui.a * uClean * inRect);
+      gl_FragColor = vec4(col, 1.0);
     }`,
   depthTest: false, depthWrite: false,
 });
@@ -328,14 +337,17 @@ const quadCam = new THREE.Camera();
 
 let cam = null; // the room camera, once it exists
 // Phones sideways become a handheld: a 4:3 tube in the middle, the pad and the nav on the left bezel, A and B on the right.
-const navEl = document.getElementById('nav'), bezelL = document.querySelector('.bezel.left');
-let coarse = matchMedia('(pointer: coarse)').matches, handheld = false;
+const navEl = document.getElementById('nav'), bezelL = document.querySelector('.bezel.left'), bezelR = document.querySelector('.bezel.right'), fineEl = document.querySelector('.fine');
+let coarse = matchMedia('(pointer: coarse)').matches, handheld = null; // null until the first layout, so a desktop is laid out too
 function layout() {
   const hh = coarse && innerWidth / innerHeight > 1.75;
   if (hh === handheld) return;
   handheld = hh;
   document.body.classList.toggle('handheld', hh);
-  if (hh) bezelL.prepend(navEl); else document.body.insertBefore(navEl, document.querySelector('.credits'));
+  // on a desktop the small print leaves the bezel and follows the nav, so Tab reaches it (pills on focus, bottom right)
+  if (hh) { bezelL.prepend(navEl); bezelR.append(fineEl); } else { document.body.insertBefore(navEl, document.querySelector('.sticker')); navEl.after(fineEl); }
+  // the sticker on the chin is the desktop's quick view: no second one in the row
+  const q = fineEl.querySelector('a[href^="quick/"]'); if (q) q.hidden = !hh && !!document.querySelector('.sticker');
 }
 function resize() {
   layout();
@@ -700,8 +712,10 @@ function moveTo(pos, at, dur = DUR) {
   gsap.to(look, { x: at[0], y: at[1], z: at[2], duration: dur, ease: 'power3.inOut', overwrite: true });
 }
 function setNav(s) { spot = s; document.querySelectorAll('#nav button').forEach((b) => b.setAttribute('aria-current', String(b.dataset.spot === s))); }
-function goSpot(s) {
-  if (!SPOTS[s] || state.busy || !spotOpen(s)) return;
+function goSpot(s, said) {
+  if (!SPOTS[s] || state.busy) return;
+  // a place that isn't open yet answers with the hint, instead of nothing
+  if (!spotOpen(s)) { say(nextHint(false) || '* not yet.', 2.4); speak('Not open yet'); return; }
   acted();
   if (s !== 'desk') loadRest();
   closePanel();
@@ -713,7 +727,7 @@ function goSpot(s) {
   if (STORY && s === 'table' && story.flags.has('postcard-read') && !story.found.has('gba-cart')) { story.found.add('gba-cart'); setTimeout(() => reveal('gba-cart'), DUR * 1000); }
   if (s === 'drawer' && !state.sawDrawer) { state.sawDrawer = true; setTimeout(() => { say(LINES.drawer); glitchName(); }, DUR * 1000 + 300); }
   burst(0.35);
-  focusIdx = -1;
+  speak(said || PLACE[s]);
 }
 document.getElementById('nav').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) goSpot(b.dataset.spot); });
 // Look at an object from above and in front, at a distance that fits its size.
@@ -748,7 +762,7 @@ function next() {
   nar.cur = n; nar.text = n.t; nar.shown = 0; nar.visible = true; nar.until = Infinity;
   // longer lines stay up longer
   nar.hold = Math.max(n.hold, 1.2 + n.t.split(' ').length * 0.3);
-  if (reduce) { nar.shown = nar.text.length; nar.until = performance.now() + nar.hold * 1000; }
+  if (quiet) { nar.shown = nar.text.length; nar.until = performance.now() + nar.hold * 1000; }
   document.getElementById('say').textContent = n.t.replace(/^\* /, '');
   n.on?.(); // and do something as it starts (the envelope lights on its line)
 }
@@ -766,7 +780,7 @@ function boxAt(u, v) {
 function glitchName() {
   // the only crack in act 1: the name tag slips for a frame or two
   nar.name = '0MAR'; burst(0.6);
-  setTimeout(() => { nar.name = 'OMAR'; }, reduce ? 400 : 160);
+  setTimeout(() => { nar.name = 'OMAR'; }, quiet ? 400 : 160);
 }
 function tickNarrator(dt) {
   if (!nar.visible) return;
@@ -812,6 +826,12 @@ const PROMPT = (id) => {
   if (id === 'ptcg-cube-rulebook' && STORY) return 'READ';
   return 'LOOK';
 };
+// What a screen reader hears for a thing: the game's title, or what the object is. Never an internal id.
+const NAME = (id) => PROJECTS[id]?.title || { pc: 'the PC', 'gb-console': 'Game Boy', 'gba-console': 'Game Boy Advance', 'ds-console': 'Nintendo DS', 'crossfader-player': 'cassette player', envelope: 'a letter', postcard: 'a postcard', drawer: 'the drawer' }[id] || id;
+const PLACE = { desk: 'Desk', table: 'Table', drawer: 'Drawer' };
+// #status says where you are and what is picked; the same words twice still get read (a trailing space flips)
+const statusEl = document.getElementById('status');
+function speak(t) { if (!statusEl) return; statusEl.textContent = statusEl.textContent === t ? t + '\u00a0' : t; }
 function highlight(ids) {
   for (const [id, o] of Object.entries(objects)) gsap.to(o, { glow: ids.includes(id) ? 1 : 0, duration: 0.4 });
 }
@@ -824,7 +844,7 @@ function activate(id) {
   if (id === 'drawer') {
     if (spotOpen('drawer')) return goSpot('drawer');
     say(STORY_LINES.drawerLocked, 2.4);
-    gsap.fromTo(drawer.position, { z: DRAWER_SHUT }, { z: DRAWER_SHUT + 0.015, duration: 0.07, yoyo: true, repeat: 3 });
+    if (!quiet) gsap.fromTo(drawer.position, { z: DRAWER_SHUT }, { z: DRAWER_SHUT + 0.015, duration: 0.07, yoyo: true, repeat: 3 });
     return;
   }
   if (id === 'envelope') return openLetter();
@@ -1013,7 +1033,7 @@ function storyEjected(game) {
     lines.push(...kept(STORY_LINES.drawerOpens), { t: LINES.drawer, keep: true, on: glitchName });
     setTimeout(() => {
       openSpot('drawer'); reveal('cd-jewel');
-      gsap.fromTo(drawer.position, { z: DRAWER_SHUT }, { z: DRAWER_SHUT + 0.03, duration: 0.12, yoyo: true, repeat: 1 });
+      if (!quiet) gsap.fromTo(drawer.position, { z: DRAWER_SHUT }, { z: DRAWER_SHUT + 0.03, duration: 0.12, yoyo: true, repeat: 1 });
       goSpot('drawer');
     }, 400);
   }
@@ -1063,7 +1083,7 @@ async function reveal(id, hold = false) {
   o.root.traverse((n) => n.userData.redraw?.());
   o.root.visible = true;
   const y = o.root.position.y;
-  gsap.fromTo(o.root.position, { y: y + 0.18 }, { y, duration: reduce ? 0.01 : 0.55, ease: 'bounce.out' });
+  gsap.fromTo(o.root.position, { y: y + 0.18 }, { y, duration: quiet ? 0.01 : 0.55, ease: 'bounce.out' });
   burst(0.35);
   if (hold) beckon.add(id); else { o.glow = 1; gsap.to(o, { glow: 0, duration: 2.4, delay: 1 }); }
 }
@@ -1074,9 +1094,9 @@ function lampGoes() {
   if (story.flags.has('torch')) return;
   story.flags.add('torch'); persist();
   const tl = gsap.timeline();
-  for (const k of [0.1, 1, 0.05, 0.8, 0.02, 0.6]) tl.set(lamp, { intensity: LAMP_FULL * k }, `+=${reduce ? 0 : 0.09}`);
+  for (const k of [0.1, 1, 0.05, 0.8, 0.02, 0.6]) tl.set(lamp, { intensity: LAMP_FULL * k }, `+=${quiet ? 0 : 0.09}`);
   tl.call(() => { dimLamp(); burst(0.3); queue(STORY_LINES.torch, undefined, { keep: true }); });
-  tl.to(torch, { intensity: TORCH, duration: reduce ? 0.01 : 0.6, ease: 'power2.out' }, '+=1.2');
+  tl.to(torch, { intensity: TORCH, duration: quiet ? 0.01 : 0.6, ease: 'power2.out' }, '+=1.2');
 }
 if (STORY && story.flags.has('torch')) { dimLamp(); torch.intensity = TORCH; }
 function openSpot(s) { if (story.spots.has(s)) return; story.spots.add(s); persist(); navFlash[s] = clock.elapsedTime; burst(0.3); }
@@ -1102,7 +1122,7 @@ function findSystem(sys, game) {
       return say(STORY_LINES.gbaAsleep);
     }
     // found it: put the game in
-    if (game && playable(sys).includes(game)) setTimeout(() => { if (!state.busy && !state.playing) insert(game, sys); }, reduce ? 300 : 1600);
+    if (game && playable(sys).includes(game)) setTimeout(() => { if (!state.busy && !state.playing) insert(game, sys); }, quiet ? 300 : 1600);
   }, DUR * 1000 + 200);
 }
 // The Cube's rulebook deals the next games: one face-down pick at a time, the next once the last is played.
@@ -1200,7 +1220,7 @@ function eject(after) {
 function openLetter() {
   state.busy = true; closePanel(); say(LINES.letter);
   frameObject('envelope', 1.1);
-  const tl = ceremony(gsap.timeline({ onComplete: () => { state.busy = false; openPanel(letterPanel()); } }));
+  const tl = ceremony(gsap.timeline({ onComplete: () => { state.busy = false; if (letterEl) showLetter(); else openPanel(letterPanel()); } }));
   tl.to(flap.rotation, { x: FLAP_OPEN, duration: 0.6, ease: 'power2.out' }, DUR * 0.6);
   tl.call(() => { letterMesh.visible = true; });
   // slide the folded letter out, lift it toward you, then open it a third at a time
@@ -1212,7 +1232,7 @@ function openLetter() {
   tl.to({}, { duration: 0.15 });
 }
 function closeLetter() {
-  const tl = ceremony(gsap.timeline({ onComplete: () => { letterMesh.visible = false; state.busy = false; goSpot('desk'); } }));
+  const tl = ceremony(gsap.timeline({ onComplete: () => { letterMesh.visible = false; state.busy = false; goSpot('desk', 'Letter folded away. Desk.'); } }));
   state.busy = true;
   // fold it back in three, lay it down, slide it home
   tl.to(foldMid.rotation, { x: FOLD, duration: 0.4, ease: 'power2.inOut' });
@@ -1223,14 +1243,52 @@ function closeLetter() {
   tl.to(flap.rotation, { x: FLAP_SHUT, duration: 0.45, ease: 'power2.in' });
 }
 
+// The letter itself is real text over the glass (P1): the dialog in index.html, filled here from LETTER.
+// While it is open, a stand-in panel keeps the room quiet (no hints, no nav, no narrator box) and B folds it.
+const letterEl = document.getElementById('letter');
+if (letterEl) {
+  const $ = (q) => letterEl.querySelector(q);
+  $('#letter-h').textContent = LETTER.name;
+  $('.role').textContent = LETTER.role; $('.kana').textContent = LETTER.kana;
+  for (const t of LETTER.body) $('.body').appendChild(document.createElement('p')).textContent = t;
+  $('.skills').textContent = LETTER.skills;
+  for (const c of LETTER.contacts) {
+    const a = $('.contacts').appendChild(document.createElement('li')).appendChild(document.createElement('a'));
+    a.href = c.url; if (!c.url.startsWith('mailto')) { a.target = '_blank'; a.rel = 'noopener'; }
+    a.appendChild(document.createElement('span')).textContent = c.label; a.append(c.note);
+  }
+  $('.fold').addEventListener('click', () => foldLetter());
+  letterEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { e.preventDefault(); foldLetter(); return; }
+    if (e.key !== 'Tab') return;
+    // Tab stays inside the letter
+    const f = [...letterEl.querySelectorAll('a[href], button')]; const i = f.indexOf(document.activeElement);
+    if (e.shiftKey && i <= 0) { e.preventDefault(); f.at(-1).focus(); } else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); }
+  });
+}
+function showLetter() {
+  panel = { kind: 'letter', dom: true, sel: 0, items: [{ label: 'FOLD IT AWAY', act: () => foldLetter() }] };
+  letterEl.hidden = false; letterEl.scrollTop = 0;
+  letterEl.querySelector('#letter-h').focus({ preventScroll: true });
+}
+function foldLetter() {
+  if (letterEl.hidden) return;
+  letterEl.hidden = true; panel = null;
+  canvas.focus({ preventScroll: true });
+  closeLetter();
+}
+
 // ---------- the menu inside the tube ----------
 // One JRPG window for everything you can do with a thing: project facts on top, a cursor menu below.
 let panel = null;
 function openPanel(p) { panel = p; panel.sel = 0; announcePanel(); }
-function closePanel() { panel = null; }
+function closePanel() { if (panel && !panel.dom) speak(PLACE[spot]); panel = null; }
+const rowSpeech = (it) => it.speech || (it.note ? `${it.label}, ${it.note}` : it.label);
 function announcePanel() {
-  if (!panel) return;
-  document.getElementById('say').textContent = [panel.title, panel.body?.join(' '), panel.part && 'My part: ' + panel.part, 'Options: ' + panel.items.map((i) => i.label).join(', ')].filter(Boolean).map((t) => t.replace(/\.$/, '')).join('. ');
+  if (!panel || panel.dom) return;
+  // one sentence per part, no doubled periods: 'Crossfader. A game jam game… My part: … Options: PLAY IT; CASE STUDY; BACK'
+  const parts = [panel.title, panel.body?.join(' '), panel.part && 'My part: ' + panel.part, 'Options: ' + panel.items.map(rowSpeech).join('; ')].filter(Boolean).map((t) => t.trim().replace(/\.$/, ''));
+  speak(parts.reduce((a, t) => a + (/[?!:]$/.test(a) ? ' ' : '. ') + t));
 }
 // PLAY IT goes straight in when the system is out and takes it; otherwise the system says why not.
 function playIt(id) {
@@ -1260,19 +1318,20 @@ const SLUG = { 'gb-cart': 'galactic-news', 'gba-cart': 'minamoto', 'ds-cart': 'l
 function openStudy(id) {
   if (!SLUG[id] || state.leaving) return;
   state.leaving = true; closePanel(); burst(0.8);
-  gsap.to(crtMat.uniforms.uPower, { value: 0, duration: reduce ? 0.05 : 0.35, ease: 'power2.in', onComplete: () => { location.href = `study/${SLUG[id]}/`; } });
+  gsap.to(crtMat.uniforms.uPower, { value: 0, duration: quiet ? 0.05 : 0.35, ease: 'power2.in', onComplete: () => { location.href = `study/${SLUG[id]}/`; } });
 }
 // Coming back with BACK can restore this page from the browser's cache with the picture still off: switch it on.
 addEventListener('pageshow', (e) => {
   if (!e.persisted) return;
   state.leaving = false;
   if (state.playing && !state.busy && !panel) openProject(state.playing.game, true); // the game is still in: its menu comes back with it
-  gsap.to(crtMat.uniforms.uPower, { value: 1, duration: reduce ? 0.05 : 0.5, ease: 'power2.out' });
+  gsap.to(crtMat.uniforms.uPower, { value: 1, duration: quiet ? 0.05 : 0.5, ease: 'power2.out' });
 });
 function letterPanel() {
   return {
     kind: 'letter', tag: 'A LETTER', title: LETTER.name, kana: `${LETTER.role}  ${LETTER.kana}`, body: LETTER.body, extra: LETTER.skills,
     items: [...LETTER.contacts.map((c) => ({ label: c.label, note: c.note, act: () => window.open(c.url, c.url.startsWith('mailto') ? '_self' : '_blank', 'noopener') })),
+      { label: 'ALL THE GAMES', note: 'quick view', act: () => { location.href = 'quick/' + location.search; } },
       { label: 'FOLD IT AWAY', act: () => { closePanel(); closeLetter(); } }],
   };
 }
@@ -1281,7 +1340,8 @@ let panelHits = [];
 const portrait = new Image(); portrait.src = 'labels/omar-pixel.png';
 function drawPanel(t) {
   panelHits = [];
-  if (!panel) return;
+  crtMat.uniforms.uClean.value = 0;
+  if (!panel || panel.dom) return;
   const letter = panel.kind === 'letter', wide = letter || panel.kind === 'credits' || panel.kind === 'memories';
   const short = H < 480; // phones sideways: wider windows, bigger rows for thumbs, clear of the bigger nav
   // with a finger, the game window grows and keeps clear of the A/B buttons on the right
@@ -1304,6 +1364,11 @@ function drawPanel(t) {
   const k = Math.min(1, (H - 10 - (handheld && !wide && !compact ? 96 : !handheld && !wide && !short ? 94 : 0) - y) / h), cx0 = x + w / 2;
   g2.save();
   if (k < 1) { g2.translate(cx0, y); g2.scale(k, k); g2.translate(-cx0, -y); }
+  // the shader lays this window on clean (no fringe, no scanlines), tag included; the narrator box and HUD keep the tube
+  if (panel.kind === 'project' || panel.kind === 'memories' || panel.kind === 'credits') {
+    const l = cx0 + (x - 2 - cx0) * k, r = cx0 + (x + w + 2 - cx0) * k, top = y - 13 * k, bot = y + (h + 2) * k;
+    crtMat.uniforms.uClean.value = 1; crtMat.uniforms.uRect.value.set(l / W, 1 - bot / H, r / W, 1 - top / H);
+  }
   // window: same family as the dialogue box
   g2.fillStyle = 'rgba(16,47,65,0.96)'; g2.fillRect(x, y, w, h);
   g2.strokeStyle = '#fce8cd'; g2.lineWidth = 2; g2.strokeRect(x + 4, y + 4, w - 8, h - 8);
@@ -1335,10 +1400,11 @@ function drawPanel(t) {
   cy += 8;
   panel.items.forEach((it, i) => {
     const on = i === panel.sel;
-    if (on) { g2.fillStyle = '#ec563b'; g2.fillRect(x + 14, cy - itemH / 2 + 1, w - 28, itemH - 2); }
-    g2.font = `${big ? 15 : 12}px "8bitDarling"`; g2.fillStyle = on ? '#fce8cd' : 'rgba(252,232,205,0.85)';
+    // the picked row: peacock on gold, the strongest contrast the palette has
+    if (on) { g2.fillStyle = '#fadb68'; g2.fillRect(x + 14, cy - itemH / 2 + 1, w - 28, itemH - 2); }
+    g2.font = `${big ? 15 : 12}px "8bitDarling"`; g2.fillStyle = on ? '#102f41' : 'rgba(252,232,205,0.85)';
     g2.fillText((on ? '▶ ' : '  ') + it.label, x + 22, cy + 1);
-    if (it.note) { g2.font = '900 12px "FK Grotesk"'; g2.fillStyle = on ? '#fce8cd' : '#4eb99f'; g2.textAlign = 'right'; g2.fillText(it.note, x + w - 24, cy + 1); g2.textAlign = 'left'; }
+    if (it.note) { g2.font = '900 12px "FK Grotesk"'; g2.fillStyle = on ? '#102f41' : '#4eb99f'; g2.textAlign = 'right'; g2.fillText(it.note, x + w - 24, cy + 1); g2.textAlign = 'left'; }
     panelHits.push({ i, x: cx0 + (x + 14 - cx0) * k, y: y + (cy - itemH / 2 - y) * k, w: (w - 28) * k, h: itemH * k });
     cy += itemH;
   });
@@ -1357,7 +1423,7 @@ let navHits = [], navHover = null;
 const NAV = [['desk', '01', 'DESK', 'デスク'], ['table', '02', 'TABLE', 'テーブル'], ['drawer', '03', 'DRAWER', 'ひきだし']];
 function drawNav() {
   navHits = [];
-  syncBezel(); // the DOM nav hides places not found yet, for keyboards too
+  syncDomNav(); // the DOM nav hides places not found yet, for keyboards too, on every layout
   if (handheld) return; // the bezel carries the nav and the small print
   if (panel && panel.kind !== 'project') return;
   // on short screens (phones sideways) the bars grow so a thumb can hit them
@@ -1381,12 +1447,13 @@ function drawNav() {
     x -= 8;
   }
   g2.restore();
-  if (panel) return;
-  // small print, bottom right, above nothing else
+  // small print, bottom right, above nothing else; while a keyboard is on the DOM row, its pills stand in for it
+  if (panel || fineEl.matches(':focus-within')) return;
   g2.font = `${Math.round(9 * ns)}px "${FONT_PIX}"`; g2.textAlign = 'right';
   // on a desktop the sticker on the bezel is the quick view, so the tube only lists it on a handheld
   const links = [['credits', 'CREDITS', () => openPanel(creditsPanel())]];
   if (handheld) links.unshift(['quick', 'QUICK VIEW →', () => { location.href = 'quick/' + location.search; }]);
+  links.push(['crt', quiet ? 'CRT: QUIET' : 'CRT: FULL', toggleQuiet]);
   if (STORY && !story.flags.has('skipped') && !story.flags.has('complete')) links.push(['skip', 'SKIP STORY', () => openPanel(skipPanel())]);
   let rx = W - 18; const ry = H - 16;
   for (const [id, label, act] of links) {
@@ -1472,7 +1539,7 @@ canvas.addEventListener('click', (e) => {
   const touch = pointerType === 'touch';
   if (touch) { mouse.in = false; navHover = null; if (swiped) { swiped = false; return; } }
   const nh = navAt(mouse.u, mouse.v);
-  if (nh && (nh.id === 'quick' || nh.id === 'credits')) return nh.act();
+  if (nh && (nh.id === 'quick' || nh.id === 'credits' || nh.id === 'crt')) return nh.act();
   // mid-ceremony, a click finishes it
   if (skipCeremony()) return;
   if (nh) { if (!state.busy) { acted(); nh.act(); } return; }
@@ -1510,12 +1577,28 @@ function pressB() {
   if (state.mode === 'choose') { resetChoice(); goSpot(spot); } else if (spot !== 'desk') goSpot('desk');
 }
 // The bezel's buttons (handheld layout)
-function bez(sel, fn) { document.querySelectorAll(sel).forEach((b) => b.addEventListener('click', (e) => { e.preventDefault(); state.idle = 0; touchUI = true; endBoot(); fn(b); })); }
+// On a desktop the small print is reached by keyboard: a window it opens takes the keys (focus goes to the tube).
+function bez(sel, fn) { document.querySelectorAll(sel).forEach((b) => b.addEventListener('click', (e) => { e.preventDefault(); state.idle = 0; if (handheld || e.pointerType === 'touch') touchUI = true; endBoot(); fn(b); if (!handheld && panel && !panel.dom) canvas.focus({ preventScroll: true }); })); }
 bez('.ab .a', pressA); bez('.ab .b', pressB);
 bez('.dpad [data-d]', (b) => { const d = b.dataset.d; step(d === 'left' || d === 'up' ? -1 : 1, d === 'left' || d === 'right' ? 'x' : 'y'); });
 bez('[data-link="credits"]', () => openPanel(creditsPanel()));
 bez('[data-link="skip"]', () => openPanel(skipPanel()));
-function syncBezel() {
+bez('[data-link="memories"]', () => openPanel(story.flags.has('complete') ? endPanel() : memoriesPanel()));
+bez('[data-link="crt"]', () => toggleQuiet());
+document.querySelector('[data-link="memories"]').hidden = !STORY;
+// CRT: FULL / QUIET. The pick is saved on its own key; without one, the system's reduced motion decides, live.
+function setQuiet(q) {
+  quiet = q; DUR = q ? 0.35 : 1.1; crtMat.uniforms.uQuiet.value = q ? 1 : 0;
+  if (q) crtMat.uniforms.uBurst.value = 0;
+}
+function toggleQuiet() {
+  setQuiet(!quiet);
+  try { localStorage.setItem(CRT_KEY, quiet ? 'quiet' : 'full'); } catch { /* no storage: it lasts this visit */ }
+  speak(quiet ? 'CRT quiet: no noise, no motion' : 'CRT full');
+}
+motionQ.addEventListener?.('change', (e) => { let picked = null; try { picked = localStorage.getItem(CRT_KEY); } catch { /* none */ } if (!picked) setQuiet(e.matches); });
+const crtBtn = document.querySelector('[data-link="crt"]');
+function syncDomNav() {
   const t = clock.elapsedTime;
   for (const b of navEl.querySelectorAll('button')) {
     const id = b.dataset.spot, hide = !spotOpen(id);
@@ -1525,6 +1608,7 @@ function syncBezel() {
   }
   const sk = document.querySelector('[data-link="skip"]'), noSkip = !(STORY && !story.flags.has('skipped') && !story.flags.has('complete'));
   if (sk.hidden !== noSkip) sk.hidden = noSkip;
+  const crt = quiet ? 'CRT: QUIET' : 'CRT: FULL'; if (crtBtn.textContent !== crt) crtBtn.textContent = crt;
 }
 // D-pad: along x through the objects in view, left to right as they sit on screen; along y through menu rows.
 function step(dir, axis) {
@@ -1532,16 +1616,16 @@ function step(dir, axis) {
   if (axis === 'y' || state.mode === 'boot' || state.busy || state.playing) return;
   const list = inView().map((id) => [id, screenOf(id, true)]).filter(([, at]) => at && at[0] > 0 && at[0] < W).sort((p, q) => p[1][0] - q[1][0]).map(([id]) => id);
   if (!list.length) return;
-  const i = list.indexOf(state.hover);
-  state.hover = list[i < 0 ? (dir > 0 ? 0 : list.length - 1) : (i + dir + list.length) % list.length];
+  const i = list.indexOf(state.hover), j = i < 0 ? (dir > 0 ? 0 : list.length - 1) : (i + dir + list.length) % list.length;
+  state.hover = list[j];
+  return { list, i: j };
 }
 
-// keyboard: arrows pick among objects in view (or menu entries), Enter uses, Esc steps back, 1-3 move
-let focusIdx = -1;
+// keyboard: arrows pick among objects in view (or menu entries), Enter uses, Esc steps back, 1-3 move, Q the quick view
 function inView() { return Object.entries(objects).filter(([id, o]) => (o.place.spot === spot || (state.mode === 'choose' && playable(state.system).includes(id))) && o.root.visible).map(([id]) => id); }
 addEventListener('keydown', (e) => {
   endBoot(false, e.key === 'Enter' || e.key === ' ');
-  if (e.target.closest && e.target.closest('nav, details')) return;
+  if (e.target.closest && e.target.closest('nav, details, .letter')) return;
   // Enter and Space on a focused link or button belong to it
   const own = !!e.target.closest?.('a, button, input, textarea, select');
   if ((e.key === 'Enter' || e.key === ' ') && !own && skipCeremony()) { e.preventDefault(); return; }
@@ -1550,22 +1634,25 @@ addEventListener('keydown', (e) => {
     else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { panel.sel = (panel.sel - 1 + panel.items.length) % panel.items.length; e.preventDefault(); }
     else if (e.key === 'Enter' || e.key === ' ') { useRow(panel.items[panel.sel]); e.preventDefault(); }
     else if (e.key === 'Escape') useRow(panel.items.at(-1));
-    if (panel) document.getElementById('say').textContent = panel.items[panel.sel].label;
+    if (panel && /^Arrow/.test(e.key)) speak(rowSpeech(panel.items[panel.sel]));
     return;
   }
+  const typing = !!e.target.closest?.('input, textarea, select');
   if (e.key === '1') goSpot('desk'); else if (e.key === '2') goSpot('table'); else if (e.key === '3') goSpot('drawer');
+  else if ((e.key === 'q' || e.key === 'Q') && !typing && !e.ctrlKey && !e.metaKey && !e.altKey) location.href = 'quick/' + location.search;
   else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-    const list = inView(); if (!list.length) return;
-    focusIdx = (focusIdx + (e.key === 'ArrowRight' ? 1 : -1) + list.length) % list.length;
-    state.hover = list[focusIdx]; state.keyHover = true; e.preventDefault();
-    document.getElementById('say').textContent = `${state.hover}: ${PROMPT(state.hover) || ''}`;
-  } else if (e.key === 'Enter' && state.keyHover && state.hover) { activate(state.hover); e.preventDefault(); }
+    // the same screen order (left to right) as the D-pad and swipes
+    const r = step(e.key === 'ArrowRight' ? 1 : -1, 'x'); if (!r) return;
+    state.keyHover = true; e.preventDefault();
+    const id = r.list[r.i], pr = PROMPT(id);
+    speak([NAME(id), pr, `${r.i + 1} of ${r.list.length}`].filter(Boolean).join('. '));
+  } else if (e.key === 'Enter' && !own && state.keyHover && state.hover) { activate(state.hover); e.preventDefault(); }
   else if ((e.key === 'Enter' || e.key === ' ') && !own && !state.keyHover && hurry()) e.preventDefault();
   else if (e.key === 'Escape') { resetChoice(); goSpot(spot); }
 });
 
 // ---------- burst ----------
-function burst(a) { if (reduce) return; crtMat.uniforms.uBurst.value = Math.max(crtMat.uniforms.uBurst.value, a); }
+function burst(a) { if (quiet) return; crtMat.uniforms.uBurst.value = Math.max(crtMat.uniforms.uBurst.value, a); }
 
 // ---------- UI drawn into the tube ----------
 const FONT_PIX = '8bitDarling', FONT_G = 'FK Grotesk';
@@ -1592,7 +1679,7 @@ function drawUI(t) {
     if (at) {
       g2.font = `12px "${FONT_PIX}"`;
       const txt = '▶ ' + label + (touchUI ? ' (A)' : ''); const w = g2.measureText(txt).width + 14;
-      const x = Math.round(Math.min(W - w - 6, Math.max(6, at[0] - w / 2))), y = Math.round(Math.max(8, at[1] - 30 + Math.sin(t * 5) * 2));
+      const x = Math.round(Math.min(W - w - 6, Math.max(6, at[0] - w / 2))), y = Math.round(Math.max(8, at[1] - 30 + (quiet ? 0 : Math.sin(t * 5) * 2)));
       g2.fillStyle = '#ec563b'; g2.fillRect(x, y, w, 20);
       g2.fillStyle = '#fce8cd'; g2.fillText(txt, x + 7, y + 11);
       g2.fillStyle = '#ec563b'; g2.beginPath(); g2.moveTo(x + w / 2 - 5, y + 20); g2.lineTo(x + w / 2 + 5, y + 20); g2.lineTo(x + w / 2, y + 26); g2.fill();
@@ -1658,8 +1745,8 @@ function drawMemories(t) {
   const blink = t - memFlash < 1.6 && Math.floor((t - memFlash) * 5) % 2 === 0;
   const shown = blink ? n - 1 : n;
   g2.save(); g2.translate(x, y); g2.scale(size / 555, size / 555);
-  // the face talks: while a line types, its outline flicks gold in hard steps (steady gold with reduced motion)
-  const talking = nar.visible && nar.shown < nar.text.length && (reduce || Math.floor(t / 0.12) % 2 === 0);
+  // the face talks: while a line types, its outline flicks gold in hard steps (steady gold when quiet)
+  const talking = nar.visible && nar.shown < nar.text.length && (quiet || Math.floor(t / 0.12) % 2 === 0);
   g2.fillStyle = talking ? '#fadb68' : '#fce8cd'; g2.fill(new Path2D(LOGO_OUTER));
   const inner = new Path2D(LOGO_INNER);
   g2.fillStyle = 'rgba(252,232,205,0.16)'; g2.fill(inner);
@@ -1679,7 +1766,7 @@ function memoriesPanel() {
     body: ['Every game you play gives one memory back.'],
     items: [...GAMES.map((g) => story.played.has(g)
       ? { label: PROJECTS[g].title.toUpperCase(), note: PROJECTS[g].medium.toLowerCase(), act: () => { closePanel(); activate(g); } }
-      : { label: '? ? ?', note: '', act: () => say(nextHint(true) || '* not yet.', 2.4) }),
+      : { label: '? ? ?', note: '', speech: 'not found yet', act: () => say(nextHint(true) || '* not yet.', 2.4) }),
     { label: 'BACK', act: closePanel }],
   };
 }
@@ -1705,7 +1792,7 @@ renderer.setAnimationLoop(() => {
   state.lastHover = hov;
   // glow: highlighted objects breathe gold, the hovered one warms a little
   for (const [id, o] of Object.entries(objects)) {
-    const k = Math.max(Math.max(o.glow, beckon.has(id) ? 1 : 0) * (0.35 + 0.25 * Math.sin(t * 4)), id === hov ? 0.22 : 0);
+    const k = Math.max(Math.max(o.glow, beckon.has(id) ? 1 : 0) * (quiet ? 0.5 : 0.35 + 0.25 * Math.sin(t * 4)), id === hov ? 0.22 : 0);
     for (const m of o.mats) {
       if (/screen|blinn2/i.test(m.name)) continue;
       tmpCol.copy(m.userData.baseEmissive).lerp(GOLD, Math.min(1, k * 1.5));
@@ -1730,11 +1817,11 @@ renderer.setAnimationLoop(() => {
     state.idle = 0;
     const line = LINES.idle[(state.idleN = (state.idleN || 0) + 1) % LINES.idle.length];
     say(line);
-    if (/drawer/.test(line)) gsap.fromTo(drawer.position, { z: DRAWER_SHUT }, { z: DRAWER_SHUT + 0.04, duration: 0.25, yoyo: true, repeat: 1 });
+    if (/drawer/.test(line) && !quiet) gsap.fromTo(drawer.position, { z: DRAWER_SHUT }, { z: DRAWER_SHUT + 0.04, duration: 0.25, yoyo: true, repeat: 1 });
   }
   tickNarrator(Math.min(rawDt, 0.25)); // typing keeps real time too
   // camera: target plus a gentle sway toward the cursor
-  const s = reduce || panel ? 0 : 0.05;
+  const s = quiet || panel ? 0 : 0.05;
   camera.lookAt(look.x + sway.x * s, look.y + sway.y * s * 0.6, look.z);
   if (torch.intensity) {
     // the beam follows the cursor through the curved glass, from just below the eye; with a finger, it finds what you aimed at
@@ -1755,15 +1842,15 @@ renderer.setAnimationLoop(() => {
 // the standby card leaves as the tube switches on, so the switch-on stays the only ceremony
 document.getElementById('standby')?.remove(); document.body.classList.remove('cold');
 lastAct = performance.now(); // the hint clock starts with the picture
-gsap.to(crtMat.uniforms.uPower, { value: 1, duration: reduce ? 0.2 : 0.9, ease: 'power2.out', delay: 0.2 });
-if (!reduce) crtMat.uniforms.uBurst.value = 0.9;
+gsap.to(crtMat.uniforms.uPower, { value: 1, duration: quiet ? 0.2 : 0.9, ease: 'power2.out', delay: 0.2 });
+if (!quiet) crtMat.uniforms.uBurst.value = 0.9;
 setTimeout(() => {
   if (touchUI) queue(handheld ? '* tap a thing to point at it, tap again to use it. or the pad and a, like a game boy.' : '* tap something to point at it, tap again to use it. a and b work too.', 3.4);
   const boot = lineItems(STORY ? (returning ? STORY_LINES.back : STORY_LINES.boot) : LINES.boot, 2.6, { keep: STORY });
   // the envelope's line lights the envelope, like a reveal
   if (STORY && !returning) boot[2].on = () => { const o = objects['envelope']; if (o) { o.glow = 1; gsap.to(o, { glow: 0, duration: 2.4, delay: 1 }); } };
   queue(boot);
-}, reduce ? 300 : 1300);
+}, quiet ? 300 : 1300);
 // the boot ends on its own, or at the first press (see endBoot)
-setTimeout(() => endBoot(true), reduce ? 1500 : 4200);
+setTimeout(() => endBoot(true), quiet ? 1500 : 4200);
 window.__room = { nar, lampGoes, pressA, pressB, step, THREE, look, crtMat, objects, goSpot, state, camera, activate, story, reveal, skipStory, eject, openLetter, get panel() { return panel; }, tray, TRAY, doorPivot, frameObject };
