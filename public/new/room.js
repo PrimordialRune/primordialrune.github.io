@@ -1197,7 +1197,8 @@ let navHits = [], navHover = null;
 const NAV = [['desk', '01', 'DESK', 'デスク'], ['table', '02', 'TABLE', 'テーブル'], ['drawer', '03', 'DRAWER', 'ひきだし']];
 function drawNav() {
   navHits = [];
-  if (handheld) return syncBezel(); // the bezel carries the nav and the small print
+  syncBezel(); // the DOM nav hides places not found yet, for keyboards too
+  if (handheld) return; // the bezel carries the nav and the small print
   if (panel && panel.kind !== 'project') return;
   // on short screens (phones sideways) the bars grow so a thumb can hit them
   const ns = canvas.clientHeight < 520 ? 1.35 : 1;
@@ -1223,7 +1224,9 @@ function drawNav() {
   if (panel) return;
   // small print, bottom right, above nothing else
   g2.font = `${Math.round(9 * ns)}px "${FONT_PIX}"`; g2.textAlign = 'right';
-  const links = [['quick', 'QUICK VIEW →', () => { location.href = 'quick/'; }], ['credits', 'CREDITS', () => openPanel(creditsPanel())]];
+  // on a desktop the sticker on the bezel is the quick view, so the tube only lists it on a handheld
+  const links = [['credits', 'CREDITS', () => openPanel(creditsPanel())]];
+  if (handheld) links.unshift(['quick', 'QUICK VIEW →', () => { location.href = 'quick/' + location.search; }]);
   if (STORY && !story.flags.has('skipped') && !story.flags.has('complete')) links.push(['skip', 'SKIP STORY', () => openPanel(skipPanel())]);
   let rx = W - 18; const ry = H - 16;
   for (const [id, label, act] of links) {
@@ -1552,6 +1555,8 @@ renderer.setAnimationLoop(() => {
 });
 
 // ---------- power on ----------
+// the standby card leaves as the tube switches on, so the switch-on stays the only ceremony
+document.getElementById('standby')?.remove(); document.body.classList.remove('cold');
 gsap.to(crtMat.uniforms.uPower, { value: 1, duration: reduce ? 0.2 : 0.9, ease: 'power2.out', delay: 0.2 });
 if (!reduce) crtMat.uniforms.uBurst.value = 0.9;
 setTimeout(() => {

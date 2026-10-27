@@ -3,7 +3,28 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Omar's Room</title>
+<title>Omar’s Room · Omar Golinelli, game designer &amp; developer</title>
+<!-- The import map comes before any module fetch, so the preloads below resolve through it. -->
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/geometries/RoundedBoxGeometry.js">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/meshopt_decoder.module.js">
+<link rel="modulepreload" href="room.js">
+<link rel="modulepreload" href="stage.js">
+<link rel="preload" href="manifest.json" as="fetch" crossorigin>
+<link rel="preload" href="models/pc.glb" as="fetch" crossorigin>
+<link rel="preload" href="models/gb-console.glb" as="fetch" crossorigin>
+<link rel="preload" href="models/gb-cart.glb" as="fetch" crossorigin>
+<link rel="preload" href="fonts/8bitDarling-Regular.otf" as="font" type="font/otf" crossorigin>
+<link rel="preload" href="fonts/FKGrotesk-Black.otf" as="font" type="font/otf" crossorigin>
 <style>
 /* Layout: one Trinitron filling the window. The room renders inside the tube; the nav (three bars under the glass) only moves you around the room. Menus and the letter are drawn inside the tube too. */
 @font-face { font-family: "FK Grotesk"; src: url("fonts/FKGrotesk-Black.otf") format("opentype"); font-weight: 900; }
@@ -34,10 +55,44 @@ html, body { margin: 0; height: 100%; background: var(--frame); color: var(--cre
 .glass { position: relative; width: 100%; height: 100%; border-radius: 18px / 24px; overflow: hidden; background: #000;
   box-shadow: 0 0 0 2px #050506, 0 0 0 4px #1d1d21, inset 0 0 0 1px rgba(255,255,255,.04); }
 canvas { display: block; width: 100%; height: 100%; cursor: crosshair; touch-action: none; }
-.badge { position: absolute; bottom: max(4px, calc(env(safe-area-inset-bottom) - 12px)); left: 50%; transform: translateX(-50%); font: 900 9px/12px var(--grotesk); letter-spacing: .35em; color: #5d5d64; pointer-events: none; }
+/* Desktop: a taller chin under the glass carries the model plate, the badge and the quick-view sticker. */
+body:not(.handheld) .tv { padding-bottom: max(34px, env(safe-area-inset-bottom)); }
+.badge, .plate { position: absolute; bottom: max(4px, calc(env(safe-area-inset-bottom) - 12px)); left: 50%; transform: translateX(-50%); font: 900 9px/12px var(--grotesk); letter-spacing: .35em; color: #5d5d64; pointer-events: none; }
+body:not(.handheld) .badge, body:not(.handheld) .plate { bottom: max(11px, calc(env(safe-area-inset-bottom) - 12px)); }
+.plate { left: max(16px, env(safe-area-inset-left)); transform: none; color: rgba(252,232,205,.7); white-space: nowrap; }
+.sticker { position: fixed; z-index: 1; right: max(16px, env(safe-area-inset-right)); bottom: max(3px, calc(env(safe-area-inset-bottom) - 26px)); display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 4px 8px; border-radius: 4px; background: #232328; color: var(--cream); font: 400 9px/1 var(--pixel); letter-spacing: .06em; text-decoration: none; white-space: nowrap; }
+.sticker small { font: 900 8px/1 var(--grotesk); letter-spacing: .1em; color: rgba(252,232,205,.7); }
+.sticker:hover { color: var(--gold); }
+.sticker:focus-visible { background: var(--gold); color: var(--peacock); outline: 2px solid var(--orange); outline-offset: 2px; }
+.sticker:focus-visible small { color: var(--peacock); }
+body.handheld .plate, body.handheld .sticker { display: none; }
+/* Before the room arrives: a plain card on the glass. If it never arrives, the same card says so. */
+.standby { position: absolute; inset: 0; z-index: 1; display: grid; place-content: center; justify-items: center; gap: 10px; padding: 16px; background: var(--bg); text-align: center; }
+.standby > div { display: grid; justify-items: center; gap: 10px; padding: 22px 26px; border: 2px solid var(--cream); border-radius: 6px; max-width: 420px; }
+.standby p { margin: 0; font: 900 16px/1.35 var(--grotesk); }
+.standby .pix { font: 400 16px/1 var(--pixel); letter-spacing: .1em; }
+.standby small { font: 900 11px/1 var(--grotesk); color: var(--aqua); letter-spacing: .1em; }
+.standby a { color: var(--gold); font: 400 11px/1.4 var(--pixel); letter-spacing: .06em; text-transform: uppercase; padding: 8px 4px; text-underline-offset: 4px; }
+.standby a[href^="mailto"] { font: 900 15px/1.4 var(--grotesk); letter-spacing: 0; color: var(--cream); }
+.standby a:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.standby .wait { display: contents; }
+.standby .fail, body.cold .standby .wait { display: none; }
+body.cold .standby .fail { display: contents; }
 /* The DOM nav and credits stay for keyboards and screen readers; the tube draws what you see. */
 .sr, nav, .credits, .quick { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-body:not(.handheld) nav button:focus-visible, .quick:focus-visible { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); width: auto; height: auto; clip: auto; z-index: 3; padding: 8px 14px; background: var(--orange); color: var(--cream); border: 0; border-radius: 999px; font: 400 11px/1 var(--pixel); outline: 2px solid var(--gold); }
+.quick:focus-visible { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); width: auto; height: auto; clip: auto; z-index: 4; padding: 8px 14px; background: var(--gold); color: var(--peacock); border: 0; border-radius: 999px; font: 400 11px/1 var(--pixel); outline: 2px solid var(--orange); text-decoration: none; }
+/* A keyboard on the nav shows the whole row as pills, the focused one in gold. */
+body:not(.handheld) nav:focus-within { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); width: auto; height: auto; clip: auto; overflow: visible; display: flex; gap: 6px; z-index: 3; }
+body:not(.handheld) nav button { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border: 0; border-radius: 999px; background: rgba(236,86,59,.35); color: var(--cream); font: 400 11px/1 var(--pixel); cursor: pointer; }
+body:not(.handheld) nav button[hidden] { display: none; }
+body:not(.handheld) nav button small { font: 900 9px/1 var(--grotesk); opacity: .85; }
+body:not(.handheld) nav button:focus { background: var(--gold); color: var(--peacock); outline: 2px solid var(--orange); }
+.credits:focus-within { position: fixed; bottom: 44px; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 640px; height: auto; max-height: 50vh; clip: auto; overflow: auto; white-space: normal; z-index: 3;
+  padding: 12px 16px; border-radius: 8px; background: var(--peacock); color: var(--cream); font: 900 12px/1.5 var(--grotesk); }
+.credits summary { padding: 4px 0; font: 400 11px/1 var(--pixel); cursor: pointer; }
+.credits summary:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.credits a { color: var(--gold); }
 /* Phones sideways play the room like a handheld: the tube keeps a television's 4:3 (never a stretched
    picture), and the controls sit on the bezel either side of it, under the thumbs. */
 .bezel { display: none; }
@@ -70,53 +125,76 @@ body.handheld .bezel nav { position: static; width: 100%; max-width: 176px; heig
 @media (orientation: portrait) and (max-width: 900px) {
   .tilt { display: grid; position: fixed; inset: 0; z-index: 5; place-content: center; justify-items: center; gap: 14px; padding: 16px; background: var(--bg); text-align: center; }
   .tilt svg { width: 72px; height: 72px; animation: tilt 2.4s ease-in-out infinite; }
+  .tilt h2 { margin: 0; font: 900 28px/1.1 var(--grotesk); letter-spacing: .02em; }
   .tilt p { margin: 0; font: 400 12px/1.6 var(--pixel); letter-spacing: .08em; }
+  .tilt .role { margin-top: -8px; font: 900 15px/1.3 var(--grotesk); letter-spacing: 0; }
   .tilt small { font: 900 12px/1 var(--grotesk); color: var(--aqua); letter-spacing: .1em; }
-  .tilt a { font: 400 10px/1 var(--pixel); color: var(--gold); letter-spacing: .08em; padding: 14px 8px; }
+  .tilt .go { display: grid; justify-items: center; align-content: center; gap: 6px; width: min(100%, 340px); min-height: 52px; margin-top: 10px; padding: 12px 16px; border: 2px solid var(--cream); border-radius: 6px;
+    font: 400 11px/1.3 var(--pixel); color: var(--cream); letter-spacing: .06em; text-decoration: none; }
+  .tilt .go small { font-size: 10px; }
+  .tilt .mail { font: 900 16px/1.3 var(--grotesk); color: var(--cream); padding: 10px 8px; text-underline-offset: 4px; }
+  .tilt a:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 }
 @keyframes tilt { 0%, 20% { transform: rotate(0); } 50%, 80% { transform: rotate(-90deg); } 100% { transform: rotate(0); } }
 @media (prefers-reduced-motion: reduce) { .tilt svg { animation: none; transform: rotate(-90deg); } }
 </style>
 </head>
 <body>
+  <a class="quick" href="quick/">IN A HURRY? SKIP TO THE QUICK VIEW</a>
+  <main>
+  <h1 class="sr">Omar Golinelli, game designer and developer: Omar’s room</h1>
   <div class="tv">
     <div class="bezel left">
       <div class="dpad" role="group" aria-label="Pad"><button data-d="up" aria-label="Up">▲</button><button data-d="left" aria-label="Previous object">◀</button><i></i><button data-d="right" aria-label="Next object">▶</button><button data-d="down" aria-label="Down">▼</button></div>
     </div>
     <div class="glass">
-      <canvas id="crt" aria-label="Omar's room, seen through a Trinitron. Press 1, 2 or 3 to move, the arrow keys to pick an object and Enter to use it."></canvas>
+      <div class="standby" id="standby" role="status"><div>
+        <div class="wait"><p class="pix">STANDBY</p><small lang="ja">スタンバイ</small><p>Omar’s room is warming up.</p><a href="quick/">IN A HURRY? QUICK VIEW →</a></div>
+        <div class="fail"><p class="pix">NO SIGNAL</p><small lang="ja">ノーシグナル</small><p>The room couldn’t load on this connection.</p><a href="quick/">Open the quick view →</a><a href="mailto:primordialrune@gmail.com">primordialrune@gmail.com</a></div>
+      </div></div>
+      <canvas id="crt" role="img" aria-label="Omar Golinelli’s portfolio: a 3D room seen through a Trinitron. Arrow keys pick an object, Enter uses it, Escape steps back, Q opens the quick view. Number keys move once a place opens."></canvas>
     </div>
     <div class="bezel right">
       <div class="ab"><button class="a" aria-label="A, use">A</button><button class="b" aria-label="B, back">B</button><small class="la">USE</small><small class="lb">BACK</small></div>
       <div class="fine"><button data-link="skip">SKIP STORY</button><button data-link="credits">CREDITS</button><a href="quick/">QUICK VIEW →</a></div>
     </div>
+    <div class="plate">OMAR GOLINELLI · GAME DESIGNER &amp; DEVELOPER</div>
     <div class="badge">TRINITRON</div>
   </div>
+  </main>
   <nav id="nav" aria-label="Move through the room">
-    <button data-spot="desk" aria-current="true"><span class="num">01</span><span>DESK</span><small>デスク</small></button>
-    <button data-spot="table"><span class="num">02</span><span>TABLE</span><small>テーブル</small></button>
-    <button data-spot="drawer"><span class="num">03</span><span>DRAWER</span><small>ひきだし</small></button>
+    <button data-spot="desk" aria-current="true"><span class="num">01</span><span>DESK</span><small lang="ja">デスク</small></button>
+    <button data-spot="table"><span class="num">02</span><span>TABLE</span><small lang="ja">テーブル</small></button>
+    <button data-spot="drawer"><span class="num">03</span><span>DRAWER</span><small lang="ja">ひきだし</small></button>
   </nav>
+  <!-- after the nav, so Tab reaches the places first; it sits on the bezel's chin -->
+  <a class="sticker" href="quick/">IN A HURRY? QUICK VIEW →<small lang="ja">クイックビュー</small></a>
   <details class="credits"><summary>MODEL CREDITS</summary><p id="credits"></p></details>
-  <a class="quick" href="quick/">IN A HURRY? QUICK VIEW</a>
-<div class="tilt" role="alert">
+<div class="tilt" role="dialog" aria-modal="true" aria-labelledby="tilt-name">
+  <h2 id="tilt-name">OMAR GOLINELLI</h2>
+  <p class="role">Game designer &amp; developer</p><small lang="ja">ゲームデザイナー</small>
   <svg viewBox="0 0 64 64" aria-hidden="true"><rect x="20" y="6" width="24" height="52" rx="5" fill="none" stroke="#fce8cd" stroke-width="3"/><rect x="24" y="12" width="16" height="36" fill="#ec563b"/><circle cx="32" cy="53" r="2" fill="#fce8cd"/></svg>
-  <p>TURN YOUR PHONE SIDEWAYS</p>
-  <small>よこにしてね</small>
-  <a href="quick/">OR TAKE THE QUICK VIEW →</a>
+  <p>TURN THE SCREEN SIDEWAYS</p>
+  <small lang="ja">よこにしてね</small>
+  <a class="go" href="quick/">SEE THE GAMES AND CONTACTS →<small lang="ja">クイックビュー</small></a>
+  <a class="mail" href="mailto:primordialrune@gmail.com">primordialrune@gmail.com</a>
 </div>
 <p class="sr" id="say" aria-live="polite"></p>
 <script>
 // No WebGL, no room: go straight to the quick view.
 try { const c = document.createElement('canvas'); if (!(c.getContext('webgl2') || c.getContext('webgl'))) location.replace('quick/'); } catch (e) { location.replace('quick/'); }
 </script>
-<script type="importmap">
-{ "imports": {
-  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-} }
+<!-- Deferred: gsap runs after parsing, before the module, so it is defined when room.js starts. -->
+<script defer crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" onerror="__roomFail()"></script>
+<script type="module" src="room.js" onerror="__roomFail()"></script>
+<script>
+// If the libraries or the room never arrive, the standby card turns into NO SIGNAL with the quick view and the email.
+// The room removes the card when the tube powers on, so a slow connection still gets the room.
+window.__roomFail = () => { if (window.__room) return; document.body.classList.add('cold'); };
+addEventListener('error', (e) => { if (/jsdelivr|cdnjs|room\.js|stage\.js/.test((e.target && e.target.src) || e.filename || '')) window.__roomFail(); }, true);
+setTimeout(window.__roomFail, 25000);
+// The quick view keeps the query (?free and the rest).
+if (location.search) for (const a of document.querySelectorAll('a[href="quick/"]')) a.href = 'quick/' + location.search;
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-<script type="module" src="room.js"></script>
 </body>
 </html>
