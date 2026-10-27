@@ -96,8 +96,10 @@ body:not(.handheld) nav button:focus { background: var(--gold); color: var(--pea
 /* Phones sideways play the room like a handheld: the tube keeps a television's 4:3 (never a stretched
    picture), and the controls sit on the bezel either side of it, under the thumbs. */
 .bezel { display: none; }
-body.handheld .tv { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); column-gap: 12px; }
-body.handheld .glass { width: auto; height: 100%; aspect-ratio: 4 / 3; }
+/* The bezels never go under 128px (the pad, A and B fit there); a small phone gets a smaller tube instead. */
+body.handheld .tv { display: grid; grid-template-columns: minmax(128px, 1fr) auto minmax(128px, 1fr); column-gap: 12px; }
+body.handheld .glass { height: auto; max-height: 100%; align-self: center; aspect-ratio: 4 / 3;
+  width: min(calc((100dvh - 30px) * 4 / 3), calc(100vw - 2 * 128px - 24px - max(10px, env(safe-area-inset-left)) - max(10px, env(safe-area-inset-right)))); }
 body.handheld .bezel { display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 10px; padding: 4px 0; min-height: 0; }
 .bezel button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; cursor: pointer; font: 400 11px/1 var(--pixel); color: var(--cream); border: 0; }
 body.handheld .bezel nav { position: static; width: 100%; max-width: 176px; height: auto; overflow: visible; clip: auto; white-space: normal; display: flex; flex-direction: column; gap: 7px; }
@@ -112,13 +114,14 @@ body.handheld .bezel nav { position: static; width: 100%; max-width: 176px; heig
 .dpad button:active, .ab button:active { transform: translateY(2px); box-shadow: none; }
 .dpad [data-d="up"] { grid-area: 1 / 2; } .dpad [data-d="left"] { grid-area: 2 / 1; } .dpad [data-d="right"] { grid-area: 2 / 3; } .dpad [data-d="down"] { grid-area: 3 / 2; }
 .dpad i { grid-area: 2 / 2; background: #232328; }
-.ab { position: relative; width: min(150px, 100%); aspect-ratio: 150 / 128; margin-top: auto; margin-bottom: auto; }
+.ab { position: relative; width: max(104px, min(150px, 100%)); aspect-ratio: 150 / 128; margin-top: auto; margin-bottom: auto; }
 .ab button { position: absolute; width: 43%; aspect-ratio: 1; border-radius: 50%; background: var(--orange); font-size: 18px; box-shadow: inset 0 -4px 0 rgba(0,0,0,.35), 0 0 0 2px rgba(252,232,205,.35); }
 .ab .a { right: 0; top: 0; } .ab .b { left: 0; bottom: 0; }
 .ab small { position: absolute; font: 900 9px var(--grotesk); color: rgba(252,232,205,.5); letter-spacing: .1em; }
 .ab .la { right: 12%; top: 55%; } .ab .lb { left: 11%; bottom: -11%; }
-.fine { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-.fine button, .fine a { background: none; padding: 8px 6px; font: 400 9px/1 var(--pixel); letter-spacing: .06em; color: rgba(252,232,205,.55); text-decoration: none; }
+.fine { display: flex; flex-direction: column; align-items: center; gap: 0; }
+.fine button, .fine a { display: flex; align-items: center; justify-content: center; min-height: 44px; background: none; padding: 14px 10px; font: 400 9px/1 var(--pixel); letter-spacing: .06em; color: rgba(252,232,205,.8); text-decoration: none; }
+.fine a[href^="quick/"] { color: var(--gold); }
 .fine [hidden] { display: none; }
 /* Desktop: the small print leaves the bezel for the page; a keyboard on it shows the row as pills, bottom right. */
 body:not(.handheld) .fine { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

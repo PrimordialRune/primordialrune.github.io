@@ -260,10 +260,16 @@ const renderer = new THREE.WebGLRenderer({ canvas, antialias: false });
 // Lite mode on phones and small machines: no shadows, 1x output. ?lite and ?full force either.
 const qs = new URLSearchParams(location.search);
 const lite = qs.has('lite') || (!qs.has('full') && (matchMedia('(pointer: coarse)').matches || (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 4));
-renderer.setPixelRatio(lite ? 1 : Math.min(devicePixelRatio, 2));
+renderer.setPixelRatio(lite ? 1 : Math.min(devicePixelRatio, 1.5)); // the picture is 480 lines anyway: past 1.5x only the glass's edge gets sharper
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.shadowMap.enabled = !lite;
 renderer.shadowMap.type = THREE.PCFShadowMap;
+// Shadows only change when something moves: the loop redraws them while a tween runs, and for a couple
+// of frames after anything turns up or the window changes (reshadow). At rest they are reused.
+renderer.shadowMap.autoUpdate = false;
+let shadowFrames = 2;
+const reshadow = () => { shadowFrames = 2; };
+let powered = false; // true from the first frame the room draws (see powerOn)
 const rt = new THREE.WebGLRenderTarget(W, H, { minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, samples: 0 });
 rt.texture.colorSpace = THREE.SRGBColorSpace;
 
@@ -350,7 +356,7 @@ function layout() {
   const q = fineEl.querySelector('a[href^="quick/"]'); if (q) q.hidden = !hh && !!document.querySelector('.sticker');
 }
 function resize() {
-  layout();
+  layout(); reshadow();
   const r = canvas.getBoundingClientRect();
   if (!r.width || !r.height) return;
   renderer.setSize(r.width, r.height, false);
@@ -429,7 +435,7 @@ const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.025, 10, 8), new THREE.Me
 box(0.8, 0.035, 0.7, wood, -1.48, TABLE_Y - 0.0175, -0.02);
 for (const [x, z] of [[-1.84, -0.33], [-1.84, 0.29], [-1.12, -0.33], [-1.12, 0.29]]) box(0.04, TABLE_Y - 0.035, 0.04, woodDark, x, (TABLE_Y - 0.035) / 2, z);
 const drawerLight = new THREE.PointLight(0x9fd8d0, 1.6, 1.2, 1.5); drawerLight.position.set(0.55, 0.95, 0.1); scene.add(drawerLight);
-const tableLamp = new THREE.PointLight(0xffb070, 4.5, 2.2, 1.6); tableLamp.position.set(-1.3, 1.05, 0.25); tableLamp.castShadow = true; scene.add(tableLamp);
+const tableLamp = new THREE.PointLight(0xffb070, 4.5, 2.2, 1.6); tableLamp.position.set(-1.3, 1.05, 0.25); tableLamp.castShadow = true; scene.add(tableLamp); // its shadows stay: without them the table's games read washed out
 // Lighting: 2 is the room's light (Omar's pick); ?light=1 is the darker first version, 3 a little brighter.
 // Lamps grow less than the ambient so the pools of light still read as lamps.
 const LIGHT = { 1: [1, 1, 5.5], 2: [1.45, 1.2, 6.5], 3: [1.9, 1.4, 7.5] }[new URLSearchParams(location.search).get('light') || '2'] || [1.45, 1.2, 6.5];
@@ -596,6 +602,7 @@ function straighten(obj, deg) {
   const b = new THREE.Box3().setFromObject(obj, true), s = b.getSize(new THREE.Vector3()), k = 1 / Math.max(s.x, s.y, s.z), ctr = b.getCenter(new THREE.Vector3());
   for (const c of obj.children) { c.position.sub(ctr).multiplyScalar(k); c.scale.multiplyScalar(k); }
 }
+let doorPivot, innerCassette; // the tape deck's door and the tape behind it, once the deck is in (rigPlayer)
 const AXES = { x: new THREE.Vector3(1, 0, 0), y: new THREE.Vector3(0, 1, 0), z: new THREE.Vector3(0, 0, 1) };
 async function place(p) {
   const item = byId[p.id];
@@ -625,13 +632,15 @@ async function place(p) {
   (p.spot === 'drawer' ? drawer : scene).add(root);
   root.visible = isFound(p.id);
   objects[p.id] = { root, pose, obj, place: p, item, mats, glow: 0, size: p.size || 1 };
+  rig(p.id); reshadow();
 }
-// The desk loads first so the room can switch on; the table and drawer follow when you head there
-// (or once the opening lines are done).
-await Promise.all(PLACES.filter((p) => p.spot === 'desk').map((p) => place(p).catch((e) => console.error(p.id, e))));
+// What the desk shows first: only what's found. The table, the drawer and the desk's hidden things
+// (the DS, the Advance, the tape deck, the postcard) follow when you head there, or once the boot ends.
+await Promise.all(PLACES.filter((p) => p.spot === 'desk' && isFound(p.id)).map((p) => place(p).catch((e) => console.error(p.id, e))));
 let rest = null;
 function loadRest() {
-  rest ??= Promise.all(PLACES.filter((p) => p.spot !== 'desk').map((p) => place(p).catch((e) => console.error(p.id, e)))).then(() => {
+  // everything not placed yet: the desk's found things are in by now, so this is the rest (whatever skipStory has just marked found)
+  rest ??= Promise.all(PLACES.filter((p) => !objects[p.id]).map((p) => place(p).catch((e) => console.error(p.id, e)))).then(() => {
     // each disc's insert art doubles as what the PC shows when it runs
     for (const id of ['holon-disc', 'spacerim-disc', 'cd-jewel']) {
       const name = objects[id]?.place.jewel; if (!name) continue;
@@ -658,7 +667,13 @@ function setScreen(id, on) {
     }
   });
 }
-for (const id of Object.keys(PLAYS)) if (id !== 'pc') setScreen(id, false);
+// Each thing's own parts, set up as it arrives (a hidden one arrives later, with the rest).
+function rig(id) {
+  if (PLAYS[id] && id !== 'pc') setScreen(id, false);
+  // the DS's glass is a transmission material: that renders the whole scene a second time, every frame. Plain see-through glass looks the same.
+  if (id === 'ds-console') objects[id].root.traverse((m) => { if (m.isMesh) for (const mat of [].concat(m.material)) if (mat.transmission > 0) { mat.transmission = 0; mat.transparent = true; mat.opacity = 0.35; mat.needsUpdate = true; } });
+  if (id === 'crossfader-player') rigPlayer(objects[id]);
+}
 
 // PC: a lit monitor (Omar's logo) and a CD tray that slides out of the drive bay.
 const pc = objects['pc'];
@@ -683,9 +698,7 @@ if (pc) {
 function showOnMonitor(tex) { paintScreen(tex); }
 
 // Crossfader player: the door swings on a hinge at its bottom edge; the cassette inside appears once the real one goes in.
-const player = objects['crossfader-player'];
-let doorPivot, innerCassette;
-if (player) {
+function rigPlayer(player) {
   let door;
   player.obj.traverse((n) => { if (n.name === 'Door') door = n; if (n.name === 'Cassette') innerCassette = n; });
   if (door) {
@@ -808,7 +821,7 @@ function skipCeremony() {
 // End the boot early: the first press counts, and is then handled as usual.
 // A press that will hurry the narrator anyway (on the box, Space, Enter, A) leaves the line to it.
 function endBoot(timer, hurries) {
-  if (state.mode !== 'boot') return;
+  if (state.mode !== 'boot' || !powered) return; // nothing to end before the tube is on
   state.mode = 'free'; loadRest();
   if (!hurries && nar.visible && nar.shown < nar.text.length) { nar.shown = nar.text.length; nar.until = performance.now() + nar.hold * 1000; }
   if (timer) { highlight([...Object.keys(PLAYS), 'envelope'].filter(isFound)); setTimeout(() => { if (state.mode === 'free') highlight([]); }, 2600); }
@@ -1779,7 +1792,12 @@ function nextHint(plain) {
 // ---------- loop ----------
 const clock = new THREE.Clock();
 const tmpCol = new THREE.Color(), GOLD = new THREE.Color(0xfadb68);
-renderer.setAnimationLoop(() => {
+const tweening = () => gsap.globalTimeline.getChildren(true, true, false).some((tw) => tw.isActive());
+// A phone held upright only shows the turn-it-sideways card: the room doesn't draw behind it,
+// and doesn't even switch on (or fetch the table and drawer) until the first sideways frame.
+const upright = matchMedia('(orientation: portrait) and (max-width: 900px)');
+const loop = () => {
+  if (!powered) { powered = true; clock.getDelta(); powerOn(); }
   const rawDt = clock.getDelta(), dt = Math.min(rawDt, 0.05), t = clock.elapsedTime;
   crtMat.uniforms.uTime.value = t;
   crtMat.uniforms.uBurst.value *= Math.pow(0.04, rawDt);
@@ -1833,24 +1851,38 @@ renderer.setAnimationLoop(() => {
       torch.target.position.copy(ray.ray.origin).addScaledVector(ray.ray.direction, 1.2);
     }
   }
+  // shadows at rest are reused (see reshadow); the flashlight casts none, so only moving things redraw them
+  if (renderer.shadowMap.enabled && (shadowFrames > 0 || tweening())) { renderer.shadowMap.needsUpdate = true; shadowFrames = Math.max(0, shadowFrames - 1); }
   renderer.setRenderTarget(rt); renderer.render(scene, camera);
   drawUI(t);
   renderer.setRenderTarget(null); renderer.render(quadScene, quadCam);
-});
+};
+const main = document.querySelector('main');
+const run = () => {
+  const up = upright.matches;
+  for (const el of [main, navEl]) el.inert = up; // the card is the page while upright
+  if (!up) reshadow();
+  renderer.setAnimationLoop(up ? null : loop);
+};
+upright.addEventListener('change', run);
+run();
 
 // ---------- power on ----------
-// the standby card leaves as the tube switches on, so the switch-on stays the only ceremony
-document.getElementById('standby')?.remove(); document.body.classList.remove('cold');
-lastAct = performance.now(); // the hint clock starts with the picture
-gsap.to(crtMat.uniforms.uPower, { value: 1, duration: quiet ? 0.2 : 0.9, ease: 'power2.out', delay: 0.2 });
-if (!quiet) crtMat.uniforms.uBurst.value = 0.9;
-setTimeout(() => {
-  if (touchUI) queue(handheld ? '* tap a thing to point at it, tap again to use it. or the pad and a, like a game boy.' : '* tap something to point at it, tap again to use it. a and b work too.', 3.4);
-  const boot = lineItems(STORY ? (returning ? STORY_LINES.back : STORY_LINES.boot) : LINES.boot, 2.6, { keep: STORY });
-  // the envelope's line lights the envelope, like a reveal
-  if (STORY && !returning) boot[2].on = () => { const o = objects['envelope']; if (o) { o.glow = 1; gsap.to(o, { glow: 0, duration: 2.4, delay: 1 }); } };
-  queue(boot);
-}, quiet ? 300 : 1300);
-// the boot ends on its own, or at the first press (see endBoot)
-setTimeout(() => endBoot(true), quiet ? 1500 : 4200);
-window.__room = { nar, lampGoes, pressA, pressB, step, THREE, look, crtMat, objects, goSpot, state, camera, activate, story, reveal, skipStory, eject, openLetter, get panel() { return panel; }, tray, TRAY, doorPivot, frameObject };
+// On the first frame the room draws (on a phone, the first sideways one), so the boot's clocks count from the picture.
+function powerOn() {
+  // the standby card leaves as the tube switches on, so the switch-on stays the only ceremony
+  document.getElementById('standby')?.remove(); document.body.classList.remove('cold');
+  lastAct = performance.now(); // the hint clock starts with the picture
+  gsap.to(crtMat.uniforms.uPower, { value: 1, duration: quiet ? 0.2 : 0.9, ease: 'power2.out', delay: 0.2 });
+  if (!quiet) crtMat.uniforms.uBurst.value = 0.9;
+  setTimeout(() => {
+    if (touchUI) queue(handheld ? '* tap a thing to point at it, tap again to use it. or the pad and a, like a game boy.' : '* tap something to point at it, tap again to use it. a and b work too.', 3.4);
+    const boot = lineItems(STORY ? (returning ? STORY_LINES.back : STORY_LINES.boot) : LINES.boot, 2.6, { keep: STORY });
+    // the envelope's line lights the envelope, like a reveal
+    if (STORY && !returning) boot[2].on = () => { const o = objects['envelope']; if (o) { o.glow = 1; gsap.to(o, { glow: 0, duration: 2.4, delay: 1 }); } };
+    queue(boot);
+  }, quiet ? 300 : 1300);
+  // the boot ends on its own, or at the first press (see endBoot)
+  setTimeout(() => endBoot(true), quiet ? 1500 : 4200);
+}
+window.__room = { nar, lampGoes, pressA, pressB, step, THREE, look, crtMat, objects, goSpot, state, camera, activate, story, reveal, skipStory, eject, openLetter, get panel() { return panel; }, tray, TRAY, get doorPivot() { return doorPivot; }, frameObject };
