@@ -69,12 +69,12 @@ const SLOTS = {
 
 // Project facts: only what the site already states.
 const PROJECTS = {
-  'gb-cart': { title: 'Galactic News', kana: 'ギャラクティック・ニュース', medium: 'GAME BOY CARTRIDGE', pitch: 'A GBJAM 11 entry for the Game Boy, made in Godot: four colours, 160 × 144 pixels.' },
+  'gb-cart': { title: 'Galactic News', kana: 'ギャラクティック・ニュース', medium: 'GAME BOY CARTRIDGE', pitch: 'A GBJAM 11 entry for the Game Boy, made in Godot: four colours, 160 × 144 pixels.', part: 'Game design, pixel art and UI art' },
   'gba-cart': { title: 'Project Minamoto', kana: 'プロジェクト・ミナモト', medium: 'GAME BOY ADVANCE CARTRIDGE', pitch: 'A Pokémon fan game that re-reads Generation 1 on the GBA.' },
-  'ds-cart': { title: 'Legends Arise', kana: 'レジェンズ・アライズ', medium: 'NINTENDO DS GAME CARD', pitch: 'Project Legends Arise, on a DS game card.' },
-  'crossfader-cassette': { title: 'Crossfader', kana: 'クロスフェーダー', medium: 'CASSETTE', pitch: 'A game jam game about cassettes: a music puzzle in three views. Flip the side, remix the song.' },
-  'holon-disc': { title: 'Holon', kana: 'ホロン', medium: 'PC DISC', pitch: 'Holon, the RS-PK simulator.' },
-  'spacerim-disc': { title: 'SpaceRim', kana: 'スペースリム', medium: 'PC DISC', pitch: 'SpaceRim, a game jam game.' },
+  'ds-cart': { title: 'Legends Arise', kana: 'レジェンズ・アライズ', medium: 'NINTENDO DS GAME CARD', pitch: 'A Pokémon Platinum fan game, built on the original DS hardware and set around Veilstone City.' },
+  'crossfader-cassette': { title: 'Crossfader', kana: 'クロスフェーダー', medium: 'CASSETTE', pitch: 'A game jam game about cassettes: a music puzzle in three views. Flip the side, remix the song.', part: 'Project coordinator, game designer and UI/UX designer: all the UI, the level design, and an art direction that stays cohesive' },
+  'holon-disc': { title: 'Holon', kana: 'ホロン', medium: 'PC DISC', pitch: 'A simulator for the RS-PK retro format of the Pokémon TCG (the EX era), designed for digital. Closed alpha, version 0.1.2.', part: 'Game design, visual design, art direction and development, building the code with AI help' },
+  'spacerim-disc': { title: 'SpaceRim', kana: 'スペースリム', medium: 'PC DISC', pitch: 'A rhythm game with RPG boss battles, played by typing spells. Made in 48 hours for Castle Game Jam, October 2023.', part: 'Game designer, pixel artist and UI artist: I drew the bosses and wrote their spells' },
   'ptcg-cube-rulebook': { title: 'PTCG Cube', kana: 'キューブ', medium: 'RULEBOOK', pitch: 'A cube format for the Pokémon TCG, with Roguelike and Co-op modes. This is its rulebook.' },
   'cd-jewel': { title: 'Haunt Record', kana: 'ホーント・レコード', medium: 'ARCHIVED DISC', pitch: 'A dungeon crawler where the player is complicit. Graphics with Edoardo Zuliani.' },
 };
@@ -105,29 +105,29 @@ const LINES = {
   hover: {
     'pc': '* my old pc. it still has a cd drive.',
     'gb-console': '* my first one was grey too. everyone’s was.',
-    'gba-console': '* it plays the grey cartridges too. backwards compatible.',
+    'gba-console': '* it still plays the grey ones. it remembers.',
     'ds-console': '* two screens. i only ever looked at one.',
-    'crossfader-player': '* that one’s from crossfader. the real one.',
+    'crossfader-player': '* a tape deck. crossfader only makes sense on one.',
     'envelope': '* that’s for you. it’s about me.',
     'gb-cart': '* galactic news. four colours.',
     'gba-cart': '* minamoto. gen 1, again.',
-    'ds-cart': '* legends arise.',
+    'ds-cart': '* legends arise. sinnoh, near veilstone.',
     'crossfader-cassette': '* side a. always side a first.',
     'holon-disc': '* holon. the logo took longer than some games.',
-    'spacerim-disc': '* spacerim. a jam game. it shows.',
+    'spacerim-disc': '* spacerim. forty-eight hours. it shows, in a good way.',
     'ptcg-cube-rulebook': '* the rulebook. i wrote every page. in italian.',
-    'cd-jewel': '* that one’s archived.',
+    'cd-jewel': '* that one’s old.',
   },
   choose: {
     'pc': '* a disc. any of the cases.',
-    'gb-console': '* the grey cartridges. pick one.',
+    'gb-console': '* the grey cartridge. it goes in the top.',
     'gba-console': '* anything that fits. grey ones too.',
     'ds-console': '* the little card. careful, it’s small.',
     'crossfader-player': '* the cassette. it only takes the one.',
   },
   wrong: '* that doesn’t go in there.',
   nothingYet: '* nothing for that one yet. keep looking.',
-  chooseHelp: '* one of the lit ones. or the bars up top, if you changed your mind.',
+  chooseHelp: () => touchUI ? '* one of the lit ones. or b, if you changed your mind.' : '* one of the lit ones. or esc, if you changed your mind.',
   rulebook: '* you don’t put this one in anything. you read it.',
   letter: '* go on. it’s short. i wrote it myself.',
   study: '* the case studies are still in the other room. soon.',
@@ -144,17 +144,17 @@ const LINES = {
 // Holon leaves SpaceRim behind; Crossfader's side B is the drawer's tune, and the drawer holds Haunt Record.
 // Every game played gives back one memory; the logo in the corner fills one step per memory.
 const STORY_LINES = {
-  boot: ['* oh. you’re here. sit, sit.', '* everything’s asleep. start with the grey one.'],
+  boot: ['* oh. you’re here. sit, sit.', '* this is my room. where i keep the games i made.', '* the envelope’s for you. it’s about me, and how to reach me.', '* everything else is asleep. start with the grey one.'],
   back: ['* you’re back. i kept everything where you left it.'],
-  postcard: '* mail. for you. i always answer mail.',
+  postcard: '* mail. for you. galactic news still delivers.',
   postcardHover: '* that wasn’t there before.',
   table: '* the table. go on, it’s set for you.',
   findGba: ['* that one needs the advance.', '* it was under some papers. here.'],
   gbaAsleep: '* it’s asleep. give it something old. it remembers old things.',
   gbaRefuses: '* not that one yet. something older first.',
-  gbaWakes: '* see? old game, new hardware. that’s minamoto, really.',
+  gbaWakes: '* old game, new hardware. that’s minamoto.',
   minamoto: '* minamoto. gen 1, read again.',
-  rulebook: '* something’s on the table now. a rulebook. i wrote it.',
+  rulebook: '* a rulebook, on the table. i wrote it. it deals what comes next.',
   draft: ['* a cube is drafted. open the pack, keep one, pass the rest.', '* you pick first.'],
   draftNext: '* your turn again. the rulebook has another pick.',
   draftWait: '* play your pick first. then we draft again.',
@@ -167,10 +167,21 @@ const STORY_LINES = {
     'crossfader-player': ['* that needs its tape deck.', '* it was behind the monitor. here.'],
     'ds-console': ['* that needs the ds.', '* it was still charging. here.'],
   },
-  spacerim: '* holon left a second disc on the table. spacerim.',
+  spacerim: ['* the drive had another disc in it. i put it on the table.', '* spacerim. a jam, forty-eight hours.'],
   drawerOpens: ['* side b. that’s the drawer’s tune.', '* it’s open now. the old stuff is in there.'],
-  complete: ['* that’s all eight.', '* ...you can stay, you know. i’ll keep the room as it is.'],
-  torch: ['* hm. the lamp’s going.', '* here. take the flashlight. point it at things, they’re easier to find.'],
+  complete: ['* that’s all eight.', '* the envelope’s still on the desk. if you want to write back.', '* ...you can stay, you know. i’ll keep the room as it is.'],
+  torch: ['* hm. the lamp’s going.', '* here. a flashlight. point it at things.'],
+  // each game's own line when it starts, in ?free too
+  played: {
+    'gb-cart': '* galactic news. nobody trusts the web out there. you deliver the paper.',
+    'crossfader-cassette': '* crossfader. flip the side, and the song changes under you.',
+    'holon-disc': '* holon. a card game rebuilt for a screen, not copied from a table.',
+    'spacerim-disc': '* spacerim. the keyboard’s your only weapon. type the spell, or it hits you.',
+    'ds-cart': '* legends arise. veilstone city, on the real ds.',
+    'cd-jewel': '* haunt record. you’re not the hero in this one.',
+  },
+  ejectTip: '* when you’re done, take it out. things turn up.',
+  ejectNudge: '* eject it when you’re done. see what turns up.',
   drawerLocked: '* that’s just old stuff. it’s stuck anyway.',
   skip: '* everything’s out. no story, just the games.',
   hints: [
@@ -209,13 +220,12 @@ const story = (() => {
 // A beat can be cut off: a reload mid-play, or a case study opened while a game was still in.
 // Apply whatever the saved state already owes, silently, before anything is placed (place() reads isFound).
 // No openSpot or reveal here: there are no objects yet. storyEjected keeps the animated version for the live case.
-// WP3: if the torch moves to another trigger, mirror that trigger here too.
-let owedTorch = false;
+// The lamp goes after the first draft game: if that was cut off, the lamp is simply dim at load.
 function catchUp() {
   const { found, played, spots, flags } = story;
   if (played.has('gb-cart') && !found.has('postcard')) found.add('postcard');
   if (played.has('gba-cart') && !found.has('ptcg-cube-rulebook')) found.add('ptcg-cube-rulebook');
-  if (played.has('gba-cart') && !flags.has('torch')) owedTorch = true; // the lamp still goes, a little after the room is on
+  if (DRAFT.some((g) => played.has(g)) && !flags.has('torch')) flags.add('torch');
   if (played.has('holon-disc') && !found.has('spacerim-disc')) found.add('spacerim-disc');
   if (played.has('crossfader-cassette') && !spots.has('drawer')) { spots.add('drawer'); found.add('cd-jewel'); }
   if (played.size === GAMES.length) flags.add('complete');
@@ -732,6 +742,7 @@ function queue(lines, hold = 3.2, opts) {
 }
 function next() {
   if (nar.visible) lastSpeak = performance.now();
+  nar.cur?.after?.(); // a line can hand over to what follows it (the end card)
   const n = nar.queue.shift();
   if (!n) { nar.visible = false; nar.cur = null; return; }
   nar.cur = n; nar.text = n.t; nar.shown = 0; nar.visible = true; nar.until = Infinity;
@@ -739,6 +750,7 @@ function next() {
   nar.hold = Math.max(n.hold, 1.2 + n.t.split(' ').length * 0.3);
   if (reduce) { nar.shown = nar.text.length; nar.until = performance.now() + nar.hold * 1000; }
   document.getElementById('say').textContent = n.t.replace(/^\* /, '');
+  n.on?.(); // and do something as it starts (the envelope lights on its line)
 }
 // A click on the box (or Space, Enter, A) finishes the line; the next press moves on.
 function hurry() {
@@ -785,8 +797,7 @@ function endBoot(timer, hurries) {
   if (state.mode !== 'boot') return;
   state.mode = 'free'; loadRest();
   if (!hurries && nar.visible && nar.shown < nar.text.length) { nar.shown = nar.text.length; nar.until = performance.now() + nar.hold * 1000; }
-  if (timer) { highlight(Object.keys(PLAYS).filter(isFound)); setTimeout(() => { if (state.mode === 'free') highlight([]); }, 2600); }
-  if (owedTorch) setTimeout(lampGoes, 6000);
+  if (timer) { highlight([...Object.keys(PLAYS), 'envelope'].filter(isFound)); setTimeout(() => { if (state.mode === 'free') highlight([]); }, 2600); }
 }
 // A menu row is an action
 function useRow(it) { acted(); it.act(); }
@@ -798,6 +809,7 @@ const PROMPT = (id) => {
   if (id === 'postcard') return 'READ';
   if (PLAYS[id]) return 'USE';
   if (state.mode === 'choose') return playable(state.system).includes(id) ? 'INSERT' : null;
+  if (id === 'ptcg-cube-rulebook' && STORY) return 'READ';
   return 'LOOK';
 };
 function highlight(ids) {
@@ -823,11 +835,11 @@ function activate(id) {
     // pick a system: look over at the games that fit, lit up
     state.mode = 'choose'; state.system = id;
     const asleep = id === 'gba-console' && !gbaAwake();
-    say(asleep ? STORY_LINES.gbaAsleep : LINES.choose[id]);
     const games = playable(id).filter((g) => objects[g]);
     if (!games.length) { resetChoice(); say(LINES.nothingYet, 2.4); return; }
     highlight([id, ...games]);
-    if (games.length === 1 && !asleep) return insert(games[0], id); // only one thing fits: no need to ask
+    if (games.length === 1 && !asleep) return insert(games[0], id); // only one thing fits: no need to ask, or to say so
+    say(asleep ? STORY_LINES.gbaAsleep : LINES.choose[id]);
     if (games.length && games.every((g) => objects[g].place.spot === 'drawer')) return goSpot('drawer');
     // the games that fit are on the desk already (the story keeps Galactic News there): stay put
     const at = games.length && games.every((g) => objects[g].place.spot === 'desk') ? 'desk' : 'table';
@@ -964,7 +976,12 @@ function frameDrive() { moveTo([0.0, 1.0, -0.12], [0.17, 0.82, -0.56]); }
 function started(game, sys) {
   if (sys !== 'pc') setScreen(sys, true);
   if (SLOTS[sys]) cameraTo(sys, 1.6);
-  say(storyPlayed(game, sys) || `* ${PROJECTS[game].title.toLowerCase()}. good choice.`);
+  const line = storyPlayed(game, sys) || STORY_LINES.played[game] || `* ${PROJECTS[game].title.toLowerCase()}.`;
+  // the first game of the run also says how the story moves: taking it out is what turns things up
+  const tip = STORY && !story.flags.has('told-eject');
+  if (tip) { story.flags.add('told-eject'); persist(); }
+  say(tip ? [line, { t: STORY_LINES.ejectTip, keep: true }] : line);
+  state.playedAt = performance.now();
   openProject(game, true);
 }
 
@@ -984,27 +1001,62 @@ function storyEjected(game) {
   if (!STORY) return;
   if (game === 'gb-cart' && !story.found.has('postcard')) setTimeout(() => { reveal('postcard'); say(STORY_LINES.postcard); }, 400);
   if (game === 'gba-cart' && !story.found.has('ptcg-cube-rulebook')) {
-    setTimeout(() => { goSpot('table'); say(STORY_LINES.rulebook); setTimeout(() => reveal('ptcg-cube-rulebook'), DUR * 1000); }, 400);
-    setTimeout(lampGoes, 5200);
+    // the camera settles on the rulebook, and it keeps glowing until it is read
+    setTimeout(() => { goSpot('table'); say(STORY_LINES.rulebook); setTimeout(async () => { await reveal('ptcg-cube-rulebook', true); frameObject('ptcg-cube-rulebook', 1.2); }, DUR * 1000); }, 400);
   }
   const lines = [];
-  if (game === 'holon-disc' && !story.found.has('spacerim-disc')) { lines.push(STORY_LINES.spacerim); setTimeout(() => { goSpot('table'); setTimeout(() => reveal('spacerim-disc'), DUR * 1000); }, 400); }
-  if (game === 'crossfader-cassette' && !story.spots.has('drawer')) {
-    lines.push(...kept(STORY_LINES.drawerOpens));
+  if (game === 'holon-disc' && !story.found.has('spacerim-disc')) { lines.push(...STORY_LINES.spacerim); setTimeout(() => { goSpot('table'); setTimeout(() => reveal('spacerim-disc'), DUR * 1000); }, 400); }
+  const drawerNow = game === 'crossfader-cassette' && !story.spots.has('drawer');
+  if (drawerNow) {
+    // side B opens the drawer, and the visitor goes to watch it slide out; its first line follows the two
+    state.sawDrawer = true;
+    lines.push(...kept(STORY_LINES.drawerOpens), { t: LINES.drawer, keep: true, on: glitchName });
     setTimeout(() => {
       openSpot('drawer'); reveal('cd-jewel');
       gsap.fromTo(drawer.position, { z: DRAWER_SHUT }, { z: DRAWER_SHUT + 0.03, duration: 0.12, yoyo: true, repeat: 1 });
+      goSpot('drawer');
     }, 400);
   }
-  if (DRAFT.includes(game) && DRAFT.some((g) => !story.found.has(g))) {
-    lines.push(STORY_LINES.draftNext);
-    setTimeout(() => { const o = objects['ptcg-cube-rulebook']; if (o) { o.glow = 1; gsap.to(o, { glow: 0, duration: 2.4, delay: 2 }); } }, 400);
+  // picks left and none waiting: the rulebook glows until it is read again (the hint engine says so if the drawer just opened)
+  if (DRAFT.includes(game) && DRAFT.some((g) => !story.found.has(g)) && !DRAFT.some((g) => story.found.has(g) && !story.played.has(g))) {
+    if (!drawerNow) lines.push(STORY_LINES.draftNext);
+    beckon.add('ptcg-cube-rulebook');
   }
-  if (story.played.size === GAMES.length && !story.flags.has('complete')) { story.flags.add('complete'); persist(); lines.push(...kept(STORY_LINES.complete)); }
-  if (lines.length) setTimeout(() => say(lines), 500);
+  // the desk lamp goes after the first draft game, once the eject lines are said
+  if (DRAFT.includes(game) && !story.flags.has('torch')) setTimeout(lampGoes, 2600);
+  if (story.played.size === GAMES.length && !story.flags.has('complete')) {
+    story.flags.add('complete'); persist();
+    // the end card follows the last line, about a second after it (or 9s into that line at most, if it is held up)
+    const done = kept(STORY_LINES.complete);
+    Object.assign(done.at(-1), { on: () => setTimeout(finale, 9000), after: () => setTimeout(finale, 1000) });
+    lines.push(...done); setTimeout(finale, 30000); // and never later than this
+  }
+  // the ending speaks on its own: whatever was still waiting to be said is past now
+  const ending = lines.some((l) => l.t === STORY_LINES.complete[0]);
+  if (lines.length) setTimeout(() => { if (ending) { nar.queue = []; if (nar.cur) nar.cur.keep = false; } say(lines); }, 500);
 }
+// 8/8: the envelope lights and the end card lists where to read about every game.
+function finale() {
+  if (state.ended) return;
+  if (state.busy || state.playing || state.leaving) return void setTimeout(finale, 1000);
+  state.ended = true;
+  const o = objects['envelope']; if (o) { o.glow = 1; gsap.to(o, { glow: 0, duration: 2.4, delay: 1 }); }
+  openPanel(endPanel());
+}
+function endPanel() {
+  const open = GAMES.filter((g) => PUBLISHED.has(SLUG[g])), rest = GAMES.filter((g) => !PUBLISHED.has(SLUG[g]));
+  return {
+    kind: 'memories', tag: 'MEMORIES', title: 'All eight', kana: 'きおく  MEMORIES', body: ['Every game in the room, and where to read about it.'],
+    items: [...open.map((g) => ({ label: PROJECTS[g].title.toUpperCase(), note: 'case study', act: () => openStudy(g) })),
+      ...rest.map((g) => ({ label: PROJECTS[g].title.toUpperCase(), note: PROJECTS[g].medium.toLowerCase(), act: () => { closePanel(); activate(g); } })),
+      { label: 'THE LETTER', note: 'contact', act: () => { closePanel(); openLetter(); } },
+      { label: 'STAY IN THE ROOM', act: closePanel }],
+  };
+}
+// Things that keep glowing until they are used (the rulebook, while it has a pick to deal).
+const beckon = new Set();
 // Something turns up: it drops into place with a little bounce, lit for a moment.
-async function reveal(id) {
+async function reveal(id, hold = false) {
   if (!objects[id]) await loadRest();
   const o = objects[id]; if (!o) return;
   story.found.add(id); persist();
@@ -1013,7 +1065,7 @@ async function reveal(id) {
   const y = o.root.position.y;
   gsap.fromTo(o.root.position, { y: y + 0.18 }, { y, duration: reduce ? 0.01 : 0.55, ease: 'bounce.out' });
   burst(0.35);
-  o.glow = 1; gsap.to(o, { glow: 0, duration: 2.4, delay: 1 });
+  if (hold) beckon.add(id); else { o.glow = 1; gsap.to(o, { glow: 0, duration: 2.4, delay: 1 }); }
 }
 // The desk lamp starts to go (the first thing in the room that fails), and the narrator hands over a flashlight.
 const LAMP_FULL = lamp.intensity;
@@ -1023,7 +1075,7 @@ function lampGoes() {
   story.flags.add('torch'); persist();
   const tl = gsap.timeline();
   for (const k of [0.1, 1, 0.05, 0.8, 0.02, 0.6]) tl.set(lamp, { intensity: LAMP_FULL * k }, `+=${reduce ? 0 : 0.09}`);
-  tl.call(() => { dimLamp(); burst(0.3); say(STORY_LINES.torch, undefined, { keep: true }); });
+  tl.call(() => { dimLamp(); burst(0.3); queue(STORY_LINES.torch, undefined, { keep: true }); });
   tl.to(torch, { intensity: TORCH, duration: reduce ? 0.01 : 0.6, ease: 'power2.out' }, '+=1.2');
 }
 if (STORY && story.flags.has('torch')) { dimLamp(); torch.intensity = TORCH; }
@@ -1043,7 +1095,13 @@ function findSystem(sys, game) {
   say(STORY_LINES.find[sys] || STORY_LINES.findGba);
   setTimeout(async () => {
     await reveal(sys);
-    // found it: put the game in, unless the system has its own condition first (the sleeping GBA)
+    // the sleeping GBA: it's chosen already, so the next click on the grey cartridge wakes it
+    if (sys === 'gba-console' && !gbaAwake()) {
+      if (state.busy || state.playing) return;
+      state.mode = 'choose'; state.system = 'gba-console'; highlight(['gba-console', 'gb-cart']);
+      return say(STORY_LINES.gbaAsleep);
+    }
+    // found it: put the game in
     if (game && playable(sys).includes(game)) setTimeout(() => { if (!state.busy && !state.playing) insert(game, sys); }, reduce ? 300 : 1600);
   }, DUR * 1000 + 200);
 }
@@ -1052,6 +1110,7 @@ function readRulebook() {
   acted();
   if (!story.played.has('ptcg-cube-rulebook')) { story.played.add('ptcg-cube-rulebook'); memFlash = clock.elapsedTime; persist(); }
   frameObject('ptcg-cube-rulebook', 0.9, DUR * 0.8);
+  beckon.delete('ptcg-cube-rulebook');
   highlight(['ptcg-cube-rulebook']);
   const left = DRAFT.filter((g) => !story.found.has(g));
   const waiting = DRAFT.find((g) => story.found.has(g) && !story.played.has(g));
@@ -1062,14 +1121,24 @@ function readRulebook() {
     return;
   }
   if (left.length === DRAFT.length) say(STORY_LINES.draft, undefined, { keep: true }); else say(STORY_LINES.draftNext);
-  openPanel({ kind: 'project', tag: 'DRAFT', title: left.length === DRAFT.length ? 'Pick one' : 'Next pick', kana: 'ドラフト  DRAFT',
+  const draft = { kind: 'project', tag: 'DRAFT', title: left.length === DRAFT.length ? 'Pick one' : 'Next pick', kana: 'ドラフト  DRAFT',
     body: [`Pick ${DRAFT.length - left.length + 1} of ${DRAFT.length}. Keep one, the rest come round again.`],
     items: [...left.map((g) => ({ label: DRAFT_FACE[g][0], note: DRAFT_FACE[g][1], act: () => draftPick(g) })),
-      { label: 'READ THE RULES', act: () => openProject('ptcg-cube-rulebook', false) },
-      { label: 'BACK', act: () => { closePanel(); highlight([]); goSpot('table'); } }] });
+      { label: 'READ THE RULES', act: () => openPanel(rulesPanel(draft)) },
+      { label: 'BACK', act: () => { closePanel(); highlight([]); goSpot('table'); } }] };
+  openPanel(draft);
+}
+// What a cube is, from the rulebook's own case study; BACK returns to the pick.
+function rulesPanel(draft) {
+  return { kind: 'project', tag: 'RULEBOOK', title: 'PTCG Cube', kana: 'キューブ  CUBE',
+    body: ['A cube is a fixed collection of cards, curated so that players can draft from it and build decks on the spot. Nobody brings a deck.', 'Everyone opens the same pool, picks a card, passes the rest, and plays what they built.'],
+    items: [{ label: 'BACK', act: () => openPanel(draft) }] };
 }
 function draftPick(g) {
   closePanel(); highlight([]); goSpot('table');
+  // picking answers "you pick first": drop it if it hadn't been said yet
+  const stale = (q) => q && STORY_LINES.draft.includes(q.t);
+  nar.queue = nar.queue.filter((q) => !stale(q)); if (stale(nar.cur)) nar.cur.keep = false;
   say(STORY_LINES.picked[g]);
   setTimeout(() => reveal(g), DUR * 1000);
 }
@@ -1078,15 +1147,20 @@ function skipStory() {
   for (const s of Object.keys(SPOTS)) story.spots.add(s);
   story.flags.add('gba-awake'); story.flags.add('postcard-read'); story.flags.add('skipped');
   persist();
-  loadRest().then(() => { for (const o of Object.values(objects)) o.root.visible = true; });
+  // the four with case studies light up for a moment, so it's clear where to start
+  loadRest().then(() => {
+    for (const o of Object.values(objects)) o.root.visible = true;
+    highlight(GAMES.filter((g) => PUBLISHED.has(SLUG[g]))); setTimeout(() => highlight([]), 2600);
+  });
   say(STORY_LINES.skip);
 }
 
-function eject() {
+// after: what happens once it is out and home (PUT IN MINAMOTO puts the next one in)
+function eject(after) {
   const p = state.playing; if (!p || state.busy) return;
   const g = objects[p.game];
   state.busy = true; closePanel(); acted();
-  const tl = ceremony(gsap.timeline({ onComplete: () => { state.busy = false; state.playing = null; resetChoice(); goSpot('desk'); storyEjected(p.game); } }));
+  const tl = ceremony(gsap.timeline({ onComplete: () => { state.busy = false; state.playing = null; resetChoice(); goSpot('desk'); storyEjected(p.game); if (typeof after === 'function') after(); } }));
   if (p.sys === 'pc') {
     showOnMonitor(desktopTex); frameDrive();
     tweenLocal(tl, g.obj, CASE_HELD.pos, CASE_HELD.quat, g.obj.scale.x, 0.6, 'power2.inOut', 0.2);
@@ -1156,7 +1230,7 @@ function openPanel(p) { panel = p; panel.sel = 0; announcePanel(); }
 function closePanel() { panel = null; }
 function announcePanel() {
   if (!panel) return;
-  document.getElementById('say').textContent = [panel.title, panel.body?.join(' '), 'Options: ' + panel.items.map((i) => i.label).join(', ')].filter(Boolean).join('. ');
+  document.getElementById('say').textContent = [panel.title, panel.body?.join(' '), panel.part && 'My part: ' + panel.part, 'Options: ' + panel.items.map((i) => i.label).join(', ')].filter(Boolean).map((t) => t.replace(/\.$/, '')).join('. ');
 }
 // PLAY IT goes straight in when the system is out and takes it; otherwise the system says why not.
 function playIt(id) {
@@ -1169,11 +1243,14 @@ function playIt(id) {
 function openProject(id, playing) {
   const p = PROJECTS[id]; if (!p) return;
   const items = [];
-  if (playing) items.push({ label: 'EJECT', act: eject });
+  // the grey cartridge just woke the GBA: one press swaps it for Minamoto
+  if (playing && id === 'gb-cart' && state.playing?.sys === 'gba-console' && STORY && !story.played.has('gba-cart'))
+    items.push({ label: 'PUT IN MINAMOTO', act: () => eject(() => { if (!state.busy && !state.playing && objects['gba-cart']) insert('gba-cart', 'gba-console'); }) });
+  if (playing) items.push({ label: 'EJECT', act: () => eject() });
   else if (SYSTEM_OF[id]) items.push({ label: 'PLAY IT', act: () => playIt(id) });
   if (STUDIES || PUBLISHED.has(SLUG[id])) items.push({ label: 'CASE STUDY', act: () => openStudy(id) });
   items.push({ label: 'BACK', act: () => { if (playing) eject(); else { closePanel(); highlight([]); goSpot(objects[id].place.spot); } } });
-  openPanel({ kind: 'project', tag: p.medium, title: p.title, kana: p.kana, body: [p.pitch], items });
+  openPanel({ kind: 'project', tag: p.medium, title: p.title, kana: p.kana, body: [p.pitch], part: p.part, items });
 }
 // Case studies live on their own pages (study/<slug>/). The ones Omar has passed are linked for everyone; drafts stay behind ?studies.
 // Leaving is a channel change: a burst, the picture collapses to a line, then the page goes.
@@ -1213,15 +1290,18 @@ function drawPanel(t) {
   // while a game plays on the handheld, its window shrinks to the corner so the console's screen stays in view
   const compact = handheld && !wide && !!state.playing;
   const w = compact ? 220 : wide ? (handheld ? W - 28 : Math.min(W - 96, short ? 780 : 600)) : handheld ? 300 : big ? 360 : (short ? 300 : 260);
-  const x = wide ? Math.round((W - w) / 2) : W - w - (handheld ? 16 : big ? 150 : 28); let y = wide ? (short ? 24 : 36) : handheld ? 28 : (short ? 82 : 70);
+  const x = wide ? Math.round((W - w) / 2) : W - w - (handheld ? 16 : big ? 150 : 28); let y = wide ? (short ? 24 : 36) : handheld ? 28 : (short ? 82 : 58);
   g2.font = `900 ${wide ? 15 : 14}px "FK Grotesk"`;
   const bodyLines = compact ? [] : panel.body.flatMap((p) => [...wrap(p, w - 40), '']);
+  // what Omar did on it: a pixel label, then Omar's own words in Grotesk (P5: no pixel paragraph)
+  g2.font = '900 14px "FK Grotesk"'; const partLines = compact || !panel.part ? [] : wrap(panel.part, w - 40);
   const lineH = wide ? 18 : 17;
   const itemH = handheld ? 30 : big ? 36 : short ? (wide ? 23 : 28) : wide ? 19 : 22;
-  const h = 84 + (letter && !short ? 30 : 0) + bodyLines.length * lineH + (panel.extra ? 22 : 0) + panel.items.length * itemH + 14;
+  const h = 84 + (letter && !short ? 30 : 0) + bodyLines.length * lineH + (panel.extra ? 22 : 0) + (partLines.length ? 24 + partLines.length * 17 : 0) + panel.items.length * itemH + 14;
   if (compact) y = H - h - 14;
   // a window taller than the tube shrinks to fit it (the letter on a phone's 4:3 tube)
-  const k = Math.min(1, (H - 10 - (handheld && !wide && !compact ? 96 : 0) - y) / h), cx0 = x + w / 2;
+  // and a game's window keeps clear of the dialogue box under it (with MY PART it runs long)
+  const k = Math.min(1, (H - 10 - (handheld && !wide && !compact ? 96 : !handheld && !wide && !short ? 94 : 0) - y) / h), cx0 = x + w / 2;
   g2.save();
   if (k < 1) { g2.translate(cx0, y); g2.scale(k, k); g2.translate(-cx0, -y); }
   // window: same family as the dialogue box
@@ -1243,6 +1323,12 @@ function drawPanel(t) {
   }
   g2.font = `900 ${wide ? (panel.kind === 'credits' ? 12 : 15) : 14}px "FK Grotesk"`; g2.fillStyle = 'rgba(252,232,205,0.92)';
   for (const l of bodyLines) { g2.fillText(l, x + 20, cy); cy += lineH; }
+  if (partLines.length) {
+    g2.font = '10px "8bitDarling"'; g2.fillStyle = '#fadb68'; g2.fillText('MY PART', x + 20, cy); cy += 16;
+    g2.font = '900 14px "FK Grotesk"'; g2.fillStyle = 'rgba(252,232,205,0.92)';
+    for (const l of partLines) { g2.fillText(l, x + 20, cy); cy += 17; }
+    cy += 8;
+  }
   if (panel.extra) { g2.font = '10px "8bitDarling"'; g2.fillStyle = '#fadb68'; g2.fillText(panel.extra.toUpperCase(), x + 20, cy); cy += 22; }
   // the cursor menu
   g2.fillStyle = 'rgba(252,232,205,0.25)'; g2.fillRect(x + 16, cy - 6, w - 32, 1);
@@ -1312,8 +1398,8 @@ function drawNav() {
   g2.textAlign = 'left';
 }
 function skipPanel() {
-  return { kind: 'project', tag: 'SKIP STORY', title: 'Skip the story?', kana: 'スキップ  SKIP', body: ['Everything in the room comes out at once. The memories stay as they are.'],
-    items: [{ label: 'KEEP PLAYING', act: closePanel }, { label: 'SKIP IT', act: () => { closePanel(); skipStory(); } }] };
+  return { kind: 'project', tag: 'SKIP STORY', title: 'Skip the story?', kana: 'スキップ  SKIP', body: ['Eight games, a few minutes of story. Skipping puts them all out at once; the memories stay as they are.'],
+    items: [{ label: 'KEEP PLAYING', act: closePanel }, { label: 'SHOW ME EVERYTHING', act: () => { closePanel(); skipStory(); } }] };
 }
 function creditsPanel() {
   return { kind: 'credits', tag: 'CREDITS', title: 'Model credits', kana: 'クレジット', body: [CREDIT_TEXT], items: [{ label: 'BACK', act: closePanel }] };
@@ -1400,7 +1486,7 @@ canvas.addEventListener('click', (e) => {
   if (panel) return;
   if (state.mode === 'boot' || state.busy || state.playing) return;
   const id = pick() || (touch ? pickNear() : null);
-  if (!id) { state.hover = null; if (state.mode === 'choose') say(LINES.chooseHelp, 2.4); return; }
+  if (!id) { state.hover = null; if (state.mode === 'choose') say(LINES.chooseHelp(), 2.4); return; }
   if (touch && state.hover !== id) { state.hover = id; return; } // aim first: the prompt shows over it
   if (touch) state.hover = null;
   activate(id);
@@ -1521,7 +1607,14 @@ function drawUI(t) {
     const short = H < 480, bw = handheld ? W - 40 : short ? Math.min(Math.round(W * 0.56), 560) : Math.min(W - 80, 760), bx = handheld ? 20 : short ? 24 : Math.round((W - bw) / 2);
     g2.font = `900 17px "${FONT_G}"`;
     const lines = wrap(nar.text.slice(0, Math.floor(nar.shown)), bw - 50).slice(0, 3);
-    const bh = handheld ? 30 + Math.max(2, wrap(nar.text, bw - 50).length) * 22 : 72, by = H - bh - 20;
+    const bh = handheld ? 30 + Math.max(2, wrap(nar.text, bw - 50).length) * 22 : 72;
+    let by = H - bh - 20;
+    // the box never covers what it's pointing at: the hovered or a glowing object sends it to the top (not on the handheld,
+    // nor over an open window), just under the channel plate and the bars so the name tag and the memories stay clear
+    if (!handheld && !panel) {
+      const under = (oid) => { const at = oid && screenOf(oid, true); return at && at[0] >= bx && at[0] <= bx + bw && at[1] >= by - 12 && at[1] <= by + bh; };
+      if (under(state.hover) || Object.entries(objects).some(([oid, o]) => (o.glow > 0 || beckon.has(oid)) && o.root.visible && under(oid))) by = STORY ? 92 : 58;
+    }
     nar.box = { x: bx, y: by, w: bw, h: bh }; // for clicks: UI pixels, like the panel rows
     g2.fillStyle = 'rgba(16,47,65,0.94)'; g2.fillRect(bx, by, bw, bh);
     g2.strokeStyle = '#fce8cd'; g2.lineWidth = 2; g2.strokeRect(bx + 4, by + 4, bw - 8, bh - 8);
@@ -1565,7 +1658,9 @@ function drawMemories(t) {
   const blink = t - memFlash < 1.6 && Math.floor((t - memFlash) * 5) % 2 === 0;
   const shown = blink ? n - 1 : n;
   g2.save(); g2.translate(x, y); g2.scale(size / 555, size / 555);
-  g2.fillStyle = '#fce8cd'; g2.fill(new Path2D(LOGO_OUTER));
+  // the face talks: while a line types, its outline flicks gold in hard steps (steady gold with reduced motion)
+  const talking = nar.visible && nar.shown < nar.text.length && (reduce || Math.floor(t / 0.12) % 2 === 0);
+  g2.fillStyle = talking ? '#fadb68' : '#fce8cd'; g2.fill(new Path2D(LOGO_OUTER));
   const inner = new Path2D(LOGO_INNER);
   g2.fillStyle = 'rgba(252,232,205,0.16)'; g2.fill(inner);
   // the inside spans about y 137 to 417 in logo units; it fills from its wide top edge in eight hard steps
@@ -1575,7 +1670,7 @@ function drawMemories(t) {
   g2.font = `11px "${FONT_PIX}"`; g2.fillStyle = blink ? '#fadb68' : 'rgba(252,232,205,0.8)';
   const label = `MEMORIES ${n}/${GAMES.length}`;
   g2.fillText(label, x + size + 8, y + size / 2);
-  if (!panel) navHits.push({ id: 'memories', x: x - 4, y: y - 4, w: size + 16 + g2.measureText(label).width, h: size + 8, act: () => openPanel(memoriesPanel()) });
+  if (!panel) navHits.push({ id: 'memories', x: x - 4, y: y - 4, w: size + 16 + g2.measureText(label).width, h: size + 8, act: () => openPanel(story.flags.has('complete') ? endPanel() : memoriesPanel()) });
 }
 // A trainer card of what's been given back: played games by name, the rest still unknown.
 function memoriesPanel() {
@@ -1610,7 +1705,7 @@ renderer.setAnimationLoop(() => {
   state.lastHover = hov;
   // glow: highlighted objects breathe gold, the hovered one warms a little
   for (const [id, o] of Object.entries(objects)) {
-    const k = Math.max(o.glow * (0.35 + 0.25 * Math.sin(t * 4)), id === hov ? 0.22 : 0);
+    const k = Math.max(Math.max(o.glow, beckon.has(id) ? 1 : 0) * (0.35 + 0.25 * Math.sin(t * 4)), id === hov ? 0.22 : 0);
     for (const m of o.mats) {
       if (/screen|blinn2/i.test(m.name)) continue;
       tmpCol.copy(m.userData.baseEmissive).lerp(GOLD, Math.min(1, k * 1.5));
@@ -1621,6 +1716,10 @@ renderer.setAnimationLoop(() => {
   state.idle += dt;
   const now = performance.now();
   if (STORY) {
+    // a game left playing 12s with no input: say once that ejecting it moves the story on
+    if (state.playing && !state.busy && panel && !story.flags.has('nudged-eject') && now - Math.max(lastAct, state.playedAt || 0) > 12000) {
+      story.flags.add('nudged-eject'); persist(); say(STORY_LINES.ejectNudge);
+    }
     // stuck in the story: a nudge 15s after the last action, the plain instruction at 30s (wall clock, so slow frames don't stretch it)
     // a project window can be open; the letter, credits and memories are being read
     if (nextHint(false) && (state.mode === 'free' || state.mode === 'choose') && (!panel || panel.kind === 'project') && !nar.visible && now - lastSpeak > 4000) {
@@ -1659,8 +1758,11 @@ lastAct = performance.now(); // the hint clock starts with the picture
 gsap.to(crtMat.uniforms.uPower, { value: 1, duration: reduce ? 0.2 : 0.9, ease: 'power2.out', delay: 0.2 });
 if (!reduce) crtMat.uniforms.uBurst.value = 0.9;
 setTimeout(() => {
-  queue(STORY ? (returning ? STORY_LINES.back : STORY_LINES.boot) : LINES.boot, 2.6, { keep: STORY });
   if (touchUI) queue(handheld ? '* tap a thing to point at it, tap again to use it. or the pad and a, like a game boy.' : '* tap something to point at it, tap again to use it. a and b work too.', 3.4);
+  const boot = lineItems(STORY ? (returning ? STORY_LINES.back : STORY_LINES.boot) : LINES.boot, 2.6, { keep: STORY });
+  // the envelope's line lights the envelope, like a reveal
+  if (STORY && !returning) boot[2].on = () => { const o = objects['envelope']; if (o) { o.glow = 1; gsap.to(o, { glow: 0, duration: 2.4, delay: 1 }); } };
+  queue(boot);
 }, reduce ? 300 : 1300);
 // the boot ends on its own, or at the first press (see endBoot)
 setTimeout(() => endBoot(true), reduce ? 1500 : 4200);

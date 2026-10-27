@@ -62,7 +62,7 @@ Every Gym Leader gets a portrait, framed like a card with their name in katakana
 ![カスミ, Misty](leader-003.png "x3")
 
 * the first one isn't brock.
-* if you know, you know. if you don't, ask omar.
+* i won't say who. it's better if you meet them.
 
 ?? Who is ユジロ, and why does he come first? I'm guessing it's from the prototype data, but I'd rather you tell the story.
 
