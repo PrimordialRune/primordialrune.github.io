@@ -62,11 +62,13 @@ function imageWidth(dir, file) {
 }
 const isPixel = (dir, file) => imageWidth(dir, file) <= 320;
 
+// The caption doubles as the alt text. An empty one gets no figcaption and a warning: alt text is Omar's to write.
 function figure(caption, file, opt, dir) {
+  if (!caption.trim()) console.warn(`  warning: ${dir.split('/').pop()}/${file} has no caption, so no alt text`);
   const wide = opt === 'wide' || !isPixel(dir, file);
   const scale = (opt || '').match(/^x(\d)$/)?.[1];
   const cls = wide ? 'fig wide' : `fig screen${scale ? ` x${scale}` : ''}`;
-  return `<figure class="${cls}"><img src="${esc(file)}" alt="${esc(caption)}"${wide ? ' loading="lazy"' : ''}${wide ? '' : ' data-pixel'}><figcaption>${inline(caption)}</figcaption></figure>`;
+  return `<figure class="${cls}"><img src="${esc(file)}" alt="${esc(caption)}"${wide ? ' loading="lazy"' : ''}${wide ? '' : ' data-pixel'}>${caption.trim() ? `<figcaption>${inline(caption)}</figcaption>` : ''}</figure>`;
 }
 
 function body(md, draft, dir) {
@@ -109,6 +111,16 @@ function render(fm, pages, dir) {
   const [ink, accent, accent2, paper] = (fm.palette || '#102f41 #ec563b #339999 #fce8cd').split(/\s+/);
   const facts = Object.entries(fm.facts || {}).map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${inline(v.replace(/\s*\?\?$/, ''))}${draft && /\?\?$/.test(v) ? ' <span class="unsure" title="To confirm">?</span>' : ''}</dd></div>`).join('');
   const play = fm.play ? `<a class="play" href="${esc(fm.play)}" target="_blank" rel="noopener">PLAY IT →</a>` : '';
+  // Link previews: the cover is the card, the first plain fact is its line
+  const blurb = ['What', 'Genre', 'Type', 'Made for'].map((k) => fm.facts?.[k]).find(Boolean);
+  const og = [
+    `<meta property="og:type" content="article">`,
+    `<meta property="og:title" content="${esc(fm.title)} · Omar Golinelli">`,
+    blurb && `<meta property="og:description" content="${esc(blurb.replace(/\s*\?\?$/, ''))}">`,
+    `<meta property="og:url" content="https://www.primordialrune.com/new/study/${esc(fm.slug)}/">`,
+    fm.cover && `<meta property="og:image" content="https://www.primordialrune.com/new/study/${esc(fm.slug)}/${esc(fm.cover)}">`,
+    `<meta name="twitter:card" content="summary_large_image">`,
+  ].filter(Boolean).join('\n');
   const pageHtml = pages.map((p, i) => `
   <section class="page" aria-labelledby="p${i + 1}">
     <header><h2 id="p${i + 1}">${inline(p.title)}</h2>${p.kana ? `<div class="kana" lang="ja">${esc(p.kana)}</div>` : ''}</header>
@@ -122,6 +134,7 @@ function render(fm, pages, dir) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(fm.title)} · Omar Golinelli</title>
 <meta name="description" content="${esc(fm.title)}: the ${esc(medium.insert.toLowerCase())}, a case study by Omar Golinelli.">
+${og}
 ${draft ? '<meta name="robots" content="noindex">\n' : ''}<link rel="stylesheet" href="../study.css">
 <style>:root { --ink: ${ink}; --accent: ${accent}; --accent2: ${accent2}; --paper: ${paper}; }</style>
 </head>
@@ -142,9 +155,9 @@ ${draft ? '<meta name="robots" content="noindex">\n' : ''}<link rel="stylesheet"
 ${pageHtml}
 </main>
 <script>
-// Back to the room the way you came (keeps ?story and the room's state); a direct visit goes to /new/.
+// Back the way you came: to the room (keeps ?story and its state) or to the quick view; a direct visit goes to /.
 document.querySelector('[data-back]').addEventListener('click', (e) => {
-  try { const from = document.referrer && new URL(document.referrer); if (from && from.origin === location.origin && (from.pathname === '/' || from.pathname.replace(/index\\.html$/, '').endsWith('/new/'))) { e.preventDefault(); history.back(); } } catch (_) {}
+  try { const from = document.referrer && new URL(document.referrer); if (from && from.origin === location.origin && /^\\/(new\\/)?(quick\\/)?$/.test(from.pathname.replace(/index\\.html$/, ''))) { e.preventDefault(); history.back(); } } catch (_) {}
 });
 // Pixel art at the largest integer scale that fits (P1: never 2.5x)
 const fit = () => document.querySelectorAll('img[data-pixel]').forEach((img) => {

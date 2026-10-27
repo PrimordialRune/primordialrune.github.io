@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Holon · Omar Golinelli</title>
 <meta name="description" content="Holon: the liner notes, a case study by Omar Golinelli.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Holon · Omar Golinelli">
+<meta property="og:description" content="A simulator for the RS-PK retro format of the Pokémon TCG (the EX era), designed for digital">
+<meta property="og:url" content="https://www.primordialrune.com/new/study/holon/">
+<meta property="og:image" content="https://www.primordialrune.com/new/study/holon/logo.png">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="../study.css">
 <style>:root { --ink: #0d1530; --accent: #4f6fa8; --accent2: #5fe3f2; --paper: #f1f4fa; }</style>
 </head>
@@ -47,7 +53,7 @@
     <ul><li><strong>What a card is, and what it can do by itself.</strong> It belongs to the card, always on.</li><li><strong>Whether a place will accept what you're doing.</strong> It belongs to the place, and lights up only while you act.</li><li><strong>Whether something will react to what you're doing.</strong> It belongs to the card, as a change in its own signal.</li></ul>
     <p>The test of this grammar isn't whether one tricky card works. It's whether the next hundred cards arrive as configurations of it, without new code for each one.</p>
     <figure class="fig wide"><img src="wireframe.png" alt="From the first wireframe to the board, in light and dark" loading="lazy"><figcaption>From the first wireframe to the board, in light and dark</figcaption></figure>
-    <figure class="fig wide"><img src="board.png" alt="" loading="lazy"><figcaption></figcaption></figure>
+    <figure class="fig wide"><img src="board.png" alt="" loading="lazy"></figure>
     <p>One more decision: the board leans 12° toward you. Tilting the camera did nothing, because rotating a camera in place can't create depth, so the board itself tilts. The cards lie in it like objects on a table, while your hand stays upright: a hand is held, not laid down.</p>
     <footer class="folio">TRACK 03</footer>
   </section>
@@ -83,9 +89,9 @@
   </section>
 </main>
 <script>
-// Back to the room the way you came (keeps ?story and the room's state); a direct visit goes to /new/.
+// Back the way you came: to the room (keeps ?story and its state) or to the quick view; a direct visit goes to /.
 document.querySelector('[data-back]').addEventListener('click', (e) => {
-  try { const from = document.referrer && new URL(document.referrer); if (from && from.origin === location.origin && (from.pathname === '/' || from.pathname.replace(/index\.html$/, '').endsWith('/new/'))) { e.preventDefault(); history.back(); } } catch (_) {}
+  try { const from = document.referrer && new URL(document.referrer); if (from && from.origin === location.origin && /^\/(new\/)?(quick\/)?$/.test(from.pathname.replace(/index\.html$/, ''))) { e.preventDefault(); history.back(); } } catch (_) {}
 });
 // Pixel art at the largest integer scale that fits (P1: never 2.5x)
 const fit = () => document.querySelectorAll('img[data-pixel]').forEach((img) => {

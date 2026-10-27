@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>PTCG Cube · Omar Golinelli</title>
 <meta name="description" content="PTCG Cube: the rulebook, a case study by Omar Golinelli.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PTCG Cube · Omar Golinelli">
+<meta property="og:url" content="https://www.primordialrune.com/new/study/ptcg-cube/">
+<meta property="og:image" content="https://www.primordialrune.com/new/study/ptcg-cube/cover.jpg">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="../study.css">
 <style>:root { --ink: #423135; --accent: #e8584a; --accent2: #2f9b98; --paper: #fbf5ea; }</style>
@@ -69,9 +74,9 @@
   </section>
 </main>
 <script>
-// Back to the room the way you came (keeps ?story and the room's state); a direct visit goes to /new/.
+// Back the way you came: to the room (keeps ?story and its state) or to the quick view; a direct visit goes to /.
 document.querySelector('[data-back]').addEventListener('click', (e) => {
-  try { const from = document.referrer && new URL(document.referrer); if (from && from.origin === location.origin && (from.pathname === '/' || from.pathname.replace(/index\.html$/, '').endsWith('/new/'))) { e.preventDefault(); history.back(); } } catch (_) {}
+  try { const from = document.referrer && new URL(document.referrer); if (from && from.origin === location.origin && /^\/(new\/)?(quick\/)?$/.test(from.pathname.replace(/index\.html$/, ''))) { e.preventDefault(); history.back(); } } catch (_) {}
 });
 // Pixel art at the largest integer scale that fits (P1: never 2.5x)
 const fit = () => document.querySelectorAll('img[data-pixel]').forEach((img) => {

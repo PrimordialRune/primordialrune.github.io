@@ -13,9 +13,13 @@ const head = `<base href="/new/">
 <link rel="canonical" href="https://www.primordialrune.com/">
 <link rel="icon" href="/favicon.ico">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Omar's Room">
+<meta property="og:title" content="Omar’s Room">
 <meta property="og:description" content="Game design and development by Omar Golinelli (PrimordialRune).">
-<meta property="og:url" content="https://www.primordialrune.com/">`;
+<meta property="og:url" content="https://www.primordialrune.com/">
+<meta property="og:site_name" content="Omar Golinelli · Game designer & developer">
+<meta property="og:image" content="https://www.primordialrune.com/new/og.png">
+<meta property="og:image:alt" content="Omar’s room: a desk with an old PC, a Game Boy and an envelope, seen through a Trinitron.">
+<meta name="twitter:card" content="summary_large_image">`;
 
 if (!room.includes('<title>')) throw new Error('promote-room: no <title> in public/new/index.html');
 writeFileSync(join(root, 'public/index.html'), room.replace('<title>', `${head}\n<title>`));

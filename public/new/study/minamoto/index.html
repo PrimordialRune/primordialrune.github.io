@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Project Minamoto · Omar Golinelli</title>
 <meta name="description" content="Project Minamoto: the instruction booklet, a case study by Omar Golinelli.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Project Minamoto · Omar Golinelli">
+<meta property="og:description" content="A Pokémon fan game that re-reads Generation 1 on the Game Boy Advance">
+<meta property="og:url" content="https://www.primordialrune.com/new/study/minamoto/">
+<meta property="og:image" content="https://www.primordialrune.com/new/study/minamoto/logo.png">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="../study.css">
 <style>:root { --ink: #2a2440; --accent: #d9506a; --accent2: #3d9bd9; --paper: #fdf0ec; }</style>
@@ -73,9 +79,9 @@
   </section>
 </main>
 <script>
-// Back to the room the way you came (keeps ?story and the room's state); a direct visit goes to /new/.
+// Back the way you came: to the room (keeps ?story and its state) or to the quick view; a direct visit goes to /.
 document.querySelector('[data-back]').addEventListener('click', (e) => {
-  try { const from = document.referrer && new URL(document.referrer); if (from && from.origin === location.origin && (from.pathname === '/' || from.pathname.replace(/index\.html$/, '').endsWith('/new/'))) { e.preventDefault(); history.back(); } } catch (_) {}
+  try { const from = document.referrer && new URL(document.referrer); if (from && from.origin === location.origin && /^\/(new\/)?(quick\/)?$/.test(from.pathname.replace(/index\.html$/, ''))) { e.preventDefault(); history.back(); } } catch (_) {}
 });
 // Pixel art at the largest integer scale that fits (P1: never 2.5x)
 const fit = () => document.querySelectorAll('img[data-pixel]').forEach((img) => {

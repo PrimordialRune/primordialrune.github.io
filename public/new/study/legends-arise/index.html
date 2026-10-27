@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Legends Arise · Omar Golinelli</title>
 <meta name="description" content="Legends Arise: the instruction booklet, a case study by Omar Golinelli.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Legends Arise · Omar Golinelli">
+<meta property="og:description" content="A Pokémon Platinum fan game, built on the original DS hardware">
+<meta property="og:url" content="https://www.primordialrune.com/new/study/legends-arise/">
+<meta property="og:image" content="https://www.primordialrune.com/new/study/legends-arise/logo.png">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="../study.css">
 <style>:root { --ink: #242424; --accent: #e8742a; --accent2: #2f9ed6; --paper: #ecebe7; }</style>
@@ -68,9 +74,9 @@
   </section>
 </main>
 <script>
-// Back to the room the way you came (keeps ?story and the room's state); a direct visit goes to /new/.
+// Back the way you came: to the room (keeps ?story and its state) or to the quick view; a direct visit goes to /.
 document.querySelector('[data-back]').addEventListener('click', (e) => {
-  try { const from = document.referrer && new URL(document.referrer); if (from && from.origin === location.origin && (from.pathname === '/' || from.pathname.replace(/index\.html$/, '').endsWith('/new/'))) { e.preventDefault(); history.back(); } } catch (_) {}
+  try { const from = document.referrer && new URL(document.referrer); if (from && from.origin === location.origin && /^\/(new\/)?(quick\/)?$/.test(from.pathname.replace(/index\.html$/, ''))) { e.preventDefault(); history.back(); } } catch (_) {}
 });
 // Pixel art at the largest integer scale that fits (P1: never 2.5x)
 const fit = () => document.querySelectorAll('img[data-pixel]').forEach((img) => {

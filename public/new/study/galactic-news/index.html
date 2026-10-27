@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The Galactic News · Omar Golinelli</title>
 <meta name="description" content="The Galactic News: the instruction booklet, a case study by Omar Golinelli.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="The Galactic News · Omar Golinelli">
+<meta property="og:description" content="GBJAM 11, September 2023">
+<meta property="og:url" content="https://www.primordialrune.com/new/study/galactic-news/">
+<meta property="og:image" content="https://www.primordialrune.com/new/study/galactic-news/title.gif">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="../study.css">
 <style>:root { --ink: #291f23; --accent: #bd502f; --accent2: #34d1af; --paper: #f7ecb9; }</style>
 </head>
@@ -89,9 +95,9 @@
   </section>
 </main>
 <script>
-// Back to the room the way you came (keeps ?story and the room's state); a direct visit goes to /new/.
+// Back the way you came: to the room (keeps ?story and its state) or to the quick view; a direct visit goes to /.
 document.querySelector('[data-back]').addEventListener('click', (e) => {
-  try { const from = document.referrer && new URL(document.referrer); if (from && from.origin === location.origin && (from.pathname === '/' || from.pathname.replace(/index\.html$/, '').endsWith('/new/'))) { e.preventDefault(); history.back(); } } catch (_) {}
+  try { const from = document.referrer && new URL(document.referrer); if (from && from.origin === location.origin && /^\/(new\/)?(quick\/)?$/.test(from.pathname.replace(/index\.html$/, ''))) { e.preventDefault(); history.back(); } } catch (_) {}
 });
 // Pixel art at the largest integer scale that fits (P1: never 2.5x)
 const fit = () => document.querySelectorAll('img[data-pixel]').forEach((img) => {

@@ -15,7 +15,8 @@ body { margin: 0; background: var(--room); color: var(--cream); font: 200 19px/1
 .bar { position: sticky; top: 0; z-index: 2; display: flex; justify-content: space-between; align-items: center; gap: 12px;
   padding: 10px 16px; background: rgba(7, 20, 28, .92); border-bottom: 3px solid #ec563b; }
 .bar .back { font: 400 11px/1 var(--pixel); letter-spacing: .08em; color: var(--gold); text-decoration: none; padding: 8px 0; }
-.bar .back:hover, .bar .back:focus-visible { color: var(--cream); outline: none; }
+.bar .back:hover, .bar .back:focus-visible { color: var(--cream); }
+.bar .back:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 .bar .insert { font: 400 10px/1 var(--pixel); letter-spacing: .08em; opacity: .6; }
 
 .booklet { max-width: 660px; margin: 0 auto; padding: 32px 16px 80px; display: grid; gap: 28px; }
@@ -32,7 +33,12 @@ h2 { font: 900 30px/1.05 var(--grotesk); text-transform: uppercase; margin: 0; l
 .page ul { margin: 0 0 18px; padding: 0; list-style: none; }
 .page li { padding-left: 24px; position: relative; margin-bottom: 8px; }
 .page li::before { content: ""; position: absolute; left: 2px; top: .62em; width: 9px; height: 9px; background: var(--accent); }
-.page a { color: var(--accent); font-weight: 900; }
+/* links read in ink (the accent alone fails 4.5:1 on some papers); the accent is the underline */
+.page a { color: var(--ink); font-weight: 900; text-decoration: underline; text-decoration-color: var(--accent); text-decoration-thickness: 3px; text-underline-offset: 3px; }
+.page a:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+/* on the ink panels (cover, narrator) the colours swap */
+.cover a:not(.play), .narrator a { color: var(--paper); }
+.cover a:not(.play):focus-visible, .narrator a:focus-visible { outline-color: var(--paper); }
 .page strong { font-weight: 900; }
 
 .folio { text-align: center; font: 400 10px/1 var(--pixel); letter-spacing: .1em; opacity: .55; margin-top: 28px; }
@@ -70,8 +76,9 @@ h2 { font: 900 30px/1.05 var(--grotesk); text-transform: uppercase; margin: 0; l
 .facts div { display: grid; grid-template-columns: 7.5em 1fr; gap: 12px; padding: 8px 0; border-top: 1px solid color-mix(in srgb, var(--paper) 25%, transparent); }
 .facts dt { font: 400 10px/1.8 var(--pixel); letter-spacing: .08em; color: var(--accent2); text-transform: uppercase; }
 .facts dd { margin: 0; }
-.play { display: inline-block; margin-top: 18px; padding: 12px 18px; background: var(--accent); color: var(--paper); font: 400 12px/1 var(--pixel); letter-spacing: .1em; text-decoration: none; }
-.play:hover, .play:focus-visible { background: var(--paper); color: var(--ink); outline: none; }
+.page a.play { display: inline-block; margin-top: 18px; padding: 12px 18px; background: var(--ink); color: var(--paper); box-shadow: 0 0 0 3px var(--accent); font: 400 12px/1 var(--pixel); letter-spacing: .1em; text-decoration: none; }
+.page a.play:hover, .page a.play:focus-visible { background: var(--paper); color: var(--ink); }
+.page a.play:focus-visible { outline: 2px solid var(--gold); outline-offset: 6px; }
 .cover .folio { opacity: .5; }
 
 /* the booklet slides out of the case (P3), on a spring; quiet motion just shows it */
