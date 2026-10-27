@@ -196,12 +196,32 @@ const story = (() => {
   const s = { found: ['pc', 'gb-console', 'gb-cart', 'envelope'], played: [], spots: ['desk'], flags: [] };
   if (STORY) {
     try {
-      if (new URLSearchParams(location.search).has('reset')) localStorage.removeItem(SAVE_KEY);
+      if (new URLSearchParams(location.search).has('reset')) {
+        localStorage.removeItem(SAVE_KEY);
+        // drop ?reset from the address, so coming back from a case study (history.back) doesn't reset the run again
+        history.replaceState(null, '', location.pathname + location.search.replace(/([?&])reset\b&?/, '$1').replace(/[?&]$/, '') + location.hash);
+      }
       Object.assign(s, JSON.parse(localStorage.getItem(SAVE_KEY) || '{}'));
     } catch { /* no storage: the run just isn't kept */ }
   }
   return { found: new Set(s.found), played: new Set(s.played), spots: new Set(s.spots), flags: new Set(s.flags) };
 })();
+// A beat can be cut off: a reload mid-play, or a case study opened while a game was still in.
+// Apply whatever the saved state already owes, silently, before anything is placed (place() reads isFound).
+// No openSpot or reveal here: there are no objects yet. storyEjected keeps the animated version for the live case.
+// WP3: if the torch moves to another trigger, mirror that trigger here too.
+let owedTorch = false;
+function catchUp() {
+  const { found, played, spots, flags } = story;
+  if (played.has('gb-cart') && !found.has('postcard')) found.add('postcard');
+  if (played.has('gba-cart') && !found.has('ptcg-cube-rulebook')) found.add('ptcg-cube-rulebook');
+  if (played.has('gba-cart') && !flags.has('torch')) owedTorch = true; // the lamp still goes, a little after the room is on
+  if (played.has('holon-disc') && !found.has('spacerim-disc')) found.add('spacerim-disc');
+  if (played.has('crossfader-cassette') && !spots.has('drawer')) { spots.add('drawer'); found.add('cd-jewel'); }
+  if (played.size === GAMES.length) flags.add('complete');
+  persist();
+}
+if (STORY) catchUp();
 const returning = STORY && story.played.size > 0;
 function persist() {
   if (!STORY) return;
@@ -672,6 +692,7 @@ function moveTo(pos, at, dur = DUR) {
 function setNav(s) { spot = s; document.querySelectorAll('#nav button').forEach((b) => b.setAttribute('aria-current', String(b.dataset.spot === s))); }
 function goSpot(s) {
   if (!SPOTS[s] || state.busy || !spotOpen(s)) return;
+  acted();
   if (s !== 'desk') loadRest();
   closePanel();
   if (state.mode !== 'choose') state.mode = 'free';
@@ -693,25 +714,48 @@ function frameObject(id, dist = 1, dur = DUR) {
 }
 
 // ---------- narrator (drawn inside the tube) ----------
-const nar = { name: 'OMAR', text: '', shown: 0, queue: [], until: 0, visible: false };
+let lastSpeak = performance.now();
+const nar = { name: 'OMAR', text: '', shown: 0, queue: [], until: 0, visible: false, cur: null, box: null };
 // say() cuts in: the narrator answers what you just did. queue() waits its turn (boot, idle).
-function say(lines, hold = 3.2) { nar.queue = [].concat(lines).map((t) => ({ t, hold })); next(); }
-function queue(lines, hold = 3.2) {
-  nar.queue.push(...[].concat(lines).map((t) => ({ t, hold })));
+// A line can be a string or { t, keep }. Kept lines are story beats: a say() cutting in puts them back after itself.
+const lineItems = (lines, hold, opts = {}) => [].concat(lines).map((l) => typeof l === 'string' ? { t: l, hold, keep: !!opts.keep } : { hold, ...l });
+const kept = (lines) => [].concat(lines).map((t) => ({ t, keep: true }));
+function say(lines, hold = 3.2, opts) {
+  // the current beat counts as heard once it has been on screen whole for a second
+  const unheard = nar.visible && nar.cur?.keep && (nar.shown < nar.text.length || performance.now() < nar.until - (nar.hold - 1) * 1000);
+  nar.queue = [...lineItems(lines, hold, opts), ...(unheard ? [nar.cur] : []), ...nar.queue.filter((q) => q.keep)];
+  next();
+}
+function queue(lines, hold = 3.2, opts) {
+  nar.queue.push(...lineItems(lines, hold, opts));
   if (!nar.visible) next();
 }
 function next() {
+  if (nar.visible) lastSpeak = performance.now();
   const n = nar.queue.shift();
-  if (!n) { nar.visible = false; return; }
-  nar.text = n.t; nar.shown = 0; nar.visible = true; nar.hold = n.hold; nar.until = Infinity;
+  if (!n) { nar.visible = false; nar.cur = null; return; }
+  nar.cur = n; nar.text = n.t; nar.shown = 0; nar.visible = true; nar.until = Infinity;
+  // longer lines stay up longer
+  nar.hold = Math.max(n.hold, 1.2 + n.t.split(' ').length * 0.3);
+  if (reduce) { nar.shown = nar.text.length; nar.until = performance.now() + nar.hold * 1000; }
   document.getElementById('say').textContent = n.t.replace(/^\* /, '');
+}
+// A click on the box (or Space, Enter, A) finishes the line; the next press moves on.
+function hurry() {
+  if (!nar.visible) return false;
+  if (nar.shown < nar.text.length) { nar.shown = nar.text.length; nar.until = performance.now() + nar.hold * 1000; } else next();
+  return true;
+}
+function boxAt(u, v) {
+  const b = nar.box; if (!b || !nar.visible) return false;
+  const [cu, cv] = curve(u, v); const px = cu * W, py = (1 - cv) * H;
+  return px >= b.x && px <= b.x + b.w && py >= b.y - 12 && py <= b.y + b.h;
 }
 function glitchName() {
   // the only crack in act 1: the name tag slips for a frame or two
   nar.name = '0MAR'; burst(0.6);
   setTimeout(() => { nar.name = 'OMAR'; }, reduce ? 400 : 160);
 }
-let lastSpeak = performance.now();
 function tickNarrator(dt) {
   if (!nar.visible) return;
   if (nar.shown < nar.text.length) {
@@ -721,7 +765,31 @@ function tickNarrator(dt) {
 }
 
 // ---------- interaction state ----------
-const state = { mode: 'boot', system: null, hover: null, sawDrawer: false, said: new Set(), idle: 0, busy: false, playing: null };
+const state = { mode: 'boot', system: null, hover: null, sawDrawer: false, said: new Set(), idle: 0, busy: false, playing: null, hintStage: 0, tl: null, tlAt: 0, replayed: new Set() };
+// Stuck hints run on wall-clock time since the last real action (moving the mouse isn't one).
+let lastAct = performance.now();
+const acted = () => { lastAct = performance.now(); state.hintStage = 0; };
+// A ceremony (insert, eject, the letter) keeps its timeline here, so a press can finish it at once.
+function ceremony(tl) { state.tl = tl; state.tlAt = performance.now(); return tl; }
+function skipCeremony() {
+  const tl = state.tl;
+  if (!state.busy || !tl || tl.progress() >= 1 || performance.now() - state.tlAt < 150) return false;
+  state.tl = null;
+  tl.progress(1); // the onComplete beats still run
+  gsap.getTweensOf([camera.position, look]).forEach((t) => t.progress(1));
+  return true;
+}
+// End the boot early: the first press counts, and is then handled as usual.
+// A press that will hurry the narrator anyway (on the box, Space, Enter, A) leaves the line to it.
+function endBoot(timer, hurries) {
+  if (state.mode !== 'boot') return;
+  state.mode = 'free'; loadRest();
+  if (!hurries && nar.visible && nar.shown < nar.text.length) { nar.shown = nar.text.length; nar.until = performance.now() + nar.hold * 1000; }
+  if (timer) { highlight(Object.keys(PLAYS).filter(isFound)); setTimeout(() => { if (state.mode === 'free') highlight([]); }, 2600); }
+  if (owedTorch) setTimeout(lampGoes, 6000);
+}
+// A menu row is an action
+function useRow(it) { acted(); it.act(); }
 // What a system will take right now: found games only, and an unwoken GBA only takes the old cartridge.
 const playable = (sys) => (PLAYS[sys] || []).filter((g) => isFound(g) && (sys !== 'gba-console' || gbaAwake() || g === 'gb-cart'));
 const PROMPT = (id) => {
@@ -740,6 +808,7 @@ function resetChoice() { state.mode = 'free'; state.system = null; highlight([])
 function activate(id) {
   if (!id || state.busy) return;
   if (state.playing) return; // the menu handles eject first
+  acted();
   if (id === 'drawer') {
     if (spotOpen('drawer')) return goSpot('drawer');
     say(STORY_LINES.drawerLocked, 2.4);
@@ -749,7 +818,7 @@ function activate(id) {
   if (id === 'envelope') return openLetter();
   if (id === 'postcard') return readPostcard();
   const o = objects[id]; if (!o) return;
-  if (PLAYS[id] && !rest?.done) { loadRest().then(() => activate(id)); return; } // its games are still on their way
+  if (PLAYS[id] && !rest?.done && PLAYS[id].some((g) => isFound(g) && !objects[g])) { highlight([id]); loadRest().then(() => activate(id)); return; } // its games are still on their way: light it now, act once they're in
   if (PLAYS[id]) {
     // pick a system: look over at the games that fit, lit up
     state.mode = 'choose'; state.system = id;
@@ -801,11 +870,14 @@ function cameraTo(id, dist) { frameObject(id, dist); }
 
 function insert(game, sys) {
   const g = objects[game], s = objects[sys];
-  state.mode = 'playing'; state.busy = true; highlight([]); closePanel();
+  state.mode = 'playing'; state.busy = true; highlight([]); closePanel(); acted();
   setNav('desk');
   const home = { parent: g.obj.parent, pos: g.obj.position.clone(), quat: g.obj.quaternion.clone(), scale: g.obj.scale.x };
   state.playing = { game, sys, home };
-  const tl = gsap.timeline({ onComplete: () => { state.busy = false; started(game, sys); } });
+  const tl = ceremony(gsap.timeline({ onComplete: () => { state.busy = false; started(game, sys); } }));
+  // seen it before: the second time it goes in quicker
+  if (STORY ? story.played.has(game) : state.replayed.has(game)) tl.timeScale(2.5);
+  state.replayed.add(game);
   if (sys === 'pc') frameDrive(); else if (!SLOTS[sys]) cameraTo(sys, 1.6);
   if (sys === 'pc') return insertDisc(tl, g, s);
   if (sys === 'crossfader-player') return insertCassette(tl, g, s);
@@ -918,7 +990,7 @@ function storyEjected(game) {
   const lines = [];
   if (game === 'holon-disc' && !story.found.has('spacerim-disc')) { lines.push(STORY_LINES.spacerim); setTimeout(() => { goSpot('table'); setTimeout(() => reveal('spacerim-disc'), DUR * 1000); }, 400); }
   if (game === 'crossfader-cassette' && !story.spots.has('drawer')) {
-    lines.push(...STORY_LINES.drawerOpens);
+    lines.push(...kept(STORY_LINES.drawerOpens));
     setTimeout(() => {
       openSpot('drawer'); reveal('cd-jewel');
       gsap.fromTo(drawer.position, { z: DRAWER_SHUT }, { z: DRAWER_SHUT + 0.03, duration: 0.12, yoyo: true, repeat: 1 });
@@ -928,7 +1000,7 @@ function storyEjected(game) {
     lines.push(STORY_LINES.draftNext);
     setTimeout(() => { const o = objects['ptcg-cube-rulebook']; if (o) { o.glow = 1; gsap.to(o, { glow: 0, duration: 2.4, delay: 2 }); } }, 400);
   }
-  if (story.played.size === GAMES.length && !story.flags.has('complete')) { story.flags.add('complete'); persist(); lines.push(...STORY_LINES.complete); }
+  if (story.played.size === GAMES.length && !story.flags.has('complete')) { story.flags.add('complete'); persist(); lines.push(...kept(STORY_LINES.complete)); }
   if (lines.length) setTimeout(() => say(lines), 500);
 }
 // Something turns up: it drops into place with a little bounce, lit for a moment.
@@ -951,7 +1023,7 @@ function lampGoes() {
   story.flags.add('torch'); persist();
   const tl = gsap.timeline();
   for (const k of [0.1, 1, 0.05, 0.8, 0.02, 0.6]) tl.set(lamp, { intensity: LAMP_FULL * k }, `+=${reduce ? 0 : 0.09}`);
-  tl.call(() => { dimLamp(); burst(0.3); say(STORY_LINES.torch); });
+  tl.call(() => { dimLamp(); burst(0.3); say(STORY_LINES.torch, undefined, { keep: true }); });
   tl.to(torch, { intensity: TORCH, duration: reduce ? 0.01 : 0.6, ease: 'power2.out' }, '+=1.2');
 }
 if (STORY && story.flags.has('torch')) { dimLamp(); torch.intensity = TORCH; }
@@ -977,6 +1049,7 @@ function findSystem(sys, game) {
 }
 // The Cube's rulebook deals the next games: one face-down pick at a time, the next once the last is played.
 function readRulebook() {
+  acted();
   if (!story.played.has('ptcg-cube-rulebook')) { story.played.add('ptcg-cube-rulebook'); memFlash = clock.elapsedTime; persist(); }
   frameObject('ptcg-cube-rulebook', 0.9, DUR * 0.8);
   highlight(['ptcg-cube-rulebook']);
@@ -988,7 +1061,7 @@ function readRulebook() {
     if (waiting) highlight([waiting]);
     return;
   }
-  say(left.length === DRAFT.length ? STORY_LINES.draft : STORY_LINES.draftNext);
+  if (left.length === DRAFT.length) say(STORY_LINES.draft, undefined, { keep: true }); else say(STORY_LINES.draftNext);
   openPanel({ kind: 'project', tag: 'DRAFT', title: left.length === DRAFT.length ? 'Pick one' : 'Next pick', kana: 'ドラフト  DRAFT',
     body: [`Pick ${DRAFT.length - left.length + 1} of ${DRAFT.length}. Keep one, the rest come round again.`],
     items: [...left.map((g) => ({ label: DRAFT_FACE[g][0], note: DRAFT_FACE[g][1], act: () => draftPick(g) })),
@@ -1012,8 +1085,8 @@ function skipStory() {
 function eject() {
   const p = state.playing; if (!p || state.busy) return;
   const g = objects[p.game];
-  state.busy = true; closePanel();
-  const tl = gsap.timeline({ onComplete: () => { state.busy = false; state.playing = null; resetChoice(); goSpot('desk'); storyEjected(p.game); } });
+  state.busy = true; closePanel(); acted();
+  const tl = ceremony(gsap.timeline({ onComplete: () => { state.busy = false; state.playing = null; resetChoice(); goSpot('desk'); storyEjected(p.game); } }));
   if (p.sys === 'pc') {
     showOnMonitor(desktopTex); frameDrive();
     tweenLocal(tl, g.obj, CASE_HELD.pos, CASE_HELD.quat, g.obj.scale.x, 0.6, 'power2.inOut', 0.2);
@@ -1053,7 +1126,7 @@ function eject() {
 function openLetter() {
   state.busy = true; closePanel(); say(LINES.letter);
   frameObject('envelope', 1.1);
-  const tl = gsap.timeline({ onComplete: () => { state.busy = false; openPanel(letterPanel()); } });
+  const tl = ceremony(gsap.timeline({ onComplete: () => { state.busy = false; openPanel(letterPanel()); } }));
   tl.to(flap.rotation, { x: FLAP_OPEN, duration: 0.6, ease: 'power2.out' }, DUR * 0.6);
   tl.call(() => { letterMesh.visible = true; });
   // slide the folded letter out, lift it toward you, then open it a third at a time
@@ -1065,7 +1138,7 @@ function openLetter() {
   tl.to({}, { duration: 0.15 });
 }
 function closeLetter() {
-  const tl = gsap.timeline({ onComplete: () => { letterMesh.visible = false; state.busy = false; goSpot('desk'); } });
+  const tl = ceremony(gsap.timeline({ onComplete: () => { letterMesh.visible = false; state.busy = false; goSpot('desk'); } }));
   state.busy = true;
   // fold it back in three, lay it down, slide it home
   tl.to(foldMid.rotation, { x: FOLD, duration: 0.4, ease: 'power2.inOut' });
@@ -1116,6 +1189,7 @@ function openStudy(id) {
 addEventListener('pageshow', (e) => {
   if (!e.persisted) return;
   state.leaving = false;
+  if (state.playing && !state.busy && !panel) openProject(state.playing.game, true); // the game is still in: its menu comes back with it
   gsap.to(crtMat.uniforms.uPower, { value: 1, duration: reduce ? 0.05 : 0.5, ease: 'power2.out' });
 });
 function letterPanel() {
@@ -1270,6 +1344,7 @@ let swipeFrom = null, swiped = false;
 canvas.addEventListener('pointerdown', (e) => {
   pointerType = e.pointerType; setMouse(e);
   swiped = false;
+  endBoot(false, boxAt(mouse.u, mouse.v));
   if (e.pointerType === 'touch') { touchUI = true; if (!coarse) { coarse = true; resize(); } swipeFrom = { x: e.clientX, y: e.clientY, t: performance.now() }; }
 });
 canvas.addEventListener('pointerup', (e) => {
@@ -1310,13 +1385,19 @@ canvas.addEventListener('click', (e) => {
   setMouse(e);
   const touch = pointerType === 'touch';
   if (touch) { mouse.in = false; navHover = null; if (swiped) { swiped = false; return; } }
-  const nh = navAt(mouse.u, mouse.v); if (nh) { if (nh.id === 'quick' || nh.id === 'credits' || !state.busy) nh.act(); return; }
+  const nh = navAt(mouse.u, mouse.v);
+  if (nh && (nh.id === 'quick' || nh.id === 'credits')) return nh.act();
+  // mid-ceremony, a click finishes it
+  if (skipCeremony()) return;
+  if (nh) { if (!state.busy) { acted(); nh.act(); } return; }
   if (panel) {
-    const hit = panelAt(mouse.u, mouse.v); if (!hit) return;
+    const hit = panelAt(mouse.u, mouse.v);
     // with a finger, the first tap on a row picks it and the second uses it
-    if (touch && panel.sel !== hit.i) { panel.sel = hit.i; return; }
-    panel.items[hit.i].act(); return;
+    if (hit && touch && panel.sel !== hit.i) { panel.sel = hit.i; return; }
+    if (hit) return useRow(panel.items[hit.i]);
   }
+  if (boxAt(mouse.u, mouse.v) && hurry()) return;
+  if (panel) return;
   if (state.mode === 'boot' || state.busy || state.playing) return;
   const id = pick() || (touch ? pickNear() : null);
   if (!id) { state.hover = null; if (state.mode === 'choose') say(LINES.chooseHelp, 2.4); return; }
@@ -1326,19 +1407,24 @@ canvas.addEventListener('click', (e) => {
 });
 // The handheld's buttons. A uses what's aimed at (or the chosen row), B steps back.
 function pressA() {
-  if (panel) return panel.items[panel.sel].act();
+  endBoot(false, !panel);
+  if (skipCeremony()) return;
+  if (panel) return useRow(panel.items[panel.sel]);
+  if (hurry()) return;
   if (state.mode === 'boot' || state.busy || state.playing) return;
   if (!state.hover) return step(1, 'x'); // nothing aimed yet: A aims at the first thing
   const id = state.hover; state.hover = null; activate(id);
 }
 function pressB() {
-  if (panel) return panel.items.at(-1).act();
+  endBoot();
+  if (skipCeremony()) return;
+  if (panel) return useRow(panel.items.at(-1));
   if (state.busy) return;
   state.hover = null;
   if (state.mode === 'choose') { resetChoice(); goSpot(spot); } else if (spot !== 'desk') goSpot('desk');
 }
 // The bezel's buttons (handheld layout)
-function bez(sel, fn) { document.querySelectorAll(sel).forEach((b) => b.addEventListener('click', (e) => { e.preventDefault(); state.idle = 0; touchUI = true; fn(b); })); }
+function bez(sel, fn) { document.querySelectorAll(sel).forEach((b) => b.addEventListener('click', (e) => { e.preventDefault(); state.idle = 0; touchUI = true; endBoot(); fn(b); })); }
 bez('.ab .a', pressA); bez('.ab .b', pressB);
 bez('.dpad [data-d]', (b) => { const d = b.dataset.d; step(d === 'left' || d === 'up' ? -1 : 1, d === 'left' || d === 'right' ? 'x' : 'y'); });
 bez('[data-link="credits"]', () => openPanel(creditsPanel()));
@@ -1368,12 +1454,16 @@ function step(dir, axis) {
 let focusIdx = -1;
 function inView() { return Object.entries(objects).filter(([id, o]) => (o.place.spot === spot || (state.mode === 'choose' && playable(state.system).includes(id))) && o.root.visible).map(([id]) => id); }
 addEventListener('keydown', (e) => {
+  endBoot(false, e.key === 'Enter' || e.key === ' ');
   if (e.target.closest && e.target.closest('nav, details')) return;
+  // Enter and Space on a focused link or button belong to it
+  const own = !!e.target.closest?.('a, button, input, textarea, select');
+  if ((e.key === 'Enter' || e.key === ' ') && !own && skipCeremony()) { e.preventDefault(); return; }
   if (panel) {
     if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { panel.sel = (panel.sel + 1) % panel.items.length; e.preventDefault(); }
     else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { panel.sel = (panel.sel - 1 + panel.items.length) % panel.items.length; e.preventDefault(); }
-    else if (e.key === 'Enter' || e.key === ' ') { panel.items[panel.sel].act(); e.preventDefault(); }
-    else if (e.key === 'Escape') panel.items.at(-1).act();
+    else if (e.key === 'Enter' || e.key === ' ') { useRow(panel.items[panel.sel]); e.preventDefault(); }
+    else if (e.key === 'Escape') useRow(panel.items.at(-1));
     if (panel) document.getElementById('say').textContent = panel.items[panel.sel].label;
     return;
   }
@@ -1384,6 +1474,7 @@ addEventListener('keydown', (e) => {
     state.hover = list[focusIdx]; state.keyHover = true; e.preventDefault();
     document.getElementById('say').textContent = `${state.hover}: ${PROMPT(state.hover) || ''}`;
   } else if (e.key === 'Enter' && state.keyHover && state.hover) { activate(state.hover); e.preventDefault(); }
+  else if ((e.key === 'Enter' || e.key === ' ') && !own && !state.keyHover && hurry()) e.preventDefault();
   else if (e.key === 'Escape') { resetChoice(); goSpot(spot); }
 });
 
@@ -1423,6 +1514,7 @@ function drawUI(t) {
   }
   drawPanel(t);
   // the dialogue box
+  nar.box = null;
   if (nar.visible && !(panel && panel.kind === 'letter')) {
     // on short screens the box keeps to the bottom left so it hides less of the room
     // the handheld's 4:3 tube is narrow: there the box spans it and grows with the line
@@ -1430,6 +1522,7 @@ function drawUI(t) {
     g2.font = `900 17px "${FONT_G}"`;
     const lines = wrap(nar.text.slice(0, Math.floor(nar.shown)), bw - 50).slice(0, 3);
     const bh = handheld ? 30 + Math.max(2, wrap(nar.text, bw - 50).length) * 22 : 72, by = H - bh - 20;
+    nar.box = { x: bx, y: by, w: bw, h: bh }; // for clicks: UI pixels, like the panel rows
     g2.fillStyle = 'rgba(16,47,65,0.94)'; g2.fillRect(bx, by, bw, bh);
     g2.strokeStyle = '#fce8cd'; g2.lineWidth = 2; g2.strokeRect(bx + 4, by + 4, bw - 8, bh - 8);
     g2.font = `12px "${FONT_PIX}"`;
@@ -1526,16 +1619,21 @@ renderer.setAnimationLoop(() => {
   }
   // idle: the narrator nudges, once in a while
   state.idle += dt;
-  if (state.mode === 'free' && !panel && !nar.visible && state.idle > 22 && performance.now() - lastSpeak > 20000) {
+  const now = performance.now();
+  if (STORY) {
+    // stuck in the story: a nudge 15s after the last action, the plain instruction at 30s (wall clock, so slow frames don't stretch it)
+    // a project window can be open; the letter, credits and memories are being read
+    if (nextHint(false) && (state.mode === 'free' || state.mode === 'choose') && (!panel || panel.kind === 'project') && !nar.visible && now - lastSpeak > 4000) {
+      if (state.hintStage === 0 && now - lastAct > 15000) { state.hintStage = 1; say(nextHint(false)); }
+      else if (state.hintStage === 1 && now - lastAct > 30000) { state.hintStage = 2; say(nextHint(true)); }
+    }
+  } else if (state.mode === 'free' && !panel && !nar.visible && state.idle > 22 && now - lastSpeak > 20000) {
     state.idle = 0;
-    // in the story, being stuck gets a nudge first and the plain instruction the next time
-    const gentle = STORY && nextHint(false);
-    const line = gentle ? (state.hinted === gentle ? nextHint(true) : gentle) : LINES.idle[(state.idleN = (state.idleN || 0) + 1) % LINES.idle.length];
-    if (gentle) state.hinted = gentle;
+    const line = LINES.idle[(state.idleN = (state.idleN || 0) + 1) % LINES.idle.length];
     say(line);
     if (/drawer/.test(line)) gsap.fromTo(drawer.position, { z: DRAWER_SHUT }, { z: DRAWER_SHUT + 0.04, duration: 0.25, yoyo: true, repeat: 1 });
   }
-  tickNarrator(dt);
+  tickNarrator(Math.min(rawDt, 0.25)); // typing keeps real time too
   // camera: target plus a gentle sway toward the cursor
   const s = reduce || panel ? 0 : 0.05;
   camera.lookAt(look.x + sway.x * s, look.y + sway.y * s * 0.6, look.z);
@@ -1557,11 +1655,13 @@ renderer.setAnimationLoop(() => {
 // ---------- power on ----------
 // the standby card leaves as the tube switches on, so the switch-on stays the only ceremony
 document.getElementById('standby')?.remove(); document.body.classList.remove('cold');
+lastAct = performance.now(); // the hint clock starts with the picture
 gsap.to(crtMat.uniforms.uPower, { value: 1, duration: reduce ? 0.2 : 0.9, ease: 'power2.out', delay: 0.2 });
 if (!reduce) crtMat.uniforms.uBurst.value = 0.9;
 setTimeout(() => {
-  queue(STORY ? (returning ? STORY_LINES.back : STORY_LINES.boot) : LINES.boot, 2.6);
+  queue(STORY ? (returning ? STORY_LINES.back : STORY_LINES.boot) : LINES.boot, 2.6, { keep: STORY });
   if (touchUI) queue(handheld ? '* tap a thing to point at it, tap again to use it. or the pad and a, like a game boy.' : '* tap something to point at it, tap again to use it. a and b work too.', 3.4);
 }, reduce ? 300 : 1300);
-setTimeout(() => { loadRest(); if (state.mode === 'boot') state.mode = 'free'; highlight(Object.keys(PLAYS).filter(isFound)); setTimeout(() => highlight([]), 2600); }, reduce ? 1500 : (STORY ? 4200 : 6500));
-window.__room = { lampGoes, pressA, pressB, step, THREE, look, crtMat, objects, goSpot, state, camera, activate, story, reveal, skipStory, eject, openLetter, get panel() { return panel; }, tray, TRAY, doorPivot, frameObject };
+// the boot ends on its own, or at the first press (see endBoot)
+setTimeout(() => endBoot(true), reduce ? 1500 : 4200);
+window.__room = { nar, lampGoes, pressA, pressB, step, THREE, look, crtMat, objects, goSpot, state, camera, activate, story, reveal, skipStory, eject, openLetter, get panel() { return panel; }, tray, TRAY, doorPivot, frameObject };
