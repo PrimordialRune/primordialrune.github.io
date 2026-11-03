@@ -150,6 +150,8 @@ const LINES = {
 const STORY_LINES = {
   boot: ['* oh. you’re here. sit, sit.', '* this is my room. where i keep the games i made.', '* the envelope’s for you. it’s about me, and how to reach me.', '* everything else is asleep. start with the grey one.'],
   back: ['* you’re back. i kept everything where you left it.'],
+  // a finished run, back again: it has nothing left to show
+  backDone: ['* you’re back. nothing else turned up.', '* i looked everywhere.'],
   postcard: '* mail. for you. galactic news still delivers.',
   postcardHover: '* that wasn’t there before.',
   table: '* the table. go on, it’s set for you.',
@@ -172,7 +174,7 @@ const STORY_LINES = {
     'crossfader-player': ['* that needs its tape deck.', '* it was behind the monitor. here.'],
     'ds-console': ['* that needs the ds.', '* it was still charging. here.'],
   },
-  spacerim: ['* the drive had another disc in it. i put it on the table.', '* spacerim. a jam, forty-eight hours.'],
+  spacerim: ['* the drive had another disc in it.', '* oh. i’d forgotten that one.', '* spacerim. a jam, forty-eight hours. it’s on the table.'],
   drawerOpens: ['* side b. that’s the drawer’s tune.', '* it’s open now. the old stuff is in there.'],
   complete: ['* that’s all eight.', '* the envelope’s still on the desk. if you want to write back.', '* ...you can stay, you know. i’ll keep the room as it is.'],
   torch: ['* hm. the lamp’s going.', '* here. a flashlight. point it at things.'],
@@ -803,7 +805,7 @@ function boxAt(u, v) {
   return px >= b.x && px <= b.x + b.w && py >= b.y - 12 && py <= b.y + b.h;
 }
 function glitchName() {
-  // the only crack in act 1: the name tag slips for a frame or two
+  // the only visible crack in act 1: the name tag slips for a frame or two
   nar.name = '0MAR'; burst(0.6);
   setTimeout(() => { nar.name = 'OMAR'; }, quiet ? 400 : 160);
 }
@@ -1050,7 +1052,7 @@ function storyEjected(game) {
     setTimeout(() => { goSpot('table'); say(STORY_LINES.rulebook); setTimeout(async () => { await reveal('ptcg-cube-rulebook', true); frameObject('ptcg-cube-rulebook', 1.2); }, DUR * 1000); }, 400);
   }
   const lines = [];
-  if (game === 'holon-disc' && !story.found.has('spacerim-disc')) { lines.push(...STORY_LINES.spacerim); setTimeout(() => { goSpot('table'); setTimeout(() => reveal('spacerim-disc'), DUR * 1000); }, 400); }
+  if (game === 'holon-disc' && !story.found.has('spacerim-disc')) { lines.push(...kept(STORY_LINES.spacerim)); setTimeout(() => { goSpot('table'); setTimeout(() => reveal('spacerim-disc'), DUR * 1000); }, 400); }
   const drawerNow = game === 'crossfader-cassette' && !story.spots.has('drawer');
   if (drawerNow) {
     // side B opens the drawer, and the visitor goes to watch it slide out; its first line follows the two
@@ -1953,7 +1955,7 @@ function powerOn() {
   setTimeout(() => {
     // a finished run that never saw its ending (the last game was left in) gets it now
     const owed = STORY && story.flags.has('complete') && !story.flags.has('ended');
-    const boot = owed ? endingLines() : lineItems(STORY ? (returning ? STORY_LINES.back : STORY_LINES.boot) : LINES.boot, 2.6, { keep: STORY });
+    const boot = owed ? endingLines() : lineItems(STORY ? (returning ? (story.flags.has('ended') ? STORY_LINES.backDone : STORY_LINES.back) : STORY_LINES.boot) : LINES.boot, 2.6, { keep: STORY });
     if (STORY && !returning) {
       // the envelope glows while its line is said; once the letter is read, or a game is under way, those lines are past
       envelopeLine(boot[2]).stale = () => story.flags.has('letter-read');
