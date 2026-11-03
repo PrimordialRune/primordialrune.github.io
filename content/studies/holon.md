@@ -58,7 +58,7 @@ A Pokémon TCG board gets crowded fast: abilities that react, attacks that are l
 The test of this grammar isn't whether one tricky card works. It's whether the next hundred cards arrive as configurations of it, without new code for each one.
 
 ![From the first wireframe to the board, in light and dark](wireframe.png "wide")
-![](board.png "wide")
+![The board: the opponent's bench and active Bayleef at the top, your active Meganium ex enlarged to show everything it can do, your bench below it, and your hand along the bottom edge](board.png "wide")
 
 One more decision: the board leans 12° toward you. Tilting the camera did nothing, because rotating a camera in place can't create depth, so the board itself tilts. The cards lie in it like objects on a table, while your hand stays upright: a hand is held, not laid down.
 

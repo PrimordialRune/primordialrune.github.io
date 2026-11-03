@@ -33,7 +33,8 @@ const PLACES = [
   { id: 'gb-console', spot: 'desk', size: 0.148, pos: [-0.42, DESK_Y, -0.36], pose: [['z', 90]], rotY: -Math.PI / 2 + 0.4 },
   { id: 'gba-console', spot: 'desk', size: 0.145, pos: [0.4, DESK_Y, -0.36], pose: [['x', -90]], rotY: -0.3 },
   { id: 'ds-console', spot: 'desk', size: 0.15, pos: [0.56, DESK_Y, -0.66], rotY: -0.65 },
-  { id: 'envelope', spot: 'desk', envelope: true, pos: [0.12, DESK_Y, -0.22], rotY: 0.22 },
+  // the letter lies on the keyboard, left for you, and above where the dialogue box sits
+  { id: 'envelope', spot: 'desk', envelope: true, pos: [-0.02, DESK_Y + 0.02, -0.42], rotY: 0.08 },
   // table: the games, lying flat
   { id: 'gb-cart', spot: 'table', size: 0.065, fix: [-12.75, 12, -11], pos: [-1.62, TABLE_Y, -0.2], flat: true, rotY: 0.3 },
   { id: 'gba-cart', spot: 'table', size: 0.057, pos: [-1.5, TABLE_Y, -0.08], flat: true, rotY: -0.2 },
@@ -1776,7 +1777,7 @@ function drawUI(t) {
     // (not over an open window), just under the channel plate and the bars so the name tag and the memories stay clear
     if (!panel) {
       const under = (oid) => { const at = oid && objects[oid]?.root.visible && screenOf(oid, true); return at && at[0] >= bx && at[0] <= bx + bw && at[1] >= by - 12 && at[1] <= by + bh; };
-      // on the handheld the box is tall and the envelope (the contacts) sits under it: it always keeps clear of it
+      // the envelope (the contacts) lies above the box on every screen; on the handheld it still always keeps clear of it
       if (under(nar.cur?.near) || (handheld && under('envelope')) || under(state.hover) || Object.entries(objects).some(([oid, o]) => (o.glow > 0 || beckon.has(oid)) && under(oid))) by = STORY ? 92 : 58;
     }
     nar.box = { x: bx, y: by, w: bw, h: bh }; // for clicks: UI pixels, like the panel rows
