@@ -93,7 +93,7 @@ const LETTER = {
   body: [
     'Hi, I’m Omar.',
     'I design board games and video games, and I care most about the metaphor a game is built on: the object you hold, the medium it arrives in, the story it tells by how it plays.',
-    'I grew up on the Game Boy and the GBA, and Japanese games still shape most of what I make. Everything in this room is something I made. Pick it up.',
+    'I grew up on the Game Boy and the GBA, and Japanese games still shape most of what I make. Every game in this room is something I made. Pick it up.',
   ],
   skills: 'Game Design · Board Games · RPGs · UI/UX · Pixel Art · Strategy',
   contacts: [
@@ -159,12 +159,12 @@ const STORY_LINES = {
   findGba: ['* that one needs the advance.', '* it was under some papers. here.'],
   gbaAsleep: '* it’s asleep. give it something old. it remembers old things.',
   gbaRefuses: '* not that one yet. something older first.',
-  gbaWakes: '* old game, new hardware. that’s minamoto.',
+  gbaWakes: '* old game, new hardware. that’s what minamoto does.',
   minamoto: '* rereading it with my hands.',
-  rulebook: '* a rulebook, on the table. i wrote it. it deals what comes next.',
+  rulebook: '* a rulebook, on the table. it deals what comes next.',
   draft: ['* a cube is drafted. open the pack, keep one, pass the rest.', '* you pick first.'],
   draftNext: '* your turn again. the rulebook has another pick.',
-  draftAgain: '* another pack. keep one, pass the rest.',
+  draftAgain: '* another pack. same rules.',
   draftLast: '* last pack. one card in it. it’s yours.',
   draftWait: '* play your pick first. then we draft again.',
   picked: {
@@ -174,10 +174,10 @@ const STORY_LINES = {
   },
   find: {
     'crossfader-player': ['* that needs its tape deck.', '* it was behind the monitor. here.'],
-    'ds-console': ['* that needs the ds.', '* it was still charging. here.'],
+    'ds-console': ['* that needs the ds.', '* it was still charging. two screens. i only ever looked at one.'],
   },
   spacerim: ['* the drive had another disc in it.', '* oh. i’d forgotten that one.', '* spacerim. a jam, forty-eight hours. it’s on the table.'],
-  drawerOpens: ['* side b. that’s the drawer’s tune.', '* it’s open now. the old stuff is in there.'],
+  drawerOpens: ['* side b. that’s the drawer’s tune.', '* it’s open now.'],
   complete: ['* that’s all eight.', '* the envelope’s still on the desk. if you want to write back.', '* ...you can stay, you know. i’ll keep the room as it is.'],
   torch: ['* hm. the lamp’s going.', '* here. a flashlight. point it at things.'],
   // the draft's last pick is played: the pack is empty, and the drawer may still be waiting
@@ -201,7 +201,7 @@ const STORY_LINES = {
   skip: '* everything’s out. no story, just the games.',
   hints: [
     // [condition, gentle nudge, plain instruction]
-    [() => !story.played.has('gb-cart'), '* the grey one. the cartridge is right next to it.', '* use the game boy, then the cartridge beside it.'],
+    [() => !story.played.has('gb-cart'), '* the cartridge is right next to it.', '* use the game boy, then the cartridge beside it.'],
     [() => !story.flags.has('postcard-read'), '* something came in the mail.', '* the postcard on the desk. read it.'],
     [() => !story.found.has('gba-console'), '* there’s something new on the table.', '* the table, top right. play the cartridge waiting there.'],
     [() => !story.flags.has('gba-awake'), '* the advance is asleep. it remembers old things.', '* use the advance, then the grey cartridge.'],
@@ -857,6 +857,7 @@ function queue(lines, hold = 3.2, opts) {
 function next() {
   if (nar.slip && nar.cur === nar.slip) { nar.slip = null; nar.name = 'OMAR'; }
   if (nar.visible) lastSpeak = performance.now();
+  if (nar.visible && nar.cur) nar.past = [...(nar.past || []).slice(-4), nar.cur.t]; // for L (recall)
   nar.cur?.after?.(); // a line can hand over to what follows it (the end card)
   let n = nar.queue.shift(); while (n && !live(n)) n = nar.queue.shift();
   if (!n) { nar.visible = false; nar.cur = null; return; }
@@ -868,16 +869,22 @@ function next() {
   nar.cur = n; nar.text = n.t; nar.shown = 0; nar.visible = true; nar.until = Infinity;
   // longer lines stay up longer
   nar.hold = n.brisk ? Math.max(2, 0.8 + n.t.split(' ').length * 0.2) : Math.max(n.hold || 3.2, 1.2 + n.t.split(' ').length * 0.3); // the boot reads quicker: the envelope is named within ~8s
+  if (quiet) nar.hold *= 2; // quiet (and reduced motion) reads slower: lines stay up twice as long
   // a line put back after a cut comes back whole, so it reads as the same line, not a stutter
   if (quiet || n.restored) { nar.shown = nar.text.length; nar.until = performance.now() + nar.hold * 1000; }
-  sayAria(n.t.replace(/^\* /, ''));
+  sayAria(n.t.replace(/^\* /, ''), n.again);
   n.on?.(); // and do something as it starts (the envelope lights on its line); a line put back does it again
 }
 // A click on the box (or Space, Enter, A) finishes the line; the next press moves on.
 function hurry() {
-  if (!nar.visible) return false;
+  if (!nar.visible || panelRect?.full) return false; // held behind a phone's game window: A and Enter belong to the window
   if (nar.shown < nar.text.length) { nar.shown = nar.text.length; nar.until = performance.now() + nar.hold * 1000; } else next();
   return true;
+}
+// L says the last line again, on screen and out loud: lines move on by themselves
+function recall() {
+  if (nar.visible && nar.shown >= nar.text.length && !panelRect?.full) { nar.until = Math.max(nar.until, performance.now() + nar.hold * 1000); sayAria(nar.text.replace(/^\* /, ''), true); return; }
+  const t = nar.past?.at(-1); if (t) say({ t, again: true });
 }
 function boxAt(u, v) {
   const b = nar.box; if (!b || !nar.visible) return false;
@@ -891,6 +898,11 @@ function glitchName() {
 }
 function tickNarrator(dt) {
   if (!nar.visible) return;
+  // a phone's game window spans the tube: the line waits behind it, and its clock stops until the window closes
+  if (panelRect?.full) { nar.heldAt ??= performance.now(); return; }
+  if (nar.heldAt != null) { nar.until += performance.now() - nar.heldAt; nar.heldAt = null; }
+  // the pointer resting on the box holds the line there
+  if (!touchUI && mouse.in && nar.shown >= nar.text.length && boxAt(mouse.u, mouse.v)) nar.until = Math.max(nar.until, performance.now() + 1500);
   if (nar.shown < nar.text.length) {
     nar.shown = Math.min(nar.text.length, nar.shown + dt * 38);
     if (nar.shown >= nar.text.length) nar.until = performance.now() + nar.hold * 1000;
@@ -921,7 +933,7 @@ function endBoot(timer, hurries) {
   if (state.mode !== 'boot' || !powered) return; // nothing to end before the tube is on
   state.mode = 'free'; loadRest();
   if (!hurries && nar.visible && nar.shown < nar.text.length) { nar.shown = nar.text.length; nar.until = performance.now() + nar.hold * 1000; }
-  if (timer) { highlight([...Object.keys(PLAYS), 'envelope'].filter(isFound)); setTimeout(() => { if (state.mode === 'free') highlight([]); }, 2600); }
+  if (timer) { highlight([...Object.keys(PLAYS), 'envelope'].filter(isFound)); setTimeout(() => { if (state.mode === 'free') highlight([]); }, 1200); } // "these are my things": a short pulse
 }
 // A menu row is an action
 function pickRow(it) { acted(); it.act(); }
@@ -946,18 +958,31 @@ const statusEl = document.getElementById('status');
 // a status that lands with a fresh narrator line waits 700ms behind it, so one doesn't drown the other (the latest status wins)
 let sayAt = -1e9, statusTimer = 0, statusAt = -1e9;
 // and a narrator line that lands while a window is still being read waits behind it (the line on screen doesn't)
-let panelSaid = { at: -1e9, ms: 0 }, sayTimer = 0;
-function sayAria(t) {
-  clearTimeout(sayTimer);
-  const put = () => { document.getElementById('say').textContent = t; sayAt = performance.now(); };
-  const wait = Math.min(12000, panelSaid.at + panelSaid.ms - performance.now());
-  if (wait > 0) sayTimer = setTimeout(put, wait); else put();
+// Lines that land meanwhile queue up and none is dropped (each was on screen): a line gets ~0.35s a word before the next
+// replaces it, the lines still waiting when their turn comes are read in one write, and none waits more than 8s.
+let panelSaid = { at: -1e9, ms: 0 }, sayTimer = 0, sayQ = [], sayFree = 0, sayRecent = [];
+function sayAria(t, again) {
+  // a line put back after a cut was read already
+  if (!again && (sayQ.some((q) => q.t === t) || (sayRecent.includes(t) && performance.now() - sayAt < 8000))) return;
+  sayQ.push({ t, at: performance.now() });
+  if (!sayTimer) pumpSay();
+}
+function pumpSay() {
+  sayTimer = 0;
+  if (!sayQ.length) return;
+  const now = performance.now(), wait = Math.min(sayQ[0].at + 8000 - now, Math.max(panelSaid.at + panelSaid.ms - now, sayFree - now));
+  if (wait > 0) { sayTimer = setTimeout(pumpSay, wait); return; }
+  const lines = sayQ.map((q) => q.t); sayQ = [];
+  const el = document.getElementById('say'), t = lines.join(' ');
+  el.textContent = el.textContent === t ? t + '\u00a0' : t; // the same words again (L) still get read
+  sayAt = now; sayRecent = lines;
+  sayFree = now + Math.min(6000, Math.max(1000, t.split(/\s+/).length * 350));
 }
 function speak(t) {
   if (!statusEl) return;
   clearTimeout(statusTimer);
-  // the same words again within 3s are the same news (closing a window, then arriving at that place): said once
-  const set = () => { const same = statusEl.textContent.trim() === t; if (same && performance.now() - statusAt < 3000) return; statusEl.textContent = same && statusEl.textContent === t ? t + '\u00a0' : t; statusAt = performance.now(); };
+  // the same words again within 5s are the same news (closing a window, then arriving at that place): said once
+  const set = () => { const same = statusEl.textContent.trim() === t; if (same && performance.now() - statusAt < 5000) return; statusEl.textContent = same && statusEl.textContent === t ? t + '\u00a0' : t; statusAt = performance.now(); };
   const wait = sayAt + 700 - performance.now();
   if (wait > 0) statusTimer = setTimeout(set, wait); else set();
 }
@@ -1288,6 +1313,7 @@ function readPostcard() {
 function findSystem(sys, game) {
   goSpot('desk');
   say(STORY_LINES.find[sys] || STORY_LINES.findGba);
+  if (sys === 'ds-console') state.said.add(sys); // its hover line came with finding it
   setTimeout(async () => {
     await reveal(sys);
     // the sleeping GBA: it's chosen already, so the next click on the grey cartridge wakes it
@@ -1316,7 +1342,7 @@ function readRulebook() {
     return;
   }
   if (left.length === DRAFT.length) say(STORY_LINES.draft, undefined, { keep: true }); else say(left.length === 1 ? STORY_LINES.draftLast : STORY_LINES.draftAgain);
-  const draft = { kind: 'project', tag: 'DRAFT', title: left.length === DRAFT.length ? 'Pick one' : 'Next pick', kana: 'ドラフト  DRAFT',
+  const draft = { kind: 'project', tag: 'DRAFT', title: left.length === DRAFT.length ? 'Pick one' : 'Next pick', kana: 'ドラフト',
     body: [`Pick ${DRAFT.length - left.length + 1} of ${DRAFT.length}. ${left.length === 1 ? 'The last one. Nobody passes it back.' : 'Keep one, the rest come round again.'}`],
     items: [...left.map((g) => ({ label: DRAFT_FACE[g][0], note: DRAFT_FACE[g][1], act: () => draftPick(g) })),
       { label: 'READ THE RULES', act: () => openPanel(rulesPanel(draft)) },
@@ -1329,7 +1355,7 @@ function readRulebook() {
 }
 // What a cube is, from the rulebook's own case study; BACK returns to the pick.
 function rulesPanel(draft) {
-  return { kind: 'project', tag: 'RULEBOOK', title: 'PTCG Cube', kana: 'キューブ  CUBE',
+  return { kind: 'project', tag: 'RULEBOOK', title: 'PTCG Cube', kana: 'キューブ',
     body: ['A cube is a fixed collection of cards, curated so that players can draft from it and build decks on the spot. Nobody brings a deck.', 'Everyone opens the same pool, picks a card, passes the rest, and plays what they built.'],
     items: [{ label: 'BACK', act: () => openPanel(draft) }] };
 }
@@ -1477,7 +1503,7 @@ function foldLetter() {
 // ---------- the menu inside the tube ----------
 // One JRPG window for everything you can do with a thing: project facts on top, a cursor menu below.
 let panel = null;
-function openPanel(p) { panel = p; panel.sel = 0; announcePanel(); }
+function openPanel(p) { panel = p; panel.sel = p.sel || 0; announcePanel(); }
 function closePanel() {
   const opener = panel?.opener;
   if (panel && !panel.dom) speak(PLACE[spot]);
@@ -1517,7 +1543,10 @@ function openProject(id, playing) {
   const url = PLAY_URL[id];
   if (url) items.push({ label: 'PLAY ONLINE', note: /itch\.io/.test(url) ? 'itch.io' : 'web', speech: `PLAY ONLINE, opens ${new URL(url).hostname} in a new tab`, act: () => window.open(url, '_blank', 'noopener') });
   items.push({ label: 'BACK', act: () => { if (playing) eject(); else { closePanel(); highlight([]); goSpot(objects[id].place.spot); } } });
-  openPanel({ kind: 'project', tag: p.medium, title: p.title, kana: p.kana, body: [p.pitch], part: p.part, items });
+  // the cursor starts on the work: the case study, else the real build (EJECT stays in the list); the GBA's swap keeps the top row
+  const at = (l) => items.findIndex((i) => i.label === l);
+  const sel = items[0].label === 'PUT IN MINAMOTO' ? 0 : [at('CASE STUDY'), playing ? at('PLAY ONLINE') : -1].find((i) => i >= 0) ?? 0;
+  openPanel({ kind: 'project', tag: p.medium, title: p.title, kana: p.kana, body: [p.pitch], part: p.part, items, sel });
 }
 // Case studies live on their own pages (study/<slug>/). The ones Omar has passed are linked for everyone; drafts stay behind ?studies.
 // Leaving is a channel change: a burst, the picture collapses to a line, then the page goes.
@@ -1576,21 +1605,27 @@ function drawPanel(t) {
   // while a game plays on the handheld or a tablet's 4:3 tube, its window shrinks to the top right corner,
   // so the console in the middle stays in view, and the dialogue box (bottom) and a tablet's A/B (bottom right) stay clear of it
   const compact = (handheld || (touchUI && W / H < 1.6)) && !wide && !!state.playing;
-  const w = compact ? 220 : wide ? (handheld ? W - 28 : Math.min(W - 96, short ? 780 : 600)) : handheld ? 300 : big ? 360 : (short ? 300 : 260);
-  const x = wide ? Math.round((W - w) / 2) : W - w - (handheld || compact ? 16 : big ? 150 : 28); const y = wide ? (short ? 24 : 36) : handheld ? 28 : compact ? 72 : (short ? 82 : 58);
-  g2.font = `900 ${wide ? 15 : 14}px "FK Grotesk", sans-serif`;
+  // a game's window on the handheld (nothing playing) spans the tube, so its facts read at phone size; the narrator waits behind it
+  const full = handheld && !wide && !compact;
+  const w = compact ? 220 : wide || full ? (handheld ? W - 28 : Math.min(W - 96, short ? 780 : 600)) : big ? 360 : (short ? 300 : 260);
+  const x = wide || full ? Math.round((W - w) / 2) : W - w - (compact ? 16 : big ? 150 : 28); const y = wide ? (short ? 24 : 36) : full ? 24 : compact ? 72 : (short ? 82 : 58);
+  const fs = full ? 16 : 14; // body and MY PART
+  g2.font = `900 ${wide ? 15 : fs}px "FK Grotesk", sans-serif`;
   const bodyLines = compact ? [] : panel.body.flatMap((p) => [...wrap(p, w - 40), '']);
+  if (full) bodyLines.pop(); // the full window's rows are tall: the gap after the body is 8px, not a line
   // what Omar did on it: a pixel label, then Omar's own words in Grotesk (P5: no pixel paragraph)
-  g2.font = '900 14px "FK Grotesk", sans-serif'; const partLines = compact || !panel.part ? [] : wrap(panel.part, w - 40);
-  const lineH = wide ? 18 : 17;
+  g2.font = `900 ${fs}px "FK Grotesk", sans-serif`; const partLines = compact || !panel.part ? [] : wrap(panel.part, w - 40);
+  const lineH = wide ? 18 : full ? 19 : 17;
   // a small phone's memories and end card: the rows go two to a line, label over note, so each is a thumb tall (24 CSS px or more)
-  const cols = handheld && panel.kind === 'memories' && canvas.clientHeight < 345 ? 2 : 1;
+  // (a phone sideways shows the tube 330-400 CSS px tall: one 30px row per line there is ~24 CSS px, under a thumb)
+  const cols = handheld && panel.kind === 'memories' && canvas.clientHeight < 420 ? 2 : 1;
   panel.cols = cols;
-  const itemH = cols > 1 ? 44 : handheld ? 30 : big ? 36 : short ? (wide ? 23 : 28) : wide ? 19 : 22;
-  const h = 84 + (letter && !short ? 30 : 0) + bodyLines.length * lineH + (panel.extra ? 22 : 0) + (partLines.length ? 24 + partLines.length * 17 : 0) + Math.ceil(panel.items.length / cols) * itemH + 14;
+  const itemH = cols > 1 ? 44 : full ? 42 : handheld ? 30 : big ? 36 : short ? (wide ? 23 : 28) : wide ? 19 : 22;
+  const partH = full ? 19 : 17;
+  const h = 84 + (letter && !short ? 30 : 0) + bodyLines.length * lineH + (full ? 8 : 0) + (panel.extra ? 22 : 0) + (partLines.length ? 24 + partLines.length * partH : 0) + Math.ceil(panel.items.length / cols) * itemH + 14;
   // a window taller than the tube shrinks to fit it (the letter on a phone's 4:3 tube)
   // and a game's window keeps clear of the dialogue box under it (with MY PART it runs long)
-  const k = Math.min(1, (H - 10 - (handheld && !wide && !compact ? 96 : !handheld && !wide && !short ? 94 : 0) - y) / h), cx0 = x + w / 2;
+  const k = Math.min(1, (H - 10 - (!handheld && !wide && !short ? 94 : 0) - y) / h), cx0 = x + w / 2;
   g2.save();
   if (k < 1) { g2.translate(cx0, y); g2.scale(k, k); g2.translate(-cx0, -y); }
   // the shader lays this window on clean (no fringe, no scanlines), tag included; the narrator box and HUD keep the tube
@@ -1598,7 +1633,7 @@ function drawPanel(t) {
     const l = cx0 + (x - 2 - cx0) * k, r = cx0 + (x + w + 2 - cx0) * k, top = y - 13 * k, bot = y + (h + 2) * k;
     crtMat.uniforms.uClean.value = 1; crtMat.uniforms.uRect.value.set(l / W, 1 - bot / H, r / W, 1 - top / H);
   }
-  panelRect = { x: cx0 + (x - cx0) * k, y: y - 13 * k, w: w * k, h: (h + 13) * k, wide };
+  panelRect = { x: cx0 + (x - cx0) * k, y: y - 13 * k, w: w * k, h: (h + 13) * k, wide, full };
   // window: same family as the dialogue box
   g2.fillStyle = 'rgba(16,47,65,0.96)'; g2.fillRect(x, y, w, h);
   g2.strokeStyle = '#fce8cd'; g2.lineWidth = 2; g2.strokeRect(x + 4, y + 4, w - 8, h - 8);
@@ -1606,7 +1641,7 @@ function drawPanel(t) {
   g2.fillStyle = '#ec563b'; g2.fillRect(x + 14, y - 11, tw, 20);
   g2.fillStyle = '#fce8cd'; g2.fillText(panel.tag, x + 22, y - 1);
   g2.font = '900 24px "FK Grotesk", sans-serif'; g2.fillStyle = '#fce8cd'; g2.fillText(panel.title, x + 20, y + 34);
-  g2.font = '900 11px "FK Grotesk", sans-serif'; g2.fillStyle = '#4eb99f'; g2.fillText(panel.kana, x + 20, y + 54);
+  g2.font = `900 ${full ? 13 : 11}px "FK Grotesk", sans-serif`; g2.fillStyle = '#4eb99f'; g2.fillText(panel.kana, x + 20, y + 56);
   let cy = y + 78;
   if (letter && portrait.complete && portrait.naturalWidth) {
     const ps = short ? 60 : 84, px = x + w - ps - 22, py = y + 16;
@@ -1616,12 +1651,13 @@ function drawPanel(t) {
     g2.imageSmoothingEnabled = true;
     if (!short) cy += 30;
   }
-  g2.font = `900 ${wide ? (panel.kind === 'credits' ? 12 : 15) : 14}px "FK Grotesk", sans-serif`; g2.fillStyle = 'rgba(252,232,205,0.92)';
+  g2.font = `900 ${wide ? (panel.kind === 'credits' ? 12 : 15) : fs}px "FK Grotesk", sans-serif`; g2.fillStyle = 'rgba(252,232,205,0.92)';
   for (const l of bodyLines) { g2.fillText(l, x + 20, cy); cy += lineH; }
+  if (full) cy += 8;
   if (partLines.length) {
-    g2.font = '10px "8bitDarling"'; g2.fillStyle = '#fadb68'; g2.fillText('MY PART', x + 20, cy); cy += 16;
-    g2.font = '900 14px "FK Grotesk", sans-serif'; g2.fillStyle = 'rgba(252,232,205,0.92)';
-    for (const l of partLines) { g2.fillText(l, x + 20, cy); cy += 17; }
+    g2.font = `${full ? 12 : 10}px "8bitDarling"`; g2.fillStyle = '#fadb68'; g2.fillText('MY PART', x + 20, cy); cy += 16;
+    g2.font = `900 ${fs}px "FK Grotesk", sans-serif`; g2.fillStyle = 'rgba(252,232,205,0.92)';
+    for (const l of partLines) { g2.fillText(l, x + 20, cy); cy += partH; }
     cy += 8;
   }
   if (panel.extra) { g2.font = '10px "8bitDarling"'; g2.fillStyle = '#fadb68'; g2.fillText(panel.extra.toUpperCase(), x + 20, cy); cy += 22; }
@@ -1636,7 +1672,7 @@ function drawPanel(t) {
     g2.font = `${big || cols > 1 ? 15 : 12}px "8bitDarling"`; g2.fillStyle = on ? '#102f41' : 'rgba(252,232,205,0.85)';
     g2.fillText((on ? '▶ ' : '  ') + it.label, ix + 8, cols > 1 ? iy - 3 : iy + 1);
     if (it.note) {
-      g2.font = '900 12px "FK Grotesk", sans-serif'; g2.fillStyle = on ? '#102f41' : '#4eb99f';
+      g2.font = `900 ${full ? 14 : 12}px "FK Grotesk", sans-serif`; g2.fillStyle = on ? '#102f41' : '#4eb99f';
       if (cols > 1) g2.fillText(it.note, ix + 8 + g2.measureText('▶ ').width + 6, iy + 14);
       else { g2.textAlign = 'right'; g2.fillText(it.note, x + w - 24, iy + 1); g2.textAlign = 'left'; }
     }
@@ -1891,6 +1927,7 @@ addEventListener('keydown', (e) => {
   const inRoom = (e.target === canvas || e.target === document.body) && !e.ctrlKey && !e.metaKey && !e.altKey;
   if (inRoom && e.key === '1') goSpot('desk'); else if (inRoom && e.key === '2') goSpot('table'); else if (inRoom && e.key === '3') goSpot('drawer');
   else if (inRoom && (e.key === 'q' || e.key === 'Q')) location.href = 'quick/' + location.search;
+  else if (inRoom && (e.key === 'l' || e.key === 'L')) recall();
   else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
     // the same screen order (left to right) as the D-pad and swipes
     const r = step(e.key === 'ArrowRight' ? 1 : -1, 'x'); if (!r) return;
@@ -1959,7 +1996,7 @@ function drawUI(t) {
   drawPanel(t);
   // the dialogue box
   nar.box = null;
-  if (nar.visible && !(panel && panel.kind === 'letter')) {
+  if (nar.visible && !(panel && panel.kind === 'letter') && !panelRect?.full) {
     // on short screens the box keeps to the bottom left so it hides less of the room
     // the handheld's 4:3 tube is narrow: there the box spans it and grows with the line
     const short = H < 480; let bw = handheld ? W - 40 : short ? Math.min(Math.round(W * 0.56), 560) : Math.min(W - 80, 760), bx = handheld ? 20 : short ? 24 : Math.round((W - bw) / 2);
@@ -1975,8 +2012,9 @@ function drawUI(t) {
     const lines = wrap(nar.text.slice(0, Math.floor(nar.shown)), bw - 50).slice(0, n);
     const bh = (handheld ? 30 : 28) + n * 22;
     let by = H - bh - 20;
-    // a tablet's small print (44px tall for a finger) sits bottom right: the box stays above its row, so a tap on the box never lands on SKIP STORY
-    if (touchUI && !handheld && !panel) by = Math.min(by, Math.round(H - 16 - 14 * navScale() - bh - 10));
+    // the small print (44px tall for a finger on a tablet) sits bottom right: the box stays above its plate, so its border stays whole
+    // and a tap on the box never lands on SKIP STORY
+    if (!handheld && !panel && bx + bw > W - 380) by = Math.min(by, Math.round(H - 16 - 14 * navScale() - bh - 10));
     // the box never covers what it's pointing at: the thing its line is about, the hovered or a glowing object sends it to the top
     // (not over an open window), just under the channel plate and the bars so the name tag and the memories stay clear
     if (!panel) {
@@ -1997,11 +2035,12 @@ function drawUI(t) {
     g2.font = `12px "${FONT_PIX}"`;
     const nw = g2.measureText(nar.name).width + 16;
     g2.fillStyle = '#ec563b'; g2.fillRect(bx + 14, by - 12, nw, 22);
-    // a slipped letter is drawn as an inverse cell, so the zero reads at tag size (the face's slash alone is a pixel)
+    // a slipped letter is drawn as an inverse cell, so the zero reads at tag size (the face's slash alone is a pixel);
+    // the cell is the cap height plus a pixel each way, so it reads as a letter, not a cursor
     let nx = bx + 22;
     for (const ch of nar.name) {
       const cw = g2.measureText(ch).width;
-      if (ch === '0') { g2.fillStyle = '#fce8cd'; g2.fillRect(nx - 1, by - 10, cw + 2, 18); }
+      if (ch === '0') { g2.fillStyle = '#fce8cd'; g2.fillRect(nx - 1, by - 10, cw + 1, 10); }
       g2.fillStyle = ch === '0' ? '#102f41' : '#fce8cd'; g2.fillText(ch, nx, by - 1); nx += cw;
     }
     g2.font = `900 17px "${FONT_G}", sans-serif`; g2.fillStyle = '#fce8cd';
@@ -2102,12 +2141,13 @@ const loop = () => {
   }
   state.lastHover = hov;
   // glow: highlighted objects breathe gold, the hovered one warms a little
+  // a warm tint, never a flood (P3): plastic takes at most a quarter of gold, a label or printed art (a map) a tenth, so it still reads
   for (const [id, o] of Object.entries(objects)) {
     const k = Math.max(Math.max(o.glow, beckon.has(id) ? 1 : 0) * (quiet ? 0.5 : 0.35 + 0.25 * Math.sin(t * 4)), id === hov ? 0.22 : 0);
     for (const m of o.mats) {
       if (/screen|blinn2/i.test(m.name)) continue;
-      tmpCol.copy(m.userData.baseEmissive).lerp(GOLD, Math.min(1, k * 1.5));
-      m.emissive.copy(tmpCol); m.emissiveIntensity = (m.userData.baseIntensity || 1) + k * 0.6;
+      tmpCol.copy(m.userData.baseEmissive).lerp(GOLD, Math.min(m.map ? 0.1 : 0.26, k * 0.5));
+      m.emissive.copy(tmpCol); m.emissiveIntensity = (m.userData.baseIntensity || 1) + k * 0.25;
     }
   }
   // idle: the narrator nudges, once in a while
@@ -2191,8 +2231,8 @@ function powerOn() {
     }
     if (!returning && !owed) for (const b of boot) b.brisk = true;
     if (STORY && returning && story.flags.has('ended')) memFlash = clock.elapsedTime; // the counter is where the end card lives
-    // on touch, how to play comes right after "start with the grey one", short
-    if (touchUI && !returning && !owed) boot.push({ t: handheld ? '* tap to point, tap again to use. or the pad and a.' : '* tap to point, tap again to use. a and b work too.', hold: 2.6 });
+    // on touch, how to play comes early, short: right after "this is my room"
+    if (touchUI && !returning && !owed) boot.splice(2, 0, { t: handheld ? '* tap to point, tap again to use. or the pad and a.' : '* tap to point, tap again to use. a and b work too.', hold: 2.6 });
     // the stuck-hint clock starts once the boot has had its say
     const last = boot.at(-1), was = last.after;
     last.after = () => { was?.(); lastAct = performance.now(); };

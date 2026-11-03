@@ -76,6 +76,13 @@ body:not(.handheld) .badge, body:not(.handheld) .plate { bottom: calc(11px + env
 .sticker:focus-visible { background: var(--gold); color: var(--peacock); outline: 2px solid var(--orange); outline-offset: 2px; }
 .sticker:focus-visible small { color: var(--peacock); }
 body.handheld .plate, body.handheld .sticker { display: none; }
+/* a wide desktop: the sticker is the way out, so it reads as a button, at twice the small print's size, on a taller chin */
+@media (min-width: 1200px) and (min-height: 700px) {
+  body:not(.handheld) .tv { padding-bottom: calc(46px + env(safe-area-inset-bottom)); }
+  body:not(.handheld) .badge, body:not(.handheld) .plate { bottom: calc(16px + env(safe-area-inset-bottom)); }
+  .sticker { bottom: calc(4px + env(safe-area-inset-bottom)); padding: 4px 12px 5px; font-size: 16px; box-shadow: inset 0 0 0 1px rgba(250,219,104,.55); }
+  .sticker small { font-size: 10px; }
+}
 /* Before the room arrives: a plain card on the glass. If it never arrives, the same card says so. */
 .standby { position: absolute; inset: 0; z-index: 1; display: grid; place-content: center; justify-items: center; gap: 10px; padding: 16px; background: var(--bg); text-align: center; }
 .standby > div { display: grid; justify-items: center; gap: 10px; padding: 22px 26px; border: 2px solid var(--cream); border-radius: 6px; max-width: 420px; }
@@ -216,7 +223,7 @@ body.handheld .letter .body p { margin-top: 8px; }
         <div class="wait"><p class="pix">STANDBY</p><small lang="ja">スタンバイ</small><p class="warm">Omar’s room is warming up.</p><p class="slow">Slow connection. The room is still on its way; the quick view is lighter.</p><a href="quick/">IN A HURRY? QUICK VIEW →</a></div>
         <div class="fail"><p class="pix">NO SIGNAL</p><small lang="ja">ノーシグナル</small><p>The room couldn’t load on this connection.</p><a href="quick/">Open the quick view →</a><a href="mailto:primordialrune@gmail.com">primordialrune@gmail.com</a></div>
       </div></div>
-      <canvas id="crt" tabindex="0" role="application" aria-roledescription="room" aria-label="Omar Golinelli’s portfolio: a 3D room seen through a Trinitron. Arrow keys pick an object, Enter uses it, Escape steps back, Q opens the quick view. Number keys move once a place opens."></canvas>
+      <canvas id="crt" tabindex="0" role="application" aria-roledescription="room" aria-label="Omar Golinelli’s portfolio: a 3D room seen through a Trinitron. Arrow keys pick an object, Enter uses it, Escape steps back, L repeats the narrator’s last line, Q opens the quick view. Number keys move once a place opens."></canvas>
       <!-- The letter is real text over the glass (P1): selectable, copyable, no CRT on it. room.js fills it from LETTER. -->
       <section class="letter" id="letter" role="dialog" aria-modal="true" aria-labelledby="letter-h" hidden>
         <p class="tag">A LETTER</p>
@@ -232,16 +239,16 @@ body.handheld .letter .body p { margin-top: 8px; }
     </div>
     <div class="bezel right">
       <div class="ab"><button class="a" aria-label="A, use">A</button><button class="b" aria-label="B, back">B</button><small class="la">USE</small><small class="lb">BACK</small></div>
-      <div class="fine"><button data-link="skip">SKIP STORY</button><button data-link="memories">MEMORIES</button><button data-link="credits">CREDITS</button><button data-link="crt" aria-label="Quiet CRT" aria-pressed="false">CRT: FULL</button><a href="quick/">QUICK VIEW →</a></div>
+      <div class="fine"><button data-link="skip">SKIP STORY</button><button data-link="memories">MEMORIES</button><button data-link="credits">CREDITS</button><button data-link="crt" aria-pressed="false">CRT: FULL</button><a href="quick/">QUICK VIEW →</a></div>
     </div>
     <div class="plate">OMAR GOLINELLI · GAME DESIGNER &amp; DEVELOPER</div>
     <div class="badge" aria-hidden="true">TRINITRON</div>
   </div>
   </main>
   <nav id="nav" aria-label="Move through the room">
-    <button data-spot="desk" aria-current="true"><span class="num">01</span><span>DESK</span><small lang="ja">デスク</small></button>
-    <button data-spot="table"><span class="num">02</span><span>TABLE</span><small lang="ja">テーブル</small></button>
-    <button data-spot="drawer"><span class="num">03</span><span>DRAWER</span><small lang="ja">ヒキダシ</small></button>
+    <button data-spot="desk" aria-current="true"><span class="num">01</span> <span>DESK</span> <small lang="ja">デスク</small></button>
+    <button data-spot="table"><span class="num">02</span> <span>TABLE</span> <small lang="ja">テーブル</small></button>
+    <button data-spot="drawer"><span class="num">03</span> <span>DRAWER</span> <small lang="ja">ヒキダシ</small></button>
   </nav>
   <!-- after the nav, so Tab reaches the places first; it sits on the bezel's chin -->
   <footer>
