@@ -137,6 +137,7 @@ const LINES = {
   letter: '* go on. it’s short. i wrote it myself.',
   idle: ['* ...you can look around, you know.', '* the drawer’s just old stuff.', '* take your time. i have plenty.'],
   drawer: '* that one’s archived. it doesn’t— it’s fine.',
+  takeOut: '* take it out first.',
 };
 
 // ---------- the story (?story) ----------
@@ -164,6 +165,7 @@ const STORY_LINES = {
   draft: ['* a cube is drafted. open the pack, keep one, pass the rest.', '* you pick first.'],
   draftNext: '* your turn again. the rulebook has another pick.',
   draftAgain: '* another pack. keep one, pass the rest.',
+  draftLast: '* last pack. one card in it. it’s yours.',
   draftWait: '* play your pick first. then we draft again.',
   picked: {
     'crossfader-cassette': '* the cassette. two sides, and both of them matter.',
@@ -186,6 +188,7 @@ const STORY_LINES = {
   // each game's own line when it starts, in ?free too
   played: {
     'gb-cart': '* nobody trusts the web out there. you deliver the paper.',
+    'gba-cart': '* rereading it with my hands.',
     'crossfader-cassette': '* flip the side, and the song changes under you.',
     'holon-disc': '* a card game rebuilt for a screen, not copied from a table.',
     'spacerim-disc': '* the keyboard’s your only weapon. type the spell, or it hits you.',
@@ -241,6 +244,7 @@ function catchUp() {
   if (played.has('holon-disc') && !found.has('spacerim-disc')) found.add('spacerim-disc');
   if (played.has('crossfader-cassette') && !spots.has('drawer')) { spots.add('drawer'); found.add('cd-jewel'); }
   if (played.size === GAMES.length) flags.add('complete');
+  if (spots.has('drawer') && !flags.has('saw-drawer')) flags.add('saw-drawer'); // a save from before the slip was kept: it isn't replayed
   persist();
 }
 if (STORY) catchUp();
@@ -495,7 +499,7 @@ function paintScreen(src) {
     x.fillStyle = 'rgba(51,153,153,0.18)'; for (let y = 0; y < h; y += 4) x.fillRect(0, y, w, 2);
     if (src === desktopTex) {
       drawLogo(x, w / 2 - 110, 92, 220, '#fce8cd', '#ec563b');
-      x.fillStyle = '#fce8cd'; x.font = '900 34px "FK Grotesk"'; x.textAlign = 'center'; x.fillText('PRIMORDIALRUNE', w / 2, 384); x.textAlign = 'left';
+      x.fillStyle = '#fce8cd'; x.font = '900 34px "FK Grotesk", sans-serif'; x.textAlign = 'center'; x.fillText('PRIMORDIALRUNE', w / 2, 384); x.textAlign = 'left';
     } else if (src?.image) {
       x.drawImage(src.image, 36, 36, w - 72, h - 72);
     }
@@ -550,8 +554,8 @@ function makeEnvelope() {
   const letterTex = canvasTex(512, 680, (x, w, h) => {
     x.fillStyle = '#fbf3e3'; x.fillRect(0, 0, w, h);
     drawLogo(x, 36, 36, 64);
-    x.fillStyle = '#102f41'; x.font = '900 34px "FK Grotesk"'; x.fillText(LETTER.name, 116, 72);
-    x.fillStyle = '#ec563b'; x.font = '900 18px "FK Grotesk"'; x.fillText(LETTER.role.toUpperCase(), 116, 96);
+    x.fillStyle = '#102f41'; x.font = '900 34px "FK Grotesk", sans-serif'; x.fillText(LETTER.name, 116, 72);
+    x.fillStyle = '#ec563b'; x.font = '900 18px "FK Grotesk", sans-serif'; x.fillText(LETTER.role.toUpperCase(), 116, 96);
     x.fillStyle = '#34505e'; for (let y = 150; y < 600; y += 26) x.fillRect(36, y, 380 + Math.sin(y) * 60, 3);
   });
   // A real letter, folded in three: the bottom third lies still, the middle folds up over it and
@@ -618,6 +622,8 @@ function straighten(obj, deg) {
   const b = new THREE.Box3().setFromObject(obj, true), s = b.getSize(new THREE.Vector3()), k = 1 / Math.max(s.x, s.y, s.z), ctr = b.getCenter(new THREE.Vector3());
   for (const c of obj.children) { c.position.sub(ctr).multiplyScalar(k); c.scale.multiplyScalar(k); }
 }
+let monitor, tray; // the PC's monitor and CD tray, once the PC is in (rigPC)
+const TRAY = { x: 0.171, y: -0.42, shut: 0.109 - 0.13, open: 0.109 + 0.14 };
 let doorPivot, innerCassette; // the tape deck's door and the tape behind it, once the deck is in (rigPlayer)
 const AXES = { x: new THREE.Vector3(1, 0, 0), y: new THREE.Vector3(0, 1, 0), z: new THREE.Vector3(0, 0, 1) };
 async function place(p) {
@@ -693,13 +699,13 @@ function rig(id) {
   // the DS's glass is a transmission material: that renders the whole scene a second time, every frame. Plain see-through glass looks the same.
   if (id === 'ds-console') objects[id].root.traverse((m) => { if (m.isMesh) for (const mat of [].concat(m.material)) if (mat.transmission > 0) { mat.transmission = 0; mat.transparent = true; mat.opacity = 0.35; mat.needsUpdate = true; } });
   if (id === 'crossfader-player') rigPlayer(objects[id]);
+  if (id === 'pc') rigPC(objects[id]);
 }
 
 // PC: a lit monitor (Omar's logo) and a CD tray that slides out of the drive bay.
-const pc = objects['pc'];
-let monitor, tray;
-const TRAY = { x: 0.171, y: -0.42, shut: 0.109 - 0.13, open: 0.109 + 0.14 };
-if (pc) {
+// Set up when the PC arrives: with the first models, or later with the rest if its download failed once.
+function rigPC(pc) {
+  if (tray) return;
   monitor = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.502), new THREE.MeshBasicMaterial({ map: screenTex, toneMapped: false, transparent: true, alphaTest: 0.5 }));
   monitor.position.set(0.0055, 0.18, 0.119); monitor.userData.hit = 'pc';
   pc.obj.add(monitor);
@@ -738,7 +744,9 @@ const SPOTS = {
 };
 // A tablet draws A and B in the tube's bottom right, where the rulebook lies: there the table is seen from a step back and to the right
 const TABLE_TOUCH = { pos: [-1.31, 1.05, 0.5], look: [-1.4, 0.42, -0.03] };
-const view = (s) => s === 'table' && touchUI && !handheld ? TABLE_TOUCH : SPOTS[s];
+// the handheld's 4:3 tube draws the box along its bottom: the table is seen from higher and further back, so the rulebook sits above it
+const TABLE_HANDHELD = { pos: [-1.37, 1.14, 0.6], look: [-1.45, 0.34, 0.02] };
+const view = (s) => s === 'table' && handheld ? TABLE_HANDHELD : s === 'table' && touchUI ? TABLE_TOUCH : SPOTS[s];
 const look = new THREE.Vector3(...SPOTS.desk.look);
 camera.position.set(...SPOTS.desk.pos);
 let spot = 'desk';
@@ -752,6 +760,8 @@ function goSpot(s, said) {
   if (!SPOTS[s] || state.busy) return;
   // a place that isn't open yet answers with the hint, instead of nothing
   if (!spotOpen(s)) { say(nextHint(false) || '* not yet.', 2.4); speak('Not open yet'); return; }
+  // a game is in: the camera stays with it, and so does its menu (eject moves on)
+  if (state.playing) { if (!panel) openProject(state.playing.game, true); if (!said) say(LINES.takeOut, 2); return; }
   acted();
   if (s !== 'desk') loadRest();
   closePanel();
@@ -762,7 +772,7 @@ function goSpot(s, said) {
   // the first time the table is open, Minamoto is waiting on it
   // (reveal marks it found once it is really there, so a failed download turns it up on the next visit)
   if (STORY && s === 'table' && story.flags.has('postcard-read') && !story.found.has('gba-cart') && !state.revealing) { state.revealing = true; setTimeout(() => reveal('gba-cart').finally(() => { state.revealing = false; }), DUR * 1000); }
-  if (s === 'drawer' && !state.sawDrawer) { state.sawDrawer = true; setTimeout(() => { say(LINES.drawer); glitchName(); }, DUR * 1000 + 300); }
+  if (s === 'drawer' && !sawDrawer()) { markDrawer(); setTimeout(() => { say(LINES.drawer); glitchName(); }, DUR * 1000 + 300); }
   burst(0.35);
   speak(said || PLACE[s]);
 }
@@ -815,7 +825,7 @@ function next() {
   if (!head) nar.head = null;
   nar.cur = n; nar.text = n.t; nar.shown = 0; nar.visible = true; nar.until = Infinity;
   // longer lines stay up longer
-  nar.hold = Math.max(n.hold || 3.2, 1.2 + n.t.split(' ').length * 0.3);
+  nar.hold = n.brisk ? Math.max(2, 0.8 + n.t.split(' ').length * 0.2) : Math.max(n.hold || 3.2, 1.2 + n.t.split(' ').length * 0.3); // the boot reads quicker: the envelope is named within ~8s
   // a line put back after a cut comes back whole, so it reads as the same line, not a stutter
   if (quiet || n.restored) { nar.shown = nar.text.length; nar.until = performance.now() + nar.hold * 1000; }
   document.getElementById('say').textContent = n.t.replace(/^\* /, ''); sayAt = performance.now();
@@ -846,6 +856,9 @@ function tickNarrator(dt) {
 }
 
 // ---------- interaction state ----------
+// The drawer's first line slips the name tag: once per run in the story (kept with the save), once per visit in ?free
+const sawDrawer = () => STORY ? story.flags.has('saw-drawer') : state.sawDrawer;
+function markDrawer() { state.sawDrawer = true; if (STORY && !story.flags.has('saw-drawer')) { story.flags.add('saw-drawer'); persist(); } }
 const state = { mode: 'boot', system: null, hover: null, sawDrawer: false, said: new Set(), idle: 0, busy: false, playing: null, hintStage: 0, tl: null, tlAt: 0, replayed: new Set() };
 // Stuck hints run on wall-clock time since the last real action (moving the mouse isn't one).
 let lastAct = performance.now();
@@ -870,6 +883,8 @@ function endBoot(timer, hurries) {
 }
 // A menu row is an action
 function pickRow(it) { acted(); it.act(); }
+// B and Escape step back: a window's back row is marked (the skip question's is KEEP PLAYING), else it is the last
+const backRow = () => panel.items.find((i) => i.back) || panel.items.at(-1);
 // What a system will take right now: found games only, and an unwoken GBA only takes the old cartridge.
 const playable = (sys) => (PLAYS[sys] || []).filter((g) => isFound(g) && (sys !== 'gba-console' || gbaAwake() || g === 'gb-cart'));
 const PROMPT = (id) => {
@@ -887,11 +902,12 @@ const PLACE = { desk: 'Desk', table: 'Table', drawer: 'Drawer' };
 // #status says where you are and what is picked; the same words twice still get read (a trailing space flips)
 const statusEl = document.getElementById('status');
 // a status that lands with a fresh narrator line waits 700ms behind it, so one doesn't drown the other (the latest status wins)
-let sayAt = -1e9, statusTimer = 0;
+let sayAt = -1e9, statusTimer = 0, statusAt = -1e9;
 function speak(t) {
   if (!statusEl) return;
   clearTimeout(statusTimer);
-  const set = () => { statusEl.textContent = statusEl.textContent === t ? t + '\u00a0' : t; };
+  // the same words again within 3s are the same news (closing a window, then arriving at that place): said once
+  const set = () => { const same = statusEl.textContent.trim() === t; if (same && performance.now() - statusAt < 3000) return; statusEl.textContent = same && statusEl.textContent === t ? t + '\u00a0' : t; statusAt = performance.now(); };
   const wait = sayAt + 700 - performance.now();
   if (wait > 0) statusTimer = setTimeout(set, wait); else set();
 }
@@ -965,6 +981,8 @@ function cameraTo(id, dist) { frameObject(id, dist); }
 
 function insert(game, sys) {
   const g = objects[game], s = objects[sys];
+  // a model still on its way (or its download failed once): fetch the rest, then go in
+  if (!g || !s) { loadRest().then(() => { if (objects[game] && objects[sys] && !state.busy && !state.playing) insert(game, sys); }); return; }
   state.mode = 'playing'; state.busy = true; highlight([]); closePanel(); acted();
   setNav('desk');
   const home = { parent: g.obj.parent, pos: g.obj.position.clone(), quat: g.obj.quaternion.clone(), scale: g.obj.scale.x };
@@ -1059,6 +1077,7 @@ function frameDrive() { moveTo([0.0, 1.0, -0.12], [0.17, 0.82, -0.56]); }
 function started(game, sys) {
   if (sys !== 'pc') setScreen(sys, true);
   if (SLOTS[sys]) cameraTo(sys, 1.6);
+  if (state.resumed) { state.resumed = false; state.playedAt = performance.now(); return openProject(game, true); }
   const line = storyPlayed(game, sys) || STORY_LINES.played[game] || `* ${PROJECTS[game].title.toLowerCase()}.`;
   // the first game of the run also says how the story moves: taking it out is what turns things up
   const tip = STORY && !story.flags.has('told-eject');
@@ -1098,7 +1117,7 @@ function storyEjected(game) {
   const drawerNow = game === 'crossfader-cassette' && !story.spots.has('drawer');
   if (drawerNow) {
     // side B opens the drawer, and the visitor goes to watch it slide out; its first line follows the two
-    state.sawDrawer = true;
+    markDrawer();
     lines.push(...kept(STORY_LINES.drawerOpens), { t: LINES.drawer, keep: true, on: glitchName });
     setTimeout(() => {
       openSpot('drawer'); reveal('cd-jewel');
@@ -1205,7 +1224,7 @@ function openSpot(s) { if (story.spots.has(s)) return; story.spots.add(s); persi
 const navFlash = {};
 function readPostcard() {
   frameObject('postcard', 1.1);
-  openPanel({ kind: 'project', tag: 'POSTCARD', title: 'Delivered', kana: 'はいたつ  DELIVERY', body: ['Galactic News delivered this one. On the back, in Omar’s hand: “The table is set. Come and see the rest.”'],
+  openPanel({ kind: 'project', tag: 'POSTCARD', title: 'Delivered', kana: 'ハイタツ  DELIVERY', body: ['Galactic News delivered this one. On the back, in Omar’s hand: “The table is set. Come and see the rest.”'],
     items: [{ label: 'GO TO THE TABLE', act: () => { closePanel(); goSpot('table'); say(STORY_LINES.table); } }, { label: 'BACK', act: () => { closePanel(); goSpot('desk'); } }] });
   if (!story.flags.has('postcard-read')) {
     story.flags.add('postcard-read'); openSpot('table');
@@ -1242,9 +1261,9 @@ function readRulebook() {
     if (waiting) highlight([waiting]);
     return;
   }
-  if (left.length === DRAFT.length) say(STORY_LINES.draft, undefined, { keep: true }); else say(STORY_LINES.draftAgain);
+  if (left.length === DRAFT.length) say(STORY_LINES.draft, undefined, { keep: true }); else say(left.length === 1 ? STORY_LINES.draftLast : STORY_LINES.draftAgain);
   const draft = { kind: 'project', tag: 'DRAFT', title: left.length === DRAFT.length ? 'Pick one' : 'Next pick', kana: 'ドラフト  DRAFT',
-    body: [`Pick ${DRAFT.length - left.length + 1} of ${DRAFT.length}. Keep one, the rest come round again.`],
+    body: [`Pick ${DRAFT.length - left.length + 1} of ${DRAFT.length}. ${left.length === 1 ? 'The last one. Nobody passes it back.' : 'Keep one, the rest come round again.'}`],
     items: [...left.map((g) => ({ label: DRAFT_FACE[g][0], note: DRAFT_FACE[g][1], act: () => draftPick(g) })),
       { label: 'READ THE RULES', act: () => openPanel(rulesPanel(draft)) },
       { label: 'BACK', act: () => {
@@ -1439,15 +1458,29 @@ const STUDIES = new URLSearchParams(location.search).has('studies');
 const PUBLISHED = new Set(['crossfader', 'spacerim', 'holon', 'galactic-news']);
 const PLAY_URL = { 'holon-disc': 'https://holon.primordialrune.com/', 'crossfader-cassette': 'https://primordialrune.itch.io/crossfader', 'gb-cart': 'https://indigomountain.itch.io/galactic-news', 'spacerim-disc': 'https://primordialrune.itch.io/spacerim' };
 const SLUG = { 'gb-cart': 'galactic-news', 'gba-cart': 'minamoto', 'ds-cart': 'legends-arise', 'crossfader-cassette': 'crossfader', 'holon-disc': 'holon', 'spacerim-disc': 'spacerim', 'ptcg-cube-rulebook': 'ptcg-cube', 'cd-jewel': 'haunt-record' };
+const RESUME_KEY = 'room-resume';
+let resumeAt = null;
+try { resumeAt = sessionStorage.getItem(RESUME_KEY)?.split(' '); sessionStorage.removeItem(RESUME_KEY); } catch { /* none */ }
+// Back from a case study: the game that was in goes straight back in, with no ceremony and no second line.
+function resumeGame([game, sys]) {
+  loadRest().then(() => {
+    if (!objects[game] || !objects[sys] || !isFound(game) || !isFound(sys) || state.playing || state.busy || panel) return;
+    state.resumed = true; endBoot(); insert(game, sys);
+    if (state.tl) { const tl = state.tl; state.tl = null; tl.progress(1); gsap.getTweensOf([camera.position, look]).forEach((tw) => tw.progress(1)); }
+  });
+}
 function openStudy(id) {
   if (!SLUG[id] || state.leaving) return;
   state.leaving = true; closePanel(); burst(0.8);
+  // the game left in goes back in when the room loads again (BACK TO THE ROOM is a fresh load of the page)
+  try { if (state.playing) sessionStorage.setItem(RESUME_KEY, `${state.playing.game} ${state.playing.sys}`); } catch { /* no storage: it comes back out */ }
   gsap.to(crtMat.uniforms.uPower, { value: 0, duration: quiet ? 0.05 : 0.35, ease: 'power2.in', onComplete: () => { location.href = `study/${SLUG[id]}/`; } });
 }
 // Coming back with BACK can restore this page from the browser's cache with the picture still off: switch it on.
 addEventListener('pageshow', (e) => {
   if (!e.persisted) return;
   state.leaving = false;
+  try { sessionStorage.removeItem(RESUME_KEY); } catch { /* none */ } // this page kept its game: a later load mustn't put it in again
   if (state.playing && !state.busy && !panel) openProject(state.playing.game, true); // the game is still in: its menu comes back with it
   gsap.to(crtMat.uniforms.uPower, { value: 1, duration: quiet ? 0.05 : 0.5, ease: 'power2.out' });
 });
@@ -1464,6 +1497,8 @@ let panelHits = [], panelRect = null; // panelRect: where the open window is, in
 const portrait = new Image(); portrait.src = 'labels/omar-pixel.png';
 function drawPanel(t) {
   panelHits = []; panelRect = null;
+  // a game in is never left without its menu (a window opened over it and closed, a place picked): it comes back
+  if (!panel && state.playing && !state.busy && !state.leaving) openProject(state.playing.game, true);
   crtMat.uniforms.uClean.value = 0;
   if (!panel || panel.dom) return;
   const letter = panel.kind === 'letter', wide = letter || panel.kind === 'credits' || panel.kind === 'memories';
@@ -1476,10 +1511,10 @@ function drawPanel(t) {
   const compact = (handheld || (touchUI && W / H < 1.6)) && !wide && !!state.playing;
   const w = compact ? 220 : wide ? (handheld ? W - 28 : Math.min(W - 96, short ? 780 : 600)) : handheld ? 300 : big ? 360 : (short ? 300 : 260);
   const x = wide ? Math.round((W - w) / 2) : W - w - (handheld || compact ? 16 : big ? 150 : 28); const y = wide ? (short ? 24 : 36) : handheld ? 28 : compact ? 72 : (short ? 82 : 58);
-  g2.font = `900 ${wide ? 15 : 14}px "FK Grotesk"`;
+  g2.font = `900 ${wide ? 15 : 14}px "FK Grotesk", sans-serif`;
   const bodyLines = compact ? [] : panel.body.flatMap((p) => [...wrap(p, w - 40), '']);
   // what Omar did on it: a pixel label, then Omar's own words in Grotesk (P5: no pixel paragraph)
-  g2.font = '900 14px "FK Grotesk"'; const partLines = compact || !panel.part ? [] : wrap(panel.part, w - 40);
+  g2.font = '900 14px "FK Grotesk", sans-serif'; const partLines = compact || !panel.part ? [] : wrap(panel.part, w - 40);
   const lineH = wide ? 18 : 17;
   const itemH = handheld ? 30 : big ? 36 : short ? (wide ? 23 : 28) : wide ? 19 : 22;
   const h = 84 + (letter && !short ? 30 : 0) + bodyLines.length * lineH + (panel.extra ? 22 : 0) + (partLines.length ? 24 + partLines.length * 17 : 0) + panel.items.length * itemH + 14;
@@ -1500,8 +1535,8 @@ function drawPanel(t) {
   g2.font = '11px "8bitDarling"'; const tw = g2.measureText(panel.tag).width + 16;
   g2.fillStyle = '#ec563b'; g2.fillRect(x + 14, y - 11, tw, 20);
   g2.fillStyle = '#fce8cd'; g2.fillText(panel.tag, x + 22, y - 1);
-  g2.font = '900 24px "FK Grotesk"'; g2.fillStyle = '#fce8cd'; g2.fillText(panel.title, x + 20, y + 34);
-  g2.font = '900 11px "FK Grotesk"'; g2.fillStyle = '#4eb99f'; g2.fillText(panel.kana, x + 20, y + 54);
+  g2.font = '900 24px "FK Grotesk", sans-serif'; g2.fillStyle = '#fce8cd'; g2.fillText(panel.title, x + 20, y + 34);
+  g2.font = '900 11px "FK Grotesk", sans-serif'; g2.fillStyle = '#4eb99f'; g2.fillText(panel.kana, x + 20, y + 54);
   let cy = y + 78;
   if (letter && portrait.complete && portrait.naturalWidth) {
     const ps = short ? 60 : 84, px = x + w - ps - 22, py = y + 16;
@@ -1511,11 +1546,11 @@ function drawPanel(t) {
     g2.imageSmoothingEnabled = true;
     if (!short) cy += 30;
   }
-  g2.font = `900 ${wide ? (panel.kind === 'credits' ? 12 : 15) : 14}px "FK Grotesk"`; g2.fillStyle = 'rgba(252,232,205,0.92)';
+  g2.font = `900 ${wide ? (panel.kind === 'credits' ? 12 : 15) : 14}px "FK Grotesk", sans-serif`; g2.fillStyle = 'rgba(252,232,205,0.92)';
   for (const l of bodyLines) { g2.fillText(l, x + 20, cy); cy += lineH; }
   if (partLines.length) {
     g2.font = '10px "8bitDarling"'; g2.fillStyle = '#fadb68'; g2.fillText('MY PART', x + 20, cy); cy += 16;
-    g2.font = '900 14px "FK Grotesk"'; g2.fillStyle = 'rgba(252,232,205,0.92)';
+    g2.font = '900 14px "FK Grotesk", sans-serif'; g2.fillStyle = 'rgba(252,232,205,0.92)';
     for (const l of partLines) { g2.fillText(l, x + 20, cy); cy += 17; }
     cy += 8;
   }
@@ -1529,7 +1564,7 @@ function drawPanel(t) {
     if (on) { g2.fillStyle = '#fadb68'; g2.fillRect(x + 14, cy - itemH / 2 + 1, w - 28, itemH - 2); }
     g2.font = `${big ? 15 : 12}px "8bitDarling"`; g2.fillStyle = on ? '#102f41' : 'rgba(252,232,205,0.85)';
     g2.fillText((on ? '▶ ' : '  ') + it.label, x + 22, cy + 1);
-    if (it.note) { g2.font = '900 12px "FK Grotesk"'; g2.fillStyle = on ? '#102f41' : '#4eb99f'; g2.textAlign = 'right'; g2.fillText(it.note, x + w - 24, cy + 1); g2.textAlign = 'left'; }
+    if (it.note) { g2.font = '900 12px "FK Grotesk", sans-serif'; g2.fillStyle = on ? '#102f41' : '#4eb99f'; g2.textAlign = 'right'; g2.fillText(it.note, x + w - 24, cy + 1); g2.textAlign = 'left'; }
     panelHits.push({ i, x: cx0 + (x + 14 - cx0) * k, y: y + (cy - itemH / 2 - y) * k, w: (w - 28) * k, h: itemH * k });
     cy += itemH;
   });
@@ -1546,19 +1581,20 @@ function navAt(u, v) {
 }
 // The nav lives in the tube now: three channel bars top right, credits and the quick view bottom right.
 let navHits = [], navHover = null;
-const NAV = [['desk', '01', 'DESK', 'デスク'], ['table', '02', 'TABLE', 'テーブル'], ['drawer', '03', 'DRAWER', 'ひきだし']];
+const NAV = [['desk', '01', 'DESK', 'デスク'], ['table', '02', 'TABLE', 'テーブル'], ['drawer', '03', 'DRAWER', 'ヒキダシ']];
+const navScale = () => touchUI ? Math.max(1.35, 44 / (30 * canvas.clientHeight / H)) : canvas.clientHeight < 520 ? 1.35 : 1;
 function drawNav() {
   syncDomNav(); // the DOM nav hides places not found yet, for keyboards too, on every layout
   if (handheld) return; // the bezel carries the nav and the small print
   if (panel && panel.kind !== 'project') return;
   // on short screens (phones sideways) the bars grow so a thumb can hit them
   // and with a finger every bar and link is at least 44 CSS px tall (a tablet's tube is scaled only a little)
-  const ns = touchUI ? Math.max(1.35, 44 / (30 * canvas.clientHeight / H)) : canvas.clientHeight < 520 ? 1.35 : 1;
+  const ns = navScale();
   g2.save(); g2.translate(W, 0); g2.scale(ns, ns); g2.translate(-W, 0);
   let x = W - 18;
   for (const [id, num, label, kana] of [...NAV].filter(([id]) => spotOpen(id)).reverse()) {
     g2.font = `11px "${FONT_PIX}"`; const lw = g2.measureText(label).width;
-    g2.font = `900 9px "${FONT_G}"`; const kw = g2.measureText(kana).width;
+    g2.font = `900 9px "${FONT_G}", sans-serif`; const kw = g2.measureText(kana).width;
     const w = 34 + Math.max(lw, kw) + 12, h = 30, y = 10; x -= w;
     const on = spot === id, hot = navHover === id;
     // a channel that just opened blinks gold for a couple of seconds
@@ -1568,7 +1604,7 @@ function drawNav() {
     g2.fillStyle = '#102f41'; g2.fillRect(x + 8, y + 9, 20, 12);
     g2.font = `8px "${FONT_PIX}"`; g2.fillStyle = '#fce8cd'; g2.fillText(num, x + 11, y + 15.5);
     g2.font = `11px "${FONT_PIX}"`; g2.fillText(label, x + 34, y + 11);
-    g2.font = `900 9px "${FONT_G}"`; g2.fillStyle = 'rgba(252,232,205,0.85)'; g2.fillText(kana, x + 34, y + 23);
+    g2.font = `900 9px "${FONT_G}", sans-serif`; g2.fillStyle = 'rgba(252,232,205,0.85)'; g2.fillText(kana, x + 34, y + 23);
     navHits.push({ id, x: W - (W - x) * ns, y: y * ns, w: w * ns, h: h * ns, act: () => goSpot(id) });
     x -= 8;
   }
@@ -1594,8 +1630,8 @@ function drawNav() {
   g2.textAlign = 'left';
 }
 function skipPanel() {
-  return { kind: 'project', tag: 'SKIP STORY', title: 'Skip the story?', kana: 'スキップ  SKIP', body: ['Eight games, a few minutes of story. Skipping puts them all out at once; the memories stay as they are.'],
-    items: [{ label: 'KEEP PLAYING', act: closePanel }, { label: 'SHOW ME EVERYTHING', act: () => { closePanel(); skipStory(); } }] };
+  return { kind: 'project', tag: 'SKIP STORY', title: 'Skip the story?', kana: 'スキップ', body: ['Eight games, a few minutes of story. Skipping puts them all out at once; the memories stay as they are.'],
+    items: [{ label: 'KEEP PLAYING', back: true, act: closePanel }, { label: 'SHOW ME EVERYTHING', act: () => { closePanel(); skipStory(); } }] };
 }
 function creditsPanel() {
   return { kind: 'credits', tag: 'CREDITS', title: 'Model credits', kana: 'クレジット', body: [CREDIT_TEXT], items: [{ label: 'BACK', act: closePanel }] };
@@ -1667,7 +1703,8 @@ canvas.addEventListener('click', (e) => {
   setMouse(e);
   const touch = pointerType === 'touch';
   if (touch) { mouse.in = false; navHover = null; if (swiped) { swiped = false; return; } }
-  const nh = navAt(mouse.u, mouse.v);
+  // the dialogue box wins over the small print beside it: a tap meant to hurry a line never opens SKIP STORY
+  const nh = boxAt(mouse.u, mouse.v) ? null : navAt(mouse.u, mouse.v);
   if (nh && (nh.id === 'quick' || nh.id === 'credits' || nh.id === 'crt')) return nh.act();
   // mid-ceremony, a click finishes it
   if (skipCeremony()) return;
@@ -1700,7 +1737,7 @@ function pressA() {
 function pressB() {
   endBoot();
   if (skipCeremony()) return;
-  if (panel) return pickRow(panel.items.at(-1));
+  if (panel) return pickRow(backRow());
   if (state.busy) return;
   state.hover = null;
   if (state.mode === 'choose') { resetChoice(); goSpot(spot); } else if (spot !== 'desk') goSpot('desk');
@@ -1765,7 +1802,7 @@ addEventListener('keydown', (e) => {
     if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { panel.sel = (panel.sel + 1) % panel.items.length; e.preventDefault(); }
     else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { panel.sel = (panel.sel - 1 + panel.items.length) % panel.items.length; e.preventDefault(); }
     else if (e.key === 'Enter' || e.key === ' ') { pickRow(panel.items[panel.sel]); e.preventDefault(); }
-    else if (e.key === 'Escape') pickRow(panel.items.at(-1));
+    else if (e.key === 'Escape') pickRow(backRow());
     if (panel && /^Arrow/.test(e.key)) speak(rowSpeech(panel.items[panel.sel]));
     return;
   }
@@ -1789,7 +1826,7 @@ function burst(a) { if (quiet) return; crtMat.uniforms.uBurst.value = Math.max(c
 
 // ---------- UI drawn into the tube ----------
 const FONT_PIX = '8bitDarling', FONT_G = 'FK Grotesk';
-await Promise.allSettled([document.fonts.load(`16px "${FONT_PIX}"`), document.fonts.load(`900 16px "${FONT_G}"`)]);
+await Promise.allSettled([document.fonts.load(`16px "${FONT_PIX}"`), document.fonts.load(`900 16px "${FONT_G}", sans-serif`)]);
 // fonts are in now: redraw the canvases that use them
 paintScreen(desktopTex);
 function wrap(text, maxW) {
@@ -1849,18 +1886,24 @@ function drawUI(t) {
     if (touchUI && !handheld && bx + bw > W - 160) { bx = Math.max(24, Math.min(bx, W - 160 - bw)); bw = Math.min(bw, W - 160 - bx); }
     // a window open beside it (zoomed in, a short tube): the box stops short of the window, so its rows and cursor stay in view
     const pr = panelRect && !panelRect.wide ? panelRect : null;
-    if (pr && pr.y + pr.h > H - 140 && bx + bw > pr.x - 12) bw = Math.max(180, Math.round(pr.x - 12 - bx));
-    g2.font = `900 17px "${FONT_G}"`;
-    const lines = wrap(nar.text.slice(0, Math.floor(nar.shown)), bw - 50).slice(0, 3);
-    const n = Math.max(2, wrap(nar.text, bw - 50).length);
-    const bh = handheld ? 30 + n * 22 : 72 + (n > 2 ? 22 : 0);
+    // (a tall tube's window already ends 94px above the bottom: there a box squeezed under ~260px would only wrap into the window, so it keeps its width below it)
+    if (pr && pr.y + pr.h > H - 140 && bx + bw > pr.x - 12 && (handheld || H < 480 || pr.x - 12 - bx >= 260)) bw = Math.max(180, Math.round(pr.x - 12 - bx));
+    g2.font = `900 17px "${FONT_G}", sans-serif`;
+    // the box is as tall as the whole line needs (a box narrowed beside a window wraps more), up to five lines
+    const n = Math.min(5, Math.max(2, wrap(nar.text, bw - 50).length));
+    const lines = wrap(nar.text.slice(0, Math.floor(nar.shown)), bw - 50).slice(0, n);
+    const bh = (handheld ? 30 : 28) + n * 22;
     let by = H - bh - 20;
+    // a tablet's small print (44px tall for a finger) sits bottom right: the box stays above its row, so a tap on the box never lands on SKIP STORY
+    if (touchUI && !handheld && !panel) by = Math.min(by, Math.round(H - 16 - 14 * navScale() - bh - 10));
     // the box never covers what it's pointing at: the thing its line is about, the hovered or a glowing object sends it to the top
     // (not over an open window), just under the channel plate and the bars so the name tag and the memories stay clear
     if (!panel) {
       // a thing counts as under the box when a good part of its outline is (its centre alone misses a console half under the name tag)
       const under = (oid) => {
-        const r = oid && objects[oid]?.root.visible && rectOf(oid); if (!r || r[3] - r[1] > H * 0.45) return false; // the PC is never hidden by a box
+        // only the part inside the tube counts (the rulebook lies half outside the handheld's)
+        const o = oid && objects[oid]?.root.visible && rectOf(oid), r = o && [Math.max(0, o[0]), Math.max(0, o[1]), Math.min(W, o[2]), Math.min(H, o[3])];
+        if (!r || r[3] - r[1] > H * 0.45) return false; // the PC is never hidden by a box
         const top = by - 14 - (oid === state.hover ? 24 : 0), ov = Math.min(r[3], by + bh) - Math.max(r[1], top);
         return r[2] >= bx && r[0] <= bx + bw && ov > 0 && ov >= 0.25 * (r[3] - r[1]);
       };
@@ -1874,7 +1917,7 @@ function drawUI(t) {
     const nw = g2.measureText(nar.name).width + 16;
     g2.fillStyle = '#ec563b'; g2.fillRect(bx + 14, by - 12, nw, 22);
     g2.fillStyle = '#fce8cd'; g2.fillText(nar.name, bx + 22, by - 1);
-    g2.font = `900 17px "${FONT_G}"`; g2.fillStyle = '#fce8cd';
+    g2.font = `900 17px "${FONT_G}", sans-serif`; g2.fillStyle = '#fce8cd';
     lines.forEach((l, i) => g2.fillText(l, bx + 22, by + 28 + i * 22));
     if (nar.shown >= nar.text.length && (quiet || Math.sin(t * 6) > 0)) { g2.fillStyle = '#fadb68'; g2.beginPath(); g2.moveTo(bx + bw - 26, by + bh - 22); g2.lineTo(bx + bw - 16, by + bh - 22); g2.lineTo(bx + bw - 21, by + bh - 15); g2.fill(); }
   }
@@ -2056,6 +2099,7 @@ function powerOn() {
       // the greeting is for arriving: once the visitor has done something (opened the letter), a cut never brings it back
       boot[0].stale = boot[1].stale = () => !!state.acted;
     }
+    if (!returning && !owed) for (const b of boot) b.brisk = true;
     if (STORY && returning && story.flags.has('ended')) memFlash = clock.elapsedTime; // the counter is where the end card lives
     // on touch, how to play comes right after "start with the grey one", short
     if (touchUI) boot.push({ t: handheld ? '* tap to point, tap again to use. or the pad and a.' : '* tap to point, tap again to use. a and b work too.', hold: 2.6 });
@@ -2063,8 +2107,9 @@ function powerOn() {
     const last = boot.at(-1), was = last.after;
     last.after = () => { was?.(); lastAct = performance.now(); };
     queue(boot);
+    if (resumeAt) resumeGame(resumeAt);
   }, quiet ? 300 : 1300);
   // the boot ends on its own, or at the first press (see endBoot)
   setTimeout(() => endBoot(true), quiet ? 1500 : 4200);
 }
-window.__room = { nar, lampGoes, pressA, pressB, step, THREE, look, crtMat, objects, goSpot, state, camera, activate, story, reveal, skipStory, eject, openLetter, get panel() { return panel; }, tray, TRAY, get doorPivot() { return doorPivot; }, frameObject };
+window.__room = { nar, say, lampGoes, pressA, pressB, step, THREE, look, crtMat, objects, goSpot, state, camera, activate, story, reveal, skipStory, eject, openLetter, get panel() { return panel; }, get tray() { return tray; }, TRAY, get doorPivot() { return doorPivot; }, frameObject };

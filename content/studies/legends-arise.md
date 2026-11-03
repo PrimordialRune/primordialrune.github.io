@@ -31,7 +31,7 @@ The team documented the game in a wiki: mechanics, Pokémon, region, plot chapte
 
 ?? What was the team, and what's the status of the project now? I'd like the cover facts to be exact, including your role.
 
-# Two screens | ふたつのがめん
+# Two screens | フタツノガメン
 
 The DS has two screens, and the interface uses both on purpose. The top screen is the save file, styled like a file path on a device: resume_savefile/usr/P_BERLITZ, with the trainer's ID, play time, badges, and two bars for STORY and DEX progress. The bottom screen is the map, with the last known location.
 
@@ -60,7 +60,7 @@ Important trainers get a VS cut-in with a portrait drawn for the DS.
 
 ?? Did you draw the portraits and the battle UI, or design them for someone else to draw?
 
-# The world | せかい
+# The world | セカイ
 
 Some of the systems designed for the game, from the wiki:
 

@@ -63,7 +63,7 @@ I wanted every screen to be an object from the game's world, not a menu laid on 
 
 The small things are the ones I enjoy most. The money counter, for one, sits inside a frame shaped like a dollar sign.
 
-# A tutorial in the stars | せいざ
+# A tutorial in the stars | セイザ
 
 The first route has no tutorial text for the controls. As you fly up, the stars form Game Boys, and each one lights the button you need: the D-pad to steer, A to throw a paper to the right, B to throw to the left.
 
@@ -74,7 +74,7 @@ The cockpit explains itself the same way. On the first route the game pauses for
 * the sky tells you which button to press.
 * i still look for them when i play it.
 
-# How to play | あそびかた
+# How to play | アソビカタ
 
 - Steer the mail ship with the D-pad. Steering burns fuel.
 - A throws a newspaper to the right, B throws one to the left.
@@ -88,7 +88,7 @@ A route ends on a results card: mailboxes delivered, the number you needed, and 
 
 Failing a route still pays for every paper you delivered. That was deliberate: if the game feels hard, the money lets you unlock every upgrade you need, so the curve is kinder than it looks.
 
-# Four colours | よんしょく
+# Four colours | ヨンショク
 
 GBJAM asks for Game Boy rules: a 160 × 144 screen and four colours. We picked a warm four: near-black, rust, mint and paper. They carry the whole game, from the title to the credits.
 

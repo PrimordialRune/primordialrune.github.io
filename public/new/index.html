@@ -30,8 +30,9 @@
 <link rel="preload" href="fonts/FKGrotesk-Black.otf" as="font" type="font/otf" crossorigin fetchpriority="high">
 <style>
 /* Layout: one Trinitron filling the window. The room renders inside the tube; the nav (three bars under the glass) only moves you around the room. Menus and the letter are drawn inside the tube too. */
-@font-face { font-family: "FK Grotesk"; src: url("fonts/FKGrotesk-Black.otf") format("opentype"); font-weight: 900; font-display: swap; }
-@font-face { font-family: "FK Grotesk"; src: url("fonts/FKGrotesk-Thin.otf") format("opentype"); font-weight: 200; font-display: swap; }
+/* the fonts are the trial cut, which draws é as a plain e: accented letters fall back to the next sans until the licensed files are in */
+@font-face { font-family: "FK Grotesk"; src: url("fonts/FKGrotesk-Black.otf") format("opentype"); font-weight: 900; font-display: swap; unicode-range: U+0000-00BF, U+2013-2014, U+20AC; }
+@font-face { font-family: "FK Grotesk"; src: url("fonts/FKGrotesk-Thin.otf") format("opentype"); font-weight: 200; font-display: swap; unicode-range: U+0000-00BF, U+2013-2014, U+20AC; }
 @font-face { font-family: "8bitDarling"; src: url("fonts/8bitDarling-Regular.otf") format("opentype"); font-display: swap; }
 :root {
   --bg: #07141c;
@@ -195,6 +196,8 @@ body.handheld .letter .body p { margin-top: 8px; }
 </style>
 </head>
 <body>
+<!-- no script, no room: the standby card says so, with the quick view and the email -->
+<noscript><style>.standby .wait { display: none; } .standby .fail { display: contents; }</style></noscript>
   <a class="quick" href="quick/">IN A HURRY? SKIP TO THE QUICK VIEW</a>
   <main>
   <h1 class="sr">Omar Golinelli, game designer and developer: Omar’s room</h1>
@@ -232,7 +235,7 @@ body.handheld .letter .body p { margin-top: 8px; }
   <nav id="nav" aria-label="Move through the room">
     <button data-spot="desk" aria-current="true"><span class="num">01</span><span>DESK</span><small lang="ja">デスク</small></button>
     <button data-spot="table"><span class="num">02</span><span>TABLE</span><small lang="ja">テーブル</small></button>
-    <button data-spot="drawer"><span class="num">03</span><span>DRAWER</span><small lang="ja">ひきだし</small></button>
+    <button data-spot="drawer"><span class="num">03</span><span>DRAWER</span><small lang="ja">ヒキダシ</small></button>
   </nav>
   <!-- after the nav, so Tab reaches the places first; it sits on the bezel's chin -->
   <a class="sticker" href="quick/">IN A HURRY? QUICK VIEW →<small lang="ja">クイックビュー</small></a>
@@ -242,7 +245,6 @@ body.handheld .letter .body p { margin-top: 8px; }
   <p class="role">Game designer &amp; developer</p><small lang="ja">ゲームデザイナー</small>
   <svg viewBox="0 0 64 64" aria-hidden="true"><rect x="20" y="6" width="24" height="52" rx="5" fill="none" stroke="#fce8cd" stroke-width="3"/><rect x="24" y="12" width="16" height="36" fill="#ec563b"/><circle cx="32" cy="53" r="2" fill="#fce8cd"/></svg>
   <p>TURN THE SCREEN SIDEWAYS</p>
-  <small lang="ja">よこにしてね</small>
   <a class="go" href="quick/">SEE THE GAMES AND CONTACTS →<small lang="ja">クイックビュー</small></a>
   <a class="mail" href="mailto:primordialrune@gmail.com">primordialrune@gmail.com</a>
 </div>
@@ -271,7 +273,9 @@ const check = () => {
 };
 setTimeout(check, 15000);
 // The quick view keeps the query (?free and the rest).
-if (location.search) for (const a of document.querySelectorAll('a[href="quick/"]')) a.href = 'quick/' + location.search;
+// (not ?reset: the quick view's way back would wipe the run again)
+const keep = location.search.replace(/([?&])reset\b&?/, '$1').replace(/[?&]$/, '');
+if (keep) for (const a of document.querySelectorAll('a[href="quick/"]')) a.href = 'quick/' + keep;
 </script>
 </body>
 </html>

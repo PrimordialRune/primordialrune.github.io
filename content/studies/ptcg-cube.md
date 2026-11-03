@@ -30,7 +30,7 @@ The PTCG Cube brings that format to the first era of the Pokémon Trading Card G
 
 ?? How big is the cube, how many players, and how does the draft work (packs, picks, deck size)? None of it is in the rulebook yet, and it's the first thing a designer will want to know.
 
-# Welcome | ようこそ
+# Welcome | ヨウコソ
 
 The rulebook opens the way the games did: Professor Oak welcomes you to the world of Pokémon, explains the general rules, and tells you to have fun, experiment, and good luck.
 

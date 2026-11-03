@@ -77,7 +77,7 @@ One more decision: the board leans 12° toward you. Tilting the camera did nothi
 * the game learns from the people playing it.
 * i like that. i'd like that.
 
-# A story mode, like the Game Boy ones | ものがたり
+# A story mode, like the Game Boy ones | モノガタリ
 
 The Game Boy Pokémon Trading Card Game gave the cards an adventure. It only covered the earliest sets, and its sequel, with the Team Rocket cards, never left Japan.
 
@@ -92,7 +92,7 @@ The difficulty curve is modelled before it's played. A simulation opens thousand
 * a deck tells you what someone plays.
 * a trainer power tells you who they are.
 
-# How it's made | せいさく
+# How it's made | セイサク
 
 I'm building Holon with the help of AI, particularly for the code, while I keep learning Unity. The game design, visual design and art direction are mine.
 

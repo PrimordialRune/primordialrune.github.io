@@ -4,7 +4,7 @@
 //   # Title | カタカナ   a new page          * line   the narrator in the margin
 //   ?? line             a question (draft only)  - line   a list item
 //   ![caption](file "x3" | "wide")   a picture from the study's folder
-import { readFileSync, writeFileSync, readdirSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, mkdirSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -19,13 +19,13 @@ const LOGO_INNER = logo.match(/LOGO_INNER =\s*"([^"]+)"/)[1];
 
 // What each medium's insert is called, and the words on its cover
 const MEDIA = {
-  gb: { insert: 'INSTRUCTION BOOKLET', kana: 'とりあつかいせつめいしょ', system: 'GAME BOY' },
-  gba: { insert: 'INSTRUCTION BOOKLET', kana: 'とりあつかいせつめいしょ', system: 'GAME BOY ADVANCE' },
-  ds: { insert: 'INSTRUCTION BOOKLET', kana: 'とりあつかいせつめいしょ', system: 'NINTENDO DS' },
+  gb: { insert: 'INSTRUCTION BOOKLET', kana: 'トリアツカイセツメイショ', system: 'GAME BOY' },
+  gba: { insert: 'INSTRUCTION BOOKLET', kana: 'トリアツカイセツメイショ', system: 'GAME BOY ADVANCE' },
+  ds: { insert: 'INSTRUCTION BOOKLET', kana: 'トリアツカイセツメイショ', system: 'NINTENDO DS' },
   disc: { insert: 'LINER NOTES', kana: 'ライナーノーツ', system: 'PC CD-ROM' },
   cassette: { insert: 'J-CARD', kana: 'ジェイカード', system: 'CASSETTE' },
   rulebook: { insert: 'RULEBOOK', kana: 'ルールブック', system: 'TABLETOP' },
-  archive: { insert: 'RECOVERED NOTES', kana: 'ふっきゅう', system: 'ARCHIVED DISC' },
+  archive: { insert: 'RECOVERED NOTES', kana: 'フッキュウ', system: 'ARCHIVED DISC' },
 };
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -61,6 +61,8 @@ function imageWidth(dir, file) {
   return Infinity;
 }
 const isPixel = (dir, file) => imageWidth(dir, file) <= 320;
+// A looping GIF carries its first frame (<name>.still.png, made once next to it): the page can pause on it (WCAG 2.2.2)
+const still = (dir, file) => { const s = file.replace(/\.gif$/i, '.still.png'); return s !== file && existsSync(join(dir, s)) ? ` data-still="${esc(s)}"` : ''; };
 
 // The caption doubles as the alt text. An empty one gets no figcaption and a warning: alt text is Omar's to write.
 function figure(caption, file, opt, dir) {
@@ -68,7 +70,7 @@ function figure(caption, file, opt, dir) {
   const wide = opt === 'wide' || !isPixel(dir, file);
   const scale = (opt || '').match(/^x(\d)$/)?.[1];
   const cls = wide ? 'fig wide' : `fig screen${scale ? ` x${scale}` : ''}`;
-  return `<figure class="${cls}"><img src="${esc(file)}" alt="${esc(caption)}"${wide ? ' loading="lazy"' : ''}${wide ? '' : ' data-pixel'}>${caption.trim() ? `<figcaption>${inline(caption)}</figcaption>` : ''}</figure>`;
+  return `<figure class="${cls}"><img src="${esc(file)}" alt="${esc(caption)}"${wide ? ' loading="lazy"' : ''}${wide ? '' : ' data-pixel'}${still(dir, file)}>${caption.trim() ? `<figcaption>${inline(caption)}</figcaption>` : ''}</figure>`;
 }
 
 function body(md, draft, dir) {
@@ -106,7 +108,27 @@ function folio(medium, i, n) {
   return `— ${i + 2} —`;
 }
 
-function render(fm, pages, dir) {
+// The back page: only links the front matter already has (the build, the next published study), and the letter's address
+const NEXT = ['crossfader', 'holon', 'spacerim', 'galactic-news'];
+function endPage(fm, studies) {
+  const open = NEXT.filter((s) => studies[s]?.status === 'final' && s !== fm.slug);
+  const next = studies[open.find((s) => NEXT.indexOf(s) > NEXT.indexOf(fm.slug)) || open[0]];
+  const rows = [
+    fm.play && `<li><a class="play" href="${esc(fm.play)}" target="_blank" rel="noopener">PLAY IT →<span class="sr"> (opens in a new tab)</span></a></li>`,
+    next && `<li><span class="label">NEXT CASE STUDY</span><a href="../${esc(next.slug)}/">${esc(next.title)} →</a></li>`,
+    `<li><span class="label">WRITE TO OMAR</span><a href="mailto:primordialrune@gmail.com">primordialrune@gmail.com</a></li>`,
+    `<li><span class="label">ALL THE GAMES</span><a href="../../quick/">The quick view and the letter →</a></li>`,
+  ].filter(Boolean).join('\n      ');
+  return `
+  <section class="page end" aria-labelledby="end">
+    <header><h2 id="end">What next</h2><div class="kana" lang="ja">ネクスト</div></header>
+    <ul>
+      ${rows}
+    </ul>
+  </section>`;
+}
+
+function render(fm, pages, dir, studies) {
   const draft = fm.status !== 'final';
   const medium = MEDIA[fm.medium] || MEDIA.gb;
   // an optional fifth tone is accent2 lightened for text on ink, when the game's own accent2 is too dark to read there (WCAG 4.5:1)
@@ -147,7 +169,7 @@ ${draft ? '<meta name="robots" content="noindex">\n' : ''}<link rel="stylesheet"
   <section class="page cover" aria-label="Cover">
     ${draft ? '<div class="stamp" title="Drafted with Claude, waiting for Omar\'s pass">DRAFT</div>' : ''}
     <div class="system">${medium.system}</div>
-    ${fm.cover ? `<img class="cover-art" src="${esc(fm.cover)}" alt="${esc(fm.title)} cover"${isPixel(dir, fm.cover) ? ' data-pixel' : ' data-wide'}>` : ''}
+    ${fm.cover ? `<img class="cover-art" src="${esc(fm.cover)}" alt="${esc(fm.title)} cover"${isPixel(dir, fm.cover) ? ' data-pixel' : ' data-wide'}${still(dir, fm.cover)}>` : ''}
     <h1>${esc(fm.title)}</h1>
     <div class="kana" lang="ja">${esc(fm.kana || '')}</div>
     <dl class="facts">${facts}</dl>
@@ -155,6 +177,7 @@ ${draft ? '<meta name="robots" content="noindex">\n' : ''}<link rel="stylesheet"
     <footer class="folio">${medium.insert} <span lang="ja">${medium.kana}</span></footer>
   </section>
 ${pageHtml}
+${endPage(fm, studies)}
 </main>
 <script>
 // Back the way you came: to the room (keeps ?story and its state) or to the quick view; a direct visit goes to /.
@@ -164,12 +187,21 @@ document.querySelector('[data-back]').addEventListener('click', (e) => {
 // Pixel art at the largest integer scale that fits (P1: never 2.5x)
 const fit = () => document.querySelectorAll('img[data-pixel]').forEach((img) => {
   if (!img.naturalWidth) return;
-  const box = img.parentElement.clientWidth - 2 * (parseFloat(getComputedStyle(img).borderLeftWidth) || 0), want = +(img.closest('[class*=" x"]')?.className.match(/x(\\d)/)?.[1] || 3);
+  const box = (img.closest('figure') || img.parentElement).clientWidth - 2 * (parseFloat(getComputedStyle(img).borderLeftWidth) || 0), want = +(img.closest('[class*=" x"]')?.className.match(/x(\\d)/)?.[1] || 3);
   const s = Math.max(1, Math.min(want, Math.floor(box / img.naturalWidth)));
   img.style.width = img.naturalWidth * s + 'px';
 });
 document.querySelectorAll('img[data-pixel]').forEach((img) => img.addEventListener('load', fit));
 addEventListener('resize', fit); fit();
+// Looping pictures get PAUSE / PLAY; under reduced motion they start on their first frame
+const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+document.querySelectorAll('img[data-still]').forEach((img) => {
+  const gif = img.getAttribute('src'), b = document.createElement('button');
+  b.type = 'button'; b.className = 'gif-toggle';
+  const set = (paused) => { img.src = paused ? img.dataset.still : gif; b.textContent = paused ? '▶ PLAY' : 'PAUSE'; b.setAttribute('aria-label', (paused ? 'Play' : 'Pause') + ' the animation: ' + img.alt); b.dataset.paused = paused; };
+  b.addEventListener('click', () => set(b.dataset.paused !== 'true'));
+  img.after(b); set(still);
+});
 </script>
 </body>
 </html>
@@ -177,15 +209,21 @@ addEventListener('resize', fit); fit();
 }
 
 mkdirSync(OUT, { recursive: true });
+// read every study first: each back page names the next one
+const studies = {};
 for (const file of readdirSync(SRC).filter((f) => f.endsWith('.md'))) {
   const text = readFileSync(join(SRC, file), 'utf8');
   const m = text.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
   if (!m) { console.warn(`skip ${file}: no front matter`); continue; }
   const fm = frontMatter(m[1]);
   fm.slug ||= file.replace(/\.md$/, '');
+  studies[fm.slug] = Object.assign(fm, { md: m[2] });
+}
+for (const fm of Object.values(studies)) {
+  const m = [, , fm.md];
   const dir = join(OUT, fm.slug);
   const pages = body(m[2], fm.status !== 'final', dir);
   mkdirSync(join(OUT, fm.slug), { recursive: true });
-  writeFileSync(join(dir, 'index.html'), render(fm, pages, dir));
+  writeFileSync(join(dir, 'index.html'), render(fm, pages, dir, studies));
   console.log(`study: ${fm.slug} (${pages.length} pages, ${fm.status || 'draft'})`);
 }

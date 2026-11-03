@@ -38,7 +38,7 @@
   </section>
 
   <section class="page" aria-labelledby="p2">
-    <header><h2 id="p2">Welcome</h2><div class="kana" lang="ja">ようこそ</div></header>
+    <header><h2 id="p2">Welcome</h2><div class="kana" lang="ja">ヨウコソ</div></header>
     <p>The rulebook opens the way the games did: Professor Oak welcomes you to the world of Pokémon, explains the general rules, and tells you to have fun, experiment, and good luck.</p>
     <figure class="fig wide"><img src="welcome.jpg" alt="The general rules, introduced by Professor Oak" loading="lazy"><figcaption>The general rules, introduced by Professor Oak</figcaption></figure>
     <div class="narrator" role="note" aria-label="The narrator"><svg viewBox="0 0 555 555" aria-hidden="true"><path d="M260.32,454.02l-159.33-159.33c-8.33-8.33-8.33-21.82,0-30.15l168.17-168.17c4-4,9.42-6.24,15.08-6.24h159.92c5.17,0,6.81-6.96,2.19-9.27L289.14,2.25c-8.21-4.1-18.12-2.5-24.61,3.99L6.24,264.53c-8.33,8.33-8.33,21.82,0,30.15l254.08,254.08c8.33,8.33,21.82,8.33,30.15,0l260.8-260.79c3.08-3.08.9-8.36-3.46-8.36h-72.56c-6.63,0-13,2.64-17.69,7.33l-167.08,167.08c-8.33,8.33-21.82,8.33-30.15,0Z"/><path class="inner" d="M551.25,137.49h-263.74c-7.75,0-15.19,3.08-20.67,8.56l-125.39,125.39c-3.01,3.01-.88,8.16,3.38,8.16h101.34c16.14,0,29.23,13.09,29.23,29.23v101.34c0,4.26,5.15,6.39,8.16,3.38l270.14-270.14c2.19-2.19.64-5.92-2.45-5.92Z"/></svg><div><span class="who">OMAR</span><p>* i wrote every page. in italian.</p><p>* some of them are still blank. that's the honest part of a rulebook.</p></div></div>
@@ -72,6 +72,15 @@
     <p class="question"><span>QUESTION FOR OMAR</span>Is there a photo of the cube on a real table, or of the playmat in use? A picture of people playing would be the best possible last page.</p>
     <footer class="folio">— 6 —</footer>
   </section>
+
+  <section class="page end" aria-labelledby="end">
+    <header><h2 id="end">What next</h2><div class="kana" lang="ja">ネクスト</div></header>
+    <ul>
+      <li><span class="label">NEXT CASE STUDY</span><a href="../crossfader/">Crossfader →</a></li>
+      <li><span class="label">WRITE TO OMAR</span><a href="mailto:primordialrune@gmail.com">primordialrune@gmail.com</a></li>
+      <li><span class="label">ALL THE GAMES</span><a href="../../quick/">The quick view and the letter →</a></li>
+    </ul>
+  </section>
 </main>
 <script>
 // Back the way you came: to the room (keeps ?story and its state) or to the quick view; a direct visit goes to /.
@@ -81,12 +90,21 @@ document.querySelector('[data-back]').addEventListener('click', (e) => {
 // Pixel art at the largest integer scale that fits (P1: never 2.5x)
 const fit = () => document.querySelectorAll('img[data-pixel]').forEach((img) => {
   if (!img.naturalWidth) return;
-  const box = img.parentElement.clientWidth - 2 * (parseFloat(getComputedStyle(img).borderLeftWidth) || 0), want = +(img.closest('[class*=" x"]')?.className.match(/x(\d)/)?.[1] || 3);
+  const box = (img.closest('figure') || img.parentElement).clientWidth - 2 * (parseFloat(getComputedStyle(img).borderLeftWidth) || 0), want = +(img.closest('[class*=" x"]')?.className.match(/x(\d)/)?.[1] || 3);
   const s = Math.max(1, Math.min(want, Math.floor(box / img.naturalWidth)));
   img.style.width = img.naturalWidth * s + 'px';
 });
 document.querySelectorAll('img[data-pixel]').forEach((img) => img.addEventListener('load', fit));
 addEventListener('resize', fit); fit();
+// Looping pictures get PAUSE / PLAY; under reduced motion they start on their first frame
+const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+document.querySelectorAll('img[data-still]').forEach((img) => {
+  const gif = img.getAttribute('src'), b = document.createElement('button');
+  b.type = 'button'; b.className = 'gif-toggle';
+  const set = (paused) => { img.src = paused ? img.dataset.still : gif; b.textContent = paused ? '▶ PLAY' : 'PAUSE'; b.setAttribute('aria-label', (paused ? 'Play' : 'Pause') + ' the animation: ' + img.alt); b.dataset.paused = paused; };
+  b.addEventListener('click', () => set(b.dataset.paused !== 'true'));
+  img.after(b); set(still);
+});
 </script>
 </body>
 </html>

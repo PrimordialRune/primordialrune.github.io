@@ -45,7 +45,7 @@ Enemies show no stats, so as you go deeper you never quite know how much stronge
 
 ![Early sprite tests](sprites.png "x3")
 
-# Weak spots | じゃくてん
+# Weak spots | ジャクテン
 
 The first time a new enemy attacks, a reticle appears on its weak spot. For a casual player it's a hint about where to hit. For a veteran it's a lesson in how to play perfectly.
 

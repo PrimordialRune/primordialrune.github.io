@@ -22,7 +22,7 @@ facts:
 play: ""
 ---
 
-# Gen 1, again | げん
+# Gen 1, again | ゲン
 
 Minamoto (源) means source, or origin. The project goes back to the source: the first Pokémon games, Red, Green and Blue, re-read on the hardware that came after them.
 

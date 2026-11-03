@@ -1,7 +1,8 @@
 /* The case studies: each one is the insert that came with its medium. One stylesheet, skinned per study
    with --ink / --accent / --accent2 / --paper (the game's own palette) and per medium with [data-medium]. */
-@font-face { font-family: "FK Grotesk"; src: url("../fonts/FKGrotesk-Black.otf") format("opentype"); font-weight: 900; }
-@font-face { font-family: "FK Grotesk"; src: url("../fonts/FKGrotesk-Thin.otf") format("opentype"); font-weight: 200; }
+/* the fonts are the trial cut, which draws é as a plain e: accented letters fall back to the next sans until the licensed files are in */
+@font-face { font-family: "FK Grotesk"; src: url("../fonts/FKGrotesk-Black.otf") format("opentype"); font-weight: 900; unicode-range: U+0000-00BF, U+2013-2014, U+20AC; }
+@font-face { font-family: "FK Grotesk"; src: url("../fonts/FKGrotesk-Thin.otf") format("opentype"); font-weight: 200; unicode-range: U+0000-00BF, U+2013-2014, U+20AC; }
 @font-face { font-family: "8bitDarling"; src: url("../fonts/8bitDarling-Regular.otf") format("opentype"); }
 :root { --room: #07141c; --cream: #fce8cd; --gold: #fadb68; --peacock: #102f41;
   --pixel: "8bitDarling", ui-monospace, monospace; --grotesk: "FK Grotesk", Helvetica, Arial, sans-serif; color-scheme: dark; }
@@ -41,7 +42,7 @@ h2 { font: 900 30px/1.05 var(--grotesk); text-transform: uppercase; margin: 0; l
 .cover a:not(.play):focus-visible, .narrator a:focus-visible { outline-color: var(--paper); }
 .page strong { font-weight: 900; }
 
-.folio { text-align: center; font: 400 10px/1 var(--pixel); letter-spacing: .1em; opacity: .55; margin-top: 28px; }
+.folio { text-align: center; font: 400 10px/1 var(--pixel); letter-spacing: .1em; opacity: .75; margin-top: 28px; }
 
 /* pictures: game screens at an integer scale inside a screen bezel, diagrams full width */
 .fig { margin: 26px 0; text-align: center; }
@@ -80,7 +81,24 @@ h2 { font: 900 30px/1.05 var(--grotesk); text-transform: uppercase; margin: 0; l
 .page a.play { display: inline-block; margin-top: 18px; padding: 12px 18px; background: var(--ink); color: var(--paper); box-shadow: 0 0 0 3px var(--accent); font: 400 12px/1 var(--pixel); letter-spacing: .1em; text-decoration: none; }
 .page a.play:hover, .page a.play:focus-visible { background: var(--paper); color: var(--ink); }
 .page a.play:focus-visible { outline: 2px solid var(--gold); outline-offset: 6px; }
-.cover .folio { opacity: .5; }
+.cover .folio { opacity: .75; }
+
+/* a looping picture can be paused (WCAG 2.2.2); under reduced motion it starts paused, on its first frame */
+.gif-toggle { display: block; margin: 8px auto 0; min-height: 28px; padding: 6px 10px; background: var(--ink); color: var(--paper); border: 0; border-radius: 3px;
+  font: 400 10px/1 var(--pixel); letter-spacing: .1em; cursor: pointer; }
+.gif-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.cover .gif-toggle { background: var(--paper); color: var(--ink); margin: -14px auto 22px; }
+
+/* the back page: play it, the next study, and how to reach Omar, so a study never ends on a dead end */
+.end { background: var(--ink); color: var(--paper); text-align: center; }
+.end header { border-bottom-color: var(--accent); }
+.end ul { display: grid; gap: 14px; justify-items: center; margin: 8px 0 6px; }
+.end li { padding: 0; margin: 0; }
+.end li::before { display: none; }
+.end .label { display: block; font: 400 10px/1 var(--pixel); letter-spacing: .1em; color: var(--accent2-text, var(--accent2)); margin-bottom: 6px; }
+.end a:not(.play) { color: var(--paper); font-size: 18px; }
+.end a:not(.play):focus-visible { outline-color: var(--paper); }
+.end a.play { margin-top: 0; box-shadow: 0 0 0 3px var(--accent), 0 0 0 5px var(--paper); }
 
 /* the booklet slides out of the case (P3), on a spring; quiet motion just shows it */
 @media (prefers-reduced-motion: no-preference) {
