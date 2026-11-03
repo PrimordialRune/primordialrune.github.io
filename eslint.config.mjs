@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Vendored, minified three and gsap for the room.
+    "public/new/lib/**",
   ]),
 ]);
 

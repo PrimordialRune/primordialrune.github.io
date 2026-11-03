@@ -1585,7 +1585,7 @@ canvas.addEventListener('pointerup', (e) => {
   // on phones, take the whole screen sideways where the browser allows it (a touch counts as a gesture on lift)
   if (wentFull || document.fullscreenElement) return;
   wentFull = true;
-  document.documentElement.requestFullscreen?.({ navigationUI: 'hide' }).then(() => screen.orientation?.lock?.('landscape')).catch(() => {});
+  document.documentElement.requestFullscreen?.({ navigationUI: 'hide' }).then(() => innerWidth > innerHeight && screen.orientation?.lock?.('landscape')).catch(() => {});
 });
 // A finger is fat and the table's games are small: when a tap misses, take the nearest thing in reach.
 function pickNear() {
@@ -1864,10 +1864,20 @@ function nextHint(plain) {
 const clock = new THREE.Clock();
 const tmpCol = new THREE.Color(), GOLD = new THREE.Color(0xfadb68);
 const tweening = () => gsap.globalTimeline.getChildren(true, true, false).some((tw) => tw.isActive());
-// A phone held upright only shows the turn-it-sideways card: the room doesn't draw behind it,
+// A phone held upright only shows the turn-it-sideways card (tablets upright get a 4:3 tube): the room doesn't draw behind it,
 // and doesn't even switch on (or fetch the table and drawer) until the first sideways frame.
-const upright = matchMedia('(orientation: portrait) and (max-width: 900px) and (pointer: coarse)'); // a narrow desktop window gets the tube
+const upright = matchMedia('(orientation: portrait) and (max-width: 599px) and (pointer: coarse)'); // a tablet or a narrow window gets the tube
+// At rest the tube draws every other frame (30fps on a 60Hz screen): nothing moving, nothing typing, no game on,
+// no pointer or key for 2s. Anything that moves brings back every frame on the next one.
+let lastInput = 0, odd = false;
+addEventListener('pointermove', () => { lastInput = performance.now(); }, { passive: true });
+addEventListener('pointerdown', () => { lastInput = performance.now(); }, { passive: true });
+addEventListener('keydown', () => { lastInput = performance.now(); });
+const resting = () => powered && !state.playing && !state.busy && state.mode !== 'boot' && crtMat.uniforms.uBurst.value < 0.01
+  && (shadowFrames === 0 || !renderer.shadowMap.enabled) // lite has no shadow pass to count shadowFrames down
+  && !(nar.visible && nar.shown < nar.text.length) && performance.now() - lastInput > 2000 && !tweening();
 const loop = () => {
+  if (resting() && (odd = !odd)) return;
   if (!powered) { powered = true; clock.getDelta(); powerOn(); }
   const rawDt = clock.getDelta(), dt = Math.min(rawDt, 0.05), t = clock.elapsedTime;
   crtMat.uniforms.uTime.value = t;
