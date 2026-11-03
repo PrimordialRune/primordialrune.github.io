@@ -60,15 +60,16 @@ html, body { margin: 0; height: 100%; background: var(--frame); color: var(--cre
   box-shadow: 0 0 0 2px #050506, 0 0 0 4px #1d1d21, inset 0 0 0 1px rgba(255,255,255,.04); }
 canvas { display: block; width: 100%; height: 100%; cursor: crosshair; touch-action: none; }
 /* Desktop: a taller chin under the glass carries the model plate, the badge and the quick-view sticker. */
-body:not(.handheld) .tv { padding-bottom: max(34px, env(safe-area-inset-bottom)); }
+body:not(.handheld) .tv { padding-bottom: calc(34px + env(safe-area-inset-bottom)); }
 .badge, .plate { position: absolute; bottom: max(4px, calc(env(safe-area-inset-bottom) - 12px)); left: 50%; transform: translateX(-50%); font: 900 9px/12px var(--grotesk); letter-spacing: .35em; color: #5d5d64; pointer-events: none; }
-body:not(.handheld) .badge, body:not(.handheld) .plate { bottom: max(11px, calc(env(safe-area-inset-bottom) - 12px)); }
+/* an iPad's home bar: the chin grows by the inset, so the plate and the sticker stay above it */
+body:not(.handheld) .badge, body:not(.handheld) .plate { bottom: calc(11px + env(safe-area-inset-bottom)); }
 .plate { left: max(16px, env(safe-area-inset-left)); transform: none; font-size: 11px; letter-spacing: .2em; color: rgba(252,232,205,.8); white-space: nowrap; }
 /* a narrow window: the plate keeps the chin, the badge steps aside */
 @media (max-width: 1100px) { body:not(.handheld) .badge { display: none; } }
 /* very narrow (a desktop zoomed to 400%): the sticker needs the chin, and the name is on the quick view it opens */
 @media (max-width: 480px) { body:not(.handheld) .plate { display: none; } }
-.sticker { position: fixed; z-index: 1; right: max(16px, env(safe-area-inset-right)); bottom: max(3px, calc(env(safe-area-inset-bottom) - 26px)); display: flex; flex-direction: column; align-items: center; gap: 2px;
+.sticker { position: fixed; z-index: 1; right: max(16px, env(safe-area-inset-right)); bottom: calc(3px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; align-items: center; gap: 2px;
   padding: 3px 9px; border-radius: 4px; background: #232328; color: var(--gold); font: 400 11px/1 var(--pixel); letter-spacing: .06em; text-decoration: none; white-space: nowrap; }
 .sticker small { font: 900 9px/1 var(--grotesk); letter-spacing: .1em; color: rgba(252,232,205,.8); }
 .sticker:hover { color: var(--cream); }
@@ -134,6 +135,10 @@ body.handheld .bezel nav { position: static; width: 100%; max-width: 176px; heig
 .fine { display: flex; flex-direction: column; align-items: center; gap: 0; }
 .fine button, .fine a { display: flex; align-items: center; justify-content: center; min-height: 44px; background: none; padding: 14px 10px; font: 400 9px/1 var(--pixel); letter-spacing: .06em; color: rgba(252,232,205,.8); text-decoration: none; }
 .fine a[href^="quick/"] { color: var(--gold); }
+body.handheld .fine button, body.handheld .fine a { font-size: 11px; color: var(--cream); }
+/* the name card the visitor saw upright stays on the rail when the phone turns (the plate is off on the handheld) */
+.rail { display: none; }
+body.handheld .rail { display: block; margin: 0; font: 900 9px/1.5 var(--grotesk); letter-spacing: .12em; color: rgba(252,232,205,.8); text-align: center; }
 .fine [hidden] { display: none; }
 /* Desktop: the small print leaves the bezel for the page; a keyboard on it shows the row as pills, bottom right. */
 body:not(.handheld) .fine { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -203,6 +208,7 @@ body.handheld .letter .body p { margin-top: 8px; }
   <h1 class="sr">Omar Golinelli, game designer and developer: Omar’s room</h1>
   <div class="tv">
     <div class="bezel left">
+      <p class="rail" aria-hidden="true">OMAR GOLINELLI<br>GAME DESIGNER &amp; DEVELOPER</p>
       <div class="dpad" role="group" aria-label="Pad"><button data-d="up" aria-label="Up">▲</button><button data-d="left" aria-label="Previous object">◀</button><i></i><button data-d="right" aria-label="Next object">▶</button><button data-d="down" aria-label="Down">▼</button></div>
     </div>
     <div class="glass">
@@ -226,10 +232,10 @@ body.handheld .letter .body p { margin-top: 8px; }
     </div>
     <div class="bezel right">
       <div class="ab"><button class="a" aria-label="A, use">A</button><button class="b" aria-label="B, back">B</button><small class="la">USE</small><small class="lb">BACK</small></div>
-      <div class="fine"><button data-link="skip">SKIP STORY</button><button data-link="memories">MEMORIES</button><button data-link="credits">CREDITS</button><button data-link="crt" aria-pressed="false">CRT: FULL</button><a href="quick/">QUICK VIEW →</a></div>
+      <div class="fine"><button data-link="skip">SKIP STORY</button><button data-link="memories">MEMORIES</button><button data-link="credits">CREDITS</button><button data-link="crt" aria-label="Quiet CRT" aria-pressed="false">CRT: FULL</button><a href="quick/">QUICK VIEW →</a></div>
     </div>
     <div class="plate">OMAR GOLINELLI · GAME DESIGNER &amp; DEVELOPER</div>
-    <div class="badge">TRINITRON</div>
+    <div class="badge" aria-hidden="true">TRINITRON</div>
   </div>
   </main>
   <nav id="nav" aria-label="Move through the room">
@@ -238,8 +244,10 @@ body.handheld .letter .body p { margin-top: 8px; }
     <button data-spot="drawer"><span class="num">03</span><span>DRAWER</span><small lang="ja">ヒキダシ</small></button>
   </nav>
   <!-- after the nav, so Tab reaches the places first; it sits on the bezel's chin -->
+  <footer>
   <a class="sticker" href="quick/">IN A HURRY? QUICK VIEW →<small lang="ja">クイックビュー</small></a>
   <details class="credits"><summary>MODEL CREDITS</summary><p id="credits"></p></details>
+  </footer>
 <div class="tilt" role="dialog" aria-modal="true" aria-labelledby="tilt-name">
   <h2 id="tilt-name" tabindex="-1">OMAR GOLINELLI</h2>
   <p class="role">Game designer &amp; developer</p><small lang="ja">ゲームデザイナー</small>
@@ -253,7 +261,9 @@ body.handheld .letter .body p { margin-top: 8px; }
 <p class="sr" id="status" aria-live="polite" aria-atomic="true"></p>
 <script>
 // No WebGL, no room: go straight to the quick view.
-try { const c = document.createElement('canvas'); if (!(c.getContext('webgl2') || c.getContext('webgl'))) location.replace('quick/'); } catch (e) { location.replace('quick/'); }
+// (?nogl tells it there is no room to go back to; the rest of the query comes along, never ?reset)
+const noGL = () => location.replace('quick/?nogl' + location.search.replace(/([?&])reset\b&?/, '$1').replace(/[?&]$/, '').replace(/^\?/, '&'));
+try { const c = document.createElement('canvas'); if (!(c.getContext('webgl2') || c.getContext('webgl'))) noGL(); } catch (e) { noGL(); }
 </script>
 <!-- Deferred: gsap runs after parsing, before the module, so it is defined when room.js starts. -->
 <script defer src="lib/gsap/gsap.min.js" onerror="__roomFail()"></script>

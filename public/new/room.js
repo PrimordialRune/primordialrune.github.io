@@ -81,7 +81,7 @@ const PROJECTS = {
   'holon-disc': { title: 'Holon', kana: 'ホロン', medium: 'PC DISC', pitch: 'A simulator for the RS-PK retro format of the Pokémon TCG (the EX era), designed for digital. Closed alpha, version 0.1.2.', part: 'Game design, visual design, art direction and development, building the code with AI help' },
   'spacerim-disc': { title: 'SpaceRim', kana: 'スペースリム', medium: 'PC DISC', pitch: 'A rhythm game with RPG boss battles, played by typing spells. Made in 48 hours for Castle Game Jam, October 2023.', part: 'Game designer, pixel artist and UI artist: I drew the bosses and wrote their spells' },
   'ptcg-cube-rulebook': { title: 'PTCG Cube', kana: 'キューブ', medium: 'RULEBOOK', pitch: 'A cube format for the Pokémon TCG, with Roguelike and Co-op modes. This is its rulebook.' },
-  'cd-jewel': { title: 'Haunt Record', kana: 'ホーント・レコード', medium: 'ARCHIVED DISC', pitch: 'A dungeon crawler where the player is complicit. Graphics with Edoardo Zuliani.' },
+  'cd-jewel': { title: 'Haunt Record', kana: 'ホーント・レコード', medium: 'ARCHIVED DISC', pitch: 'A dungeon crawler where the player is complicit. Graphics with Edoardo Zuliani.', part: 'Game design, programming, UI design and game graphics' },
 };
 
 // The letter in the envelope: Omar's own voice (normal case), facts from the site's status window.
@@ -201,7 +201,7 @@ const STORY_LINES = {
   skip: '* everything’s out. no story, just the games.',
   hints: [
     // [condition, gentle nudge, plain instruction]
-    [() => !story.played.has('gb-cart'), '* the grey one. the cartridge is right next to it.', '* click the game boy, then the cartridge beside it.'],
+    [() => !story.played.has('gb-cart'), '* the grey one. the cartridge is right next to it.', '* use the game boy, then the cartridge beside it.'],
     [() => !story.flags.has('postcard-read'), '* something came in the mail.', '* the postcard on the desk. read it.'],
     [() => !story.found.has('gba-console'), '* there’s something new on the table.', '* the table, top right. play the cartridge waiting there.'],
     [() => !story.flags.has('gba-awake'), '* the advance is asleep. it remembers old things.', '* use the advance, then the grey cartridge.'],
@@ -209,7 +209,7 @@ const STORY_LINES = {
     [() => !DRAFT.some((g) => story.found.has(g)), '* the rulebook on the table. it’s your pick.', '* go to the table and use the rulebook, then pick a game.'],
     [() => DRAFT.some((g) => story.found.has(g) && !story.played.has(g)), '* you picked one. go on, play it.', '* the game you picked is on the table. open it and choose play it.'],
     [() => story.found.has('spacerim-disc') && !story.played.has('spacerim-disc'), '* there’s a second disc on the table now.', '* play spacerim: the second disc on the table.'],
-    [() => story.found.has('cd-jewel') && !story.played.has('cd-jewel'), '* the drawer’s open now.', '* go to the drawer and play the disc inside.'],
+    [() => story.found.has('cd-jewel') && !story.played.has('cd-jewel'), '* the old disc. it’s been in there a while.', '* go to the drawer and play the disc inside.'],
     [() => DRAFT.some((g) => !story.found.has(g)), '* the rulebook has another pick.', '* use the rulebook on the table and pick the next game.'],
   ],
 };
@@ -248,7 +248,7 @@ function catchUp() {
   persist();
 }
 if (STORY) catchUp();
-const returning = STORY && story.played.size > 0;
+const returning = STORY && (story.played.size > 0 || story.flags.has('skipped')); // a skipped run has been here: everything is out, so no first-visit boot
 function persist() {
   if (!STORY) return;
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(Object.fromEntries(Object.entries(story).map(([k, v]) => [k, [...v]])))); } catch { /* ignore */ }
@@ -281,13 +281,16 @@ renderer.shadowMap.type = THREE.PCFShadowMap;
 renderer.shadowMap.autoUpdate = false;
 let shadowFrames = 2;
 const reshadow = () => { shadowFrames = 2; };
+canvas.addEventListener('webglcontextrestored', () => reshadow()); // a restored context starts with empty shadow maps
 let powered = false; // true from the first frame the room draws (see powerOn)
 const rt = new THREE.WebGLRenderTarget(W, H, { minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, samples: 0 });
 rt.texture.colorSpace = THREE.SRGBColorSpace;
 
 const ui = document.createElement('canvas'); ui.width = W; ui.height = H;
 const g2 = ui.getContext('2d');
-const uiTex = new THREE.CanvasTexture(ui); uiTex.minFilter = uiTex.magFilter = THREE.NearestFilter; uiTex.colorSpace = THREE.SRGBColorSpace;
+// the CRT pass writes what it samples straight to the screen (no re-encode), so the windows' canvas bytes go in as they are:
+// decoded as sRGB they came out linear, blood orange as the AI's red and peacock blue as black (P4)
+const uiTex = new THREE.CanvasTexture(ui); uiTex.minFilter = uiTex.magFilter = THREE.NearestFilter; uiTex.colorSpace = THREE.NoColorSpace;
 
 // Trinitron glass is curved left-to-right only, so the bend is mostly horizontal.
 const CURVE = 'vec2 curve(vec2 uv){ uv = uv * 2.0 - 1.0; uv.x *= 1.0 + 0.045 * uv.y * uv.y; uv.y *= 1.0 + 0.012 * uv.x * uv.x; return uv * 0.5 + 0.5; }';
@@ -367,7 +370,7 @@ function layout() {
   const ct = document.querySelector('#letter .contacts');
   if (ct) { if (hh) document.querySelector('#letter .body').before(ct); else document.querySelector('#letter .skills').after(ct); }
   // on a desktop the small print leaves the bezel and follows the nav, so Tab reaches it (pills on focus, bottom right)
-  if (hh) { bezelL.prepend(navEl); bezelR.append(fineEl); } else { document.body.insertBefore(navEl, document.querySelector('.sticker')); navEl.after(fineEl); }
+  if (hh) { bezelL.prepend(navEl); bezelR.append(fineEl); } else { document.querySelector('body > footer').before(navEl); navEl.after(fineEl); }
   // the sticker on the chin is the desktop's quick view: no second one in the row
   const q = fineEl.querySelector('a[href^="quick/"]'); if (q) q.hidden = !hh && !!document.querySelector('.sticker');
 }
@@ -471,7 +474,7 @@ if (new URLSearchParams(location.search).has('torch')) torch.intensity = TORCH;
 // a poster on the wall, so the room is somebody's: the NES stripes
 const poster = new THREE.Mesh(new THREE.PlaneGeometry(0.42, 0.56), new THREE.MeshStandardMaterial({ color: 0xfce8cd, roughness: 1 }));
 poster.position.set(0.6, 1.5, -0.97); scene.add(poster);
-for (let i = 0; i < 4; i++) { const s = new THREE.Mesh(new THREE.PlaneGeometry(0.42, 0.018), new THREE.MeshBasicMaterial({ color: 0xec563b })); s.position.set(0.6, 1.3 + i * 0.03, -0.968); scene.add(s); }
+for (let i = 0; i < 4; i++) { const s = new THREE.Mesh(new THREE.PlaneGeometry(0.42, 0.018), new THREE.MeshBasicMaterial({ color: new THREE.Color().setRGB(0xec / 255, 0x56 / 255, 0x3b / 255, THREE.LinearSRGBColorSpace) })); s.position.set(0.6, 1.3 + i * 0.03, -0.968); scene.add(s); }
 
 // ---------- Omar's logo, drawn once for the monitor and the wax seal ----------
 const LOGO_OUTER = 'M260.32,454.02l-159.33-159.33c-8.33-8.33-8.33-21.82,0-30.15l168.17-168.17c4-4,9.42-6.24,15.08-6.24h159.92c5.17,0,6.81-6.96,2.19-9.27L289.14,2.25c-8.21-4.1-18.12-2.5-24.61,3.99L6.24,264.53c-8.33,8.33-8.33,21.82,0,30.15l254.08,254.08c8.33,8.33,21.82,8.33,30.15,0l260.8-260.79c3.08-3.08.9-8.36-3.46-8.36h-72.56c-6.63,0-13,2.64-17.69,7.33l-167.08,167.08c-8.33,8.33-21.82,8.33-30.15,0Z';
@@ -482,14 +485,14 @@ function drawLogo(ctx, x, y, size, outer = '#102f41', inner = '#ec563b') {
   ctx.fillStyle = inner; ctx.fill(new Path2D(LOGO_INNER));
   ctx.restore();
 }
-function canvasTex(w, h, draw) {
+function canvasTex(w, h, draw, space = THREE.SRGBColorSpace) {
   const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h);
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+  const t = new THREE.CanvasTexture(c); t.colorSpace = space; return t;
 }
 // The PC's screen: one square canvas the size of the whole glass, corners rounded to the tube.
 // It shows the desktop (Omar's logo on peacock blue), a running disc's cover, or nothing.
 const desktopTex = { desktop: true };
-const screenTex = canvasTex(512, 512, () => {});
+const screenTex = canvasTex(512, 512, () => {}, THREE.NoColorSpace); // unlit, like the windows: its bytes reach the glass as drawn, so the logo stays blood orange
 function paintScreen(src) {
   const x = screenTex.image.getContext('2d'), w = 512, h = 512;
   x.clearRect(0, 0, w, h);
@@ -678,17 +681,55 @@ function loadRest() {
 }
 
 // ---------- system parts: screens, the PC's monitor and CD tray, the cassette door ----------
-// Screens are dark until a game goes in.
-function setScreen(id, on) {
+// Screens are dark until a game goes in. Then they show that game's own frame (P3), from the art its case study already has,
+// at native resolution with nearest-neighbour sampling (P1). A GB game on the Advance sits in the middle, unscaled, as the hardware shows it.
+const SCREEN_ART = {
+  'gb-cart': { src: 'study/galactic-news/title.still.png', w: 160, h: 144 },
+  'gba-cart': { src: 'study/minamoto/battle.still.png', w: 240, h: 160 },
+  'ds-cart': { src: 'study/legends-arise/battle.png', w: 256, h: 192, split: true }, // the top screen over the touch screen
+};
+const SCREEN_SIZE = { 'gb-console': [160, 144], 'gba-console': [240, 160], 'ds-console': [256, 192] };
+const screenArt = {}; // 'game sys half' -> texture
+function gameScreen(game, sys, half) {
+  const a = SCREEN_ART[game], size = SCREEN_SIZE[sys]; if (!a || !size) return null;
+  const key = `${game} ${sys} ${half}`;
+  if (screenArt[key]) return screenArt[key];
+  const [w, h] = size;
+  // emissive and unlit by the room's colour: the frame's bytes reach the glass as drawn, like the windows (NoColorSpace)
+  const t = screenArt[key] = canvasTex(w, h, (x) => { x.fillStyle = '#000'; x.fillRect(0, 0, w, h); }, THREE.NoColorSpace);
+  t.magFilter = THREE.NearestFilter; t.minFilter = THREE.LinearFilter; t.generateMipmaps = false; t.flipY = sys !== 'ds-console'; // the GB's and GBA's own UVs run bottom-up; the DS's flat ones top-down
+  const img = new Image();
+  img.onload = () => {
+    const x = t.image.getContext('2d'); x.imageSmoothingEnabled = false;
+    x.drawImage(img, 0, a.split && half === 'down' ? a.h : 0, a.w, a.h, Math.floor((w - a.w) / 2), Math.floor((h - a.h) / 2), a.w, a.h);
+    t.needsUpdate = true;
+  };
+  img.src = a.src;
+  return t;
+}
+// The DS's screens carry no usable UVs (a corner of a shared atlas): they get a flat one, across the glass.
+// Both lie in the same plane in the file; the lid turns the top one over, so its rows run the other way.
+function planarUV(m, flip) {
+  if (m.userData.planar) return;
+  m.geometry = m.geometry.clone(); m.geometry.computeBoundingBox();
+  const P = m.geometry.attributes.position, { min, max } = m.geometry.boundingBox, uv = new Float32Array(P.count * 2);
+  for (let i = 0; i < P.count; i++) { uv[i * 2] = (P.getX(i) - min.x) / (max.x - min.x || 1); const v = (P.getZ(i) - min.z) / (max.z - min.z || 1); uv[i * 2 + 1] = flip ? 1 - v : v; }
+  m.geometry.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); m.userData.planar = true;
+}
+function setScreen(id, on, game) {
   const o = objects[id]; if (!o) return;
   o.root.traverse((m) => {
     if (!m.isMesh) return;
     for (const mat of [].concat(m.material)) {
       if (!/screen|blinn2/i.test(mat.name)) continue;
       if (!mat.userData.screenMap) mat.userData.screenMap = mat.map;
-      mat.map = on ? mat.userData.screenMap : null;
-      mat.color.set(on ? 0xffffff : 0x1a2018);
-      mat.emissive = new THREE.Color(on ? 0xffffff : 0x000000); mat.emissiveMap = on ? mat.userData.screenMap : null; mat.emissiveIntensity = on ? 0.7 : 0;
+      const half = /down/i.test(mat.name) ? 'down' : 'up';
+      const art = on && game && !/edge/i.test(mat.name) ? gameScreen(game, id, half) : null;
+      if (art && id === 'ds-console') planarUV(m, half === 'up');
+      // the game's frame is the light itself: no room colour under it, so its palette stays its own (P4)
+      mat.map = art ? null : on ? mat.userData.screenMap : null;
+      mat.color.set(art ? 0x000000 : on ? 0xffffff : 0x1a2018);
+      mat.emissive = new THREE.Color(on ? 0xffffff : 0x000000); mat.emissiveMap = art || (on ? mat.userData.screenMap : null); mat.emissiveIntensity = art ? 1 : on ? 0.7 : 0;
       mat.needsUpdate = true;
     }
   });
@@ -814,6 +855,7 @@ function queue(lines, hold = 3.2, opts) {
   if (!nar.visible) next();
 }
 function next() {
+  if (nar.slip && nar.cur === nar.slip) { nar.slip = null; nar.name = 'OMAR'; }
   if (nar.visible) lastSpeak = performance.now();
   nar.cur?.after?.(); // a line can hand over to what follows it (the end card)
   let n = nar.queue.shift(); while (n && !live(n)) n = nar.queue.shift();
@@ -828,7 +870,7 @@ function next() {
   nar.hold = n.brisk ? Math.max(2, 0.8 + n.t.split(' ').length * 0.2) : Math.max(n.hold || 3.2, 1.2 + n.t.split(' ').length * 0.3); // the boot reads quicker: the envelope is named within ~8s
   // a line put back after a cut comes back whole, so it reads as the same line, not a stutter
   if (quiet || n.restored) { nar.shown = nar.text.length; nar.until = performance.now() + nar.hold * 1000; }
-  document.getElementById('say').textContent = n.t.replace(/^\* /, ''); sayAt = performance.now();
+  sayAria(n.t.replace(/^\* /, ''));
   n.on?.(); // and do something as it starts (the envelope lights on its line); a line put back does it again
 }
 // A click on the box (or Space, Enter, A) finishes the line; the next press moves on.
@@ -843,9 +885,9 @@ function boxAt(u, v) {
   return px >= b.x && px <= b.x + b.w && py >= b.y - 12 && py <= b.y + b.h;
 }
 function glitchName() {
-  // the only visible crack in act 1: the name tag slips for a frame or two
-  nar.name = '0MAR'; burst(0.6);
-  setTimeout(() => { nar.name = 'OMAR'; }, quiet ? 400 : 160);
+  // the only visible crack in act 1: the name tag slips. The burst marks the change (short, gone under quiet);
+  // the slipped name is a state, not a glitch: it stays for the whole line, and next() puts OMAR back when the line goes
+  nar.name = '0MAR'; nar.slip = nar.cur; burst(0.6);
 }
 function tickNarrator(dt) {
   if (!nar.visible) return;
@@ -903,6 +945,14 @@ const PLACE = { desk: 'Desk', table: 'Table', drawer: 'Drawer' };
 const statusEl = document.getElementById('status');
 // a status that lands with a fresh narrator line waits 700ms behind it, so one doesn't drown the other (the latest status wins)
 let sayAt = -1e9, statusTimer = 0, statusAt = -1e9;
+// and a narrator line that lands while a window is still being read waits behind it (the line on screen doesn't)
+let panelSaid = { at: -1e9, ms: 0 }, sayTimer = 0;
+function sayAria(t) {
+  clearTimeout(sayTimer);
+  const put = () => { document.getElementById('say').textContent = t; sayAt = performance.now(); };
+  const wait = Math.min(12000, panelSaid.at + panelSaid.ms - performance.now());
+  if (wait > 0) sayTimer = setTimeout(put, wait); else put();
+}
 function speak(t) {
   if (!statusEl) return;
   clearTimeout(statusTimer);
@@ -1075,7 +1125,7 @@ const CASE_DOWN = { pos: new THREE.Vector3(0.37, 0.753, -0.52), quat: new THREE.
 function frameDrive() { moveTo([0.0, 1.0, -0.12], [0.17, 0.82, -0.56]); }
 
 function started(game, sys) {
-  if (sys !== 'pc') setScreen(sys, true);
+  if (sys !== 'pc') setScreen(sys, true, game);
   if (SLOTS[sys]) cameraTo(sys, 1.6);
   if (state.resumed) { state.resumed = false; state.playedAt = performance.now(); return openProject(game, true); }
   const line = storyPlayed(game, sys) || STORY_LINES.played[game] || `* ${PROJECTS[game].title.toLowerCase()}.`;
@@ -1099,7 +1149,11 @@ function storyPlayed(game, sys) {
   return line;
 }
 // The counter is the run's only progress meter: a screen reader hears it too, a beat after the window is announced.
-function memorySpoken() { const n = story.played.size; setTimeout(() => speak(`Memory ${n} of ${GAMES.length} came back`), 1200); }
+// It rides at the head of the game's window announcement (announcePanel), so one never cuts the other off; without a window it is said alone.
+function memorySpoken() {
+  state.memNews = `Memory ${story.played.size} of ${GAMES.length} came back`;
+  setTimeout(() => { const t = state.memNews; state.memNews = null; if (t) speak(t); }, 1200);
+}
 // What happens once a game is taken out again: the next thing turns up.
 function storyEjected(game) {
   if (!STORY) return;
@@ -1174,7 +1228,7 @@ function finale() {
 function endPanel(title = 'All eight') {
   const open = GAMES.filter((g) => PUBLISHED.has(SLUG[g])), rest = GAMES.filter((g) => !PUBLISHED.has(SLUG[g]));
   return {
-    kind: 'memories', tag: 'MEMORIES', title, kana: 'メモリー', body: [`Every game in the room. ${['None', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight'][open.length]} ${open.length === 1 ? 'has' : 'have'} a case study.`],
+    kind: 'memories', tag: 'MEMORIES', title, kana: '', body: [`Every game in the room. ${['None', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight'][open.length]} ${open.length === 1 ? 'has' : 'have'} a case study.`],
     items: [...open.map((g) => ({ label: PROJECTS[g].title.toUpperCase(), note: 'case study', act: () => openStudy(g) })),
       ...rest.map((g) => ({ label: PROJECTS[g].title.toUpperCase(), note: PROJECTS[g].medium.toLowerCase(), act: () => { closePanel(); activate(g); } })),
       { label: 'THE LETTER', note: 'contact', act: () => { closePanel(); openLetter(); } },
@@ -1408,11 +1462,14 @@ function showLetter() {
   if (STORY && !story.flags.has('letter-read')) { story.flags.add('letter-read'); persist(); }
   panel = { kind: 'letter', dom: true, sel: 0, items: [{ label: 'FOLD IT AWAY', act: () => foldLetter() }] };
   letterEl.hidden = false; letterEl.scrollTop = 0;
+  // the letter is modal: the places and the small print wait under it (A and B fold it)
+  navEl.inert = fineEl.inert = true;
   letterEl.querySelector('#letter-h').focus({ preventScroll: true });
 }
 function foldLetter() {
   if (letterEl.hidden) return;
   letterEl.hidden = true; panel = null;
+  navEl.inert = fineEl.inert = upright.matches;
   canvas.focus({ preventScroll: true });
   closeLetter();
 }
@@ -1421,13 +1478,23 @@ function foldLetter() {
 // One JRPG window for everything you can do with a thing: project facts on top, a cursor menu below.
 let panel = null;
 function openPanel(p) { panel = p; panel.sel = 0; announcePanel(); }
-function closePanel() { if (panel && !panel.dom) speak(PLACE[spot]); panel = null; }
+function closePanel() {
+  const opener = panel?.opener;
+  if (panel && !panel.dom) speak(PLACE[spot]);
+  panel = null;
+  // closed for good (a row that opens something else leaves a window up): focus goes back to the small print that opened it
+  if (opener) queueMicrotask(() => { if (!panel && !handheld && document.activeElement === canvas) opener.focus({ preventScroll: true }); });
+}
 const rowSpeech = (it) => it.speech || (it.note ? `${it.label}, ${it.note}` : it.label);
 function announcePanel() {
   if (!panel || panel.dom) return;
   // one sentence per part, no doubled periods: 'Crossfader. A game jam game… My part: … Options: PLAY IT; CASE STUDY; BACK'
-  const parts = [panel.title, panel.body?.join(' '), panel.part && 'My part: ' + panel.part, 'Options: ' + panel.items.map(rowSpeech).join('; ')].filter(Boolean).map((t) => t.trim().replace(/\.$/, ''));
-  speak(parts.reduce((a, t) => a + (/[?!:]$/.test(a) ? ' ' : '. ') + t));
+  const news = state.memNews; state.memNews = null;
+  const parts = [news, panel.title, panel.body?.join(' '), panel.part && 'My part: ' + panel.part, 'Options: ' + (panel.options || panel.items.map(rowSpeech)).join('; ')].filter(Boolean).map((t) => t.trim().replace(/\.$/, ''));
+  const text = parts.reduce((a, t) => a + (/[?!:]$/.test(a) ? ' ' : '. ') + t);
+  speak(text);
+  // a window takes about 0.35s a word to read out: the narrator's next line waits for it (see sayAria)
+  panelSaid = { at: performance.now() + Math.max(0, sayAt + 700 - performance.now()), ms: text.split(/\s+/).length * 350 };
 }
 // PLAY IT goes straight in when the system is out and takes it; otherwise the system says why not.
 function playIt(id) {
@@ -1516,8 +1583,11 @@ function drawPanel(t) {
   // what Omar did on it: a pixel label, then Omar's own words in Grotesk (P5: no pixel paragraph)
   g2.font = '900 14px "FK Grotesk", sans-serif'; const partLines = compact || !panel.part ? [] : wrap(panel.part, w - 40);
   const lineH = wide ? 18 : 17;
-  const itemH = handheld ? 30 : big ? 36 : short ? (wide ? 23 : 28) : wide ? 19 : 22;
-  const h = 84 + (letter && !short ? 30 : 0) + bodyLines.length * lineH + (panel.extra ? 22 : 0) + (partLines.length ? 24 + partLines.length * 17 : 0) + panel.items.length * itemH + 14;
+  // a small phone's memories and end card: the rows go two to a line, label over note, so each is a thumb tall (24 CSS px or more)
+  const cols = handheld && panel.kind === 'memories' && canvas.clientHeight < 345 ? 2 : 1;
+  panel.cols = cols;
+  const itemH = cols > 1 ? 44 : handheld ? 30 : big ? 36 : short ? (wide ? 23 : 28) : wide ? 19 : 22;
+  const h = 84 + (letter && !short ? 30 : 0) + bodyLines.length * lineH + (panel.extra ? 22 : 0) + (partLines.length ? 24 + partLines.length * 17 : 0) + Math.ceil(panel.items.length / cols) * itemH + 14;
   // a window taller than the tube shrinks to fit it (the letter on a phone's 4:3 tube)
   // and a game's window keeps clear of the dialogue box under it (with MY PART it runs long)
   const k = Math.min(1, (H - 10 - (handheld && !wide && !compact ? 96 : !handheld && !wide && !short ? 94 : 0) - y) / h), cx0 = x + w / 2;
@@ -1558,16 +1628,21 @@ function drawPanel(t) {
   // the cursor menu
   g2.fillStyle = 'rgba(252,232,205,0.25)'; g2.fillRect(x + 16, cy - 6, w - 32, 1);
   cy += 8;
+  const cw = (w - 28) / cols;
   panel.items.forEach((it, i) => {
-    const on = i === panel.sel;
+    const on = i === panel.sel, ix = x + 14 + (i % cols) * cw, iy = cy + Math.floor(i / cols) * itemH;
     // the picked row: peacock on gold, the strongest contrast the palette has
-    if (on) { g2.fillStyle = '#fadb68'; g2.fillRect(x + 14, cy - itemH / 2 + 1, w - 28, itemH - 2); }
-    g2.font = `${big ? 15 : 12}px "8bitDarling"`; g2.fillStyle = on ? '#102f41' : 'rgba(252,232,205,0.85)';
-    g2.fillText((on ? '▶ ' : '  ') + it.label, x + 22, cy + 1);
-    if (it.note) { g2.font = '900 12px "FK Grotesk", sans-serif'; g2.fillStyle = on ? '#102f41' : '#4eb99f'; g2.textAlign = 'right'; g2.fillText(it.note, x + w - 24, cy + 1); g2.textAlign = 'left'; }
-    panelHits.push({ i, x: cx0 + (x + 14 - cx0) * k, y: y + (cy - itemH / 2 - y) * k, w: (w - 28) * k, h: itemH * k });
-    cy += itemH;
+    if (on) { g2.fillStyle = '#fadb68'; g2.fillRect(ix, iy - itemH / 2 + 1, cw - (cols > 1 ? 4 : 0), itemH - 2); }
+    g2.font = `${big || cols > 1 ? 15 : 12}px "8bitDarling"`; g2.fillStyle = on ? '#102f41' : 'rgba(252,232,205,0.85)';
+    g2.fillText((on ? '▶ ' : '  ') + it.label, ix + 8, cols > 1 ? iy - 3 : iy + 1);
+    if (it.note) {
+      g2.font = '900 12px "FK Grotesk", sans-serif'; g2.fillStyle = on ? '#102f41' : '#4eb99f';
+      if (cols > 1) g2.fillText(it.note, ix + 8 + g2.measureText('▶ ').width + 6, iy + 14);
+      else { g2.textAlign = 'right'; g2.fillText(it.note, x + w - 24, iy + 1); g2.textAlign = 'left'; }
+    }
+    panelHits.push({ i, x: cx0 + (ix - cx0) * k, y: y + (iy - itemH / 2 - y) * k, w: cw * k, h: itemH * k });
   });
+  cy += Math.ceil(panel.items.length / cols) * itemH;
   g2.restore();
 }
 function panelAt(u, v) {
@@ -1729,6 +1804,8 @@ function pressA() {
   endBoot(false, !panel);
   if (skipCeremony()) return;
   if (panel) return pickRow(panel.items[panel.sel]);
+  // something aimed at is used at once, as Enter does: the prompt says (A), so A never only clears a line about it
+  if (state.hover && !state.busy && !state.playing && state.mode !== 'boot') { const id = state.hover; state.hover = null; return activate(id); }
   if (hurry()) return;
   if (state.mode === 'boot' || state.busy || state.playing) return;
   if (!state.hover) return step(1, 'x'); // nothing aimed yet: A aims at the first thing
@@ -1744,7 +1821,11 @@ function pressB() {
 }
 // The bezel's buttons (handheld layout)
 // On a desktop the small print is reached by keyboard: a window it opens takes the keys (focus goes to the tube).
-function bez(sel, fn) { document.querySelectorAll(sel).forEach((b) => b.addEventListener('click', (e) => { e.preventDefault(); state.idle = 0; if (handheld || e.pointerType === 'touch') touchUI = true; endBoot(); fn(b); if (!handheld && panel && !panel.dom) canvas.focus({ preventScroll: true }); })); }
+function bez(sel, fn) { document.querySelectorAll(sel).forEach((b) => b.addEventListener('click', (e) => { e.preventDefault(); state.idle = 0;
+  if (letterEl && !letterEl.hidden && !b.closest('.ab')) return; // only A and B reach an open letter (they fold it)
+  if (handheld || e.pointerType === 'touch') touchUI = true; endBoot(); fn(b);
+  // a window it opened takes the keys, and gives them back to this button when it closes (see closePanel)
+  if (!handheld && panel && !panel.dom) { if (b.closest('.fine')) panel.opener = b; canvas.focus({ preventScroll: true }); } })); }
 bez('.ab .a', pressA); bez('.ab .b', pressB);
 bez('.dpad [data-d]', (b) => { const d = b.dataset.d; step(d === 'left' || d === 'up' ? -1 : 1, d === 'left' || d === 'right' ? 'x' : 'y'); });
 bez('[data-link="credits"]', () => openPanel(creditsPanel()));
@@ -1778,7 +1859,7 @@ function syncDomNav() {
 }
 // D-pad: along x through the objects in view, left to right as they sit on screen; along y through menu rows.
 function step(dir, axis) {
-  if (panel) { panel.sel = (panel.sel + dir + panel.items.length) % panel.items.length; return; }
+  if (panel) { const d = axis === 'y' && panel.cols > 1 ? dir * panel.cols : dir; panel.sel = (panel.sel + d + panel.items.length) % panel.items.length; return; } // two columns: up and down move a line
   if (axis === 'y' || state.mode === 'boot' || state.busy || state.playing) return;
   const list = inView().map((id) => [id, screenOf(id, true)]).filter(([, at]) => at && at[0] > 0 && at[0] < W).sort((p, q) => p[1][0] - q[1][0]).map(([id]) => id);
   if (!list.length) return;
@@ -1916,7 +1997,13 @@ function drawUI(t) {
     g2.font = `12px "${FONT_PIX}"`;
     const nw = g2.measureText(nar.name).width + 16;
     g2.fillStyle = '#ec563b'; g2.fillRect(bx + 14, by - 12, nw, 22);
-    g2.fillStyle = '#fce8cd'; g2.fillText(nar.name, bx + 22, by - 1);
+    // a slipped letter is drawn as an inverse cell, so the zero reads at tag size (the face's slash alone is a pixel)
+    let nx = bx + 22;
+    for (const ch of nar.name) {
+      const cw = g2.measureText(ch).width;
+      if (ch === '0') { g2.fillStyle = '#fce8cd'; g2.fillRect(nx - 1, by - 10, cw + 2, 18); }
+      g2.fillStyle = ch === '0' ? '#102f41' : '#fce8cd'; g2.fillText(ch, nx, by - 1); nx += cw;
+    }
     g2.font = `900 17px "${FONT_G}", sans-serif`; g2.fillStyle = '#fce8cd';
     lines.forEach((l, i) => g2.fillText(l, bx + 22, by + 28 + i * 22));
     if (nar.shown >= nar.text.length && (quiet || Math.sin(t * 6) > 0)) { g2.fillStyle = '#fadb68'; g2.beginPath(); g2.moveTo(bx + bw - 26, by + bh - 22); g2.lineTo(bx + bw - 16, by + bh - 22); g2.lineTo(bx + bw - 21, by + bh - 15); g2.fill(); }
@@ -1955,7 +2042,7 @@ function drawMemories(t) {
   const top = 137, hgt = (417 - top) * shown / GAMES.length;
   g2.clip(inner); g2.fillStyle = '#ec563b'; g2.fillRect(0, top, 555, hgt);
   g2.restore();
-  g2.font = `11px "${FONT_PIX}"`; g2.fillStyle = blink ? '#fadb68' : 'rgba(252,232,205,0.8)';
+  g2.font = `11px "${FONT_PIX}"`; g2.fillStyle = blink ? '#fadb68' : 'rgba(252,232,205,0.95)';
   const label = `MEMORIES ${n}/${GAMES.length}`;
   g2.fillText(label, x + size + 8, y + size / 2);
   if (!panel) navHits.push({ id: 'memories', x: x - 4, y: y - 4, w: size + 16 + g2.measureText(label).width, h: size + 8, act: () => openPanel(memoriesOrEnd()) });
@@ -1969,8 +2056,10 @@ function memoriesPanel() {
     body: ['Every game you play gives one memory back.'],
     items: [...GAMES.map((g) => story.played.has(g)
       ? { label: PROJECTS[g].title.toUpperCase(), note: PROJECTS[g].medium.toLowerCase(), act: () => { closePanel(); activate(g); } }
-      : { label: '? ? ?', note: '', speech: 'not found yet', act: () => say(nextHint(true) || '* not yet.', 2.4) }),
+      : { label: '? ? ?', note: '', speech: `Memory ${GAMES.indexOf(g) + 1}, not found yet. Enter for a hint`, act: () => say(nextHint(true) || '* not yet.', 2.4) }),
     { label: 'BACK', act: closePanel }],
+    // read out as a sum: the games found by name, then how many are still out there
+    options: [...GAMES.filter((g) => story.played.has(g)).map((g) => PROJECTS[g].title.toUpperCase()), ...(story.played.size < GAMES.length ? [`${GAMES.length - story.played.size} not found yet, Enter on one for a hint`] : []), 'BACK'],
   };
 }
 // The hint for wherever the visitor is stuck: a nudge first, the plain instruction the second time.
@@ -1978,8 +2067,9 @@ function nextHint(plain) {
   if (story.flags.has('skipped')) return null; // the fast lane gets no story hints
   const h = STORY_LINES.hints.find(([cond]) => cond());
   if (!h) return null;
-  // a finger taps; on the handheld the table's pill is on the left bezel
-  return touchUI ? h[plain ? 2 : 1].replace(/^\* click/, '* tap').replace('the table, top right', handheld ? 'the table, on the left' : 'the table') : h[plain ? 2 : 1];
+  // where the table is depends on the hands: the left bezel on the handheld, key 2 on a keyboard, the top right bars with a mouse
+  const where = touchUI ? (handheld ? 'the table, on the left' : 'the table') : state.keyHover ? 'the table (press 2)' : 'the table, top right';
+  return h[plain ? 2 : 1].replace('the table, top right', where).replace('go to the drawer and play', spot === 'drawer' ? 'play' : 'go to the drawer and play');
 }
 
 // ---------- loop ----------
@@ -2094,7 +2184,7 @@ function powerOn() {
       // and a boot line pushed back past 25s by a quick visitor is out of its moment (the envelope glows with the boot's end anyway)
       const bootAt = performance.now();
       envelopeLine(boot[2]).stale = () => story.flags.has('letter-read') || performance.now() - bootAt > 25000;
-      boot[3].stale = () => story.played.size > 0 || !!state.system || !!state.playing;
+      boot[3].stale = () => story.played.size > 0 || story.flags.has('skipped') || !!state.system || !!state.playing;
       boot[3].near = 'gb-console'; // the box keeps off the Game Boy while it points at it
       // the greeting is for arriving: once the visitor has done something (opened the letter), a cut never brings it back
       boot[0].stale = boot[1].stale = () => !!state.acted;
@@ -2102,7 +2192,7 @@ function powerOn() {
     if (!returning && !owed) for (const b of boot) b.brisk = true;
     if (STORY && returning && story.flags.has('ended')) memFlash = clock.elapsedTime; // the counter is where the end card lives
     // on touch, how to play comes right after "start with the grey one", short
-    if (touchUI) boot.push({ t: handheld ? '* tap to point, tap again to use. or the pad and a.' : '* tap to point, tap again to use. a and b work too.', hold: 2.6 });
+    if (touchUI && !returning && !owed) boot.push({ t: handheld ? '* tap to point, tap again to use. or the pad and a.' : '* tap to point, tap again to use. a and b work too.', hold: 2.6 });
     // the stuck-hint clock starts once the boot has had its say
     const last = boot.at(-1), was = last.after;
     last.after = () => { was?.(); lastAct = performance.now(); };
