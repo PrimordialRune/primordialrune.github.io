@@ -65,6 +65,8 @@ body:not(.handheld) .badge, body:not(.handheld) .plate { bottom: max(11px, calc(
 .plate { left: max(16px, env(safe-area-inset-left)); transform: none; font-size: 11px; letter-spacing: .2em; color: rgba(252,232,205,.8); white-space: nowrap; }
 /* a narrow window: the plate keeps the chin, the badge steps aside */
 @media (max-width: 1100px) { body:not(.handheld) .badge { display: none; } }
+/* very narrow (a desktop zoomed to 400%): the sticker needs the chin, and the name is on the quick view it opens */
+@media (max-width: 480px) { body:not(.handheld) .plate { display: none; } }
 .sticker { position: fixed; z-index: 1; right: max(16px, env(safe-area-inset-right)); bottom: max(3px, calc(env(safe-area-inset-bottom) - 26px)); display: flex; flex-direction: column; align-items: center; gap: 2px;
   padding: 3px 9px; border-radius: 4px; background: #232328; color: var(--gold); font: 400 11px/1 var(--pixel); letter-spacing: .06em; text-decoration: none; white-space: nowrap; }
 .sticker small { font: 900 9px/1 var(--grotesk); letter-spacing: .1em; color: rgba(252,232,205,.8); }
@@ -152,7 +154,7 @@ canvas:focus-visible { outline: 2px solid var(--gold); outline-offset: -4px; }
 .letter .kana { font: 900 11px/1.4 var(--grotesk); color: var(--aqua); }
 .letter .me { flex: none; width: 112px; height: 112px; image-rendering: pixelated; border: 4px solid var(--cream); }
 .letter .body p { margin: 12px 0 0; max-width: 60ch; }
-.letter .skills { margin: 14px 0 6px; font: 400 9px/1.6 var(--pixel); letter-spacing: .06em; color: var(--gold); text-transform: uppercase; white-space: normal; }
+.letter .skills { margin: 14px 0 6px; font: 900 13px/1.5 var(--grotesk); letter-spacing: .04em; color: var(--gold); text-transform: uppercase; white-space: normal; }
 .letter ul { list-style: none; margin: 0; padding: 0; }
 .letter li a { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 44px; padding: 6px 8px; border-top: 1px solid rgba(252,232,205,.2); color: var(--cream); text-decoration: none; font: 900 15px/1.3 var(--grotesk); overflow-wrap: anywhere; user-select: text; }
 .letter li a span { font: 400 11px/1 var(--pixel); letter-spacing: .08em; }
@@ -178,7 +180,7 @@ body.handheld .letter .body p { margin-top: 8px; }
 @media (orientation: portrait) and (max-width: 599px) and (pointer: coarse) {
   .tilt { display: grid; position: fixed; inset: 0; z-index: 5; place-content: center; justify-items: center; gap: 14px; padding: 16px; background: var(--bg); text-align: center; }
   .tilt svg { width: 72px; height: 72px; animation: tilt 2.4s ease-in-out infinite; }
-  .tilt h2 { margin: 0; font: 900 28px/1.1 var(--grotesk); letter-spacing: .02em; }
+  .tilt h2 { margin: 0; font: 900 28px/1.1 var(--grotesk); letter-spacing: .02em; outline: none; } /* focused only so a screen reader starts here */
   .tilt p { margin: 0; font: 400 12px/1.6 var(--pixel); letter-spacing: .08em; }
   .tilt .role { margin-top: -8px; font: 900 15px/1.3 var(--grotesk); letter-spacing: 0; }
   .tilt small { font: 900 12px/1 var(--grotesk); color: var(--aqua); letter-spacing: .1em; }
@@ -221,7 +223,7 @@ body.handheld .letter .body p { margin-top: 8px; }
     </div>
     <div class="bezel right">
       <div class="ab"><button class="a" aria-label="A, use">A</button><button class="b" aria-label="B, back">B</button><small class="la">USE</small><small class="lb">BACK</small></div>
-      <div class="fine"><button data-link="skip">SKIP STORY</button><button data-link="memories">MEMORIES</button><button data-link="credits">CREDITS</button><button data-link="crt">CRT: FULL</button><a href="quick/">QUICK VIEW →</a></div>
+      <div class="fine"><button data-link="skip">SKIP STORY</button><button data-link="memories">MEMORIES</button><button data-link="credits">CREDITS</button><button data-link="crt" aria-pressed="false">CRT: FULL</button><a href="quick/">QUICK VIEW →</a></div>
     </div>
     <div class="plate">OMAR GOLINELLI · GAME DESIGNER &amp; DEVELOPER</div>
     <div class="badge">TRINITRON</div>

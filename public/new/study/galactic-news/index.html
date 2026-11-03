@@ -12,7 +12,7 @@
 <meta property="og:image" content="https://www.primordialrune.com/new/study/galactic-news/title.gif">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="../study.css">
-<style>:root { --ink: #291f23; --accent: #bd502f; --accent2: #34d1af; --paper: #f7ecb9; }</style>
+<style>:root { --ink: #291f23; --accent: #bd502f; --accent2: #34d1af; --accent2-text: #34d1af; --paper: #f7ecb9; }</style>
 </head>
 <body>
 <!-- Generated from content/studies/galactic-news.md by scripts/build-studies.mjs. Edit the Markdown, not this file. -->
@@ -25,7 +25,7 @@
     <h1>The Galactic News</h1>
     <div class="kana" lang="ja">ギャラクティック・ニュース</div>
     <dl class="facts"><div><dt>Made for</dt><dd>GBJAM 11, September 2023</dd></div><div><dt>Hardware</dt><dd>Game Boy rules, 160 × 144, four colours</dd></div><div><dt>Engine</dt><dd>Godot 4.1</dd></div><div><dt>My part</dt><dd>Game design, pixel art and UI art</dd></div><div><dt>Inspired by</dt><dd>Paperboy</dd></div><div><dt>Team</dt><dd>IndigoMountain, Mika, GoldfishParty, Craig Henderson and me</dd></div></dl>
-    <a class="play" href="https://indigomountain.itch.io/galactic-news" target="_blank" rel="noopener">PLAY IT →</a>
+    <a class="play" href="https://indigomountain.itch.io/galactic-news" target="_blank" rel="noopener">PLAY IT →<span class="sr"> (opens in a new tab)</span></a>
     <footer class="folio">INSTRUCTION BOOKLET <span lang="ja">とりあつかいせつめいしょ</span></footer>
   </section>
 
@@ -38,7 +38,7 @@
     <figure class="fig screen"><img src="cutscene3.png" alt="The Pirate News Network" data-pixel><figcaption>The Pirate News Network</figcaption></figure>
     <figure class="fig screen"><img src="cutscene4.png" alt="The only medium they still count on" data-pixel><figcaption>The only medium they still count on</figcaption></figure>
     <p>You fly the mail ship for The Galactic News, and every level is a delivery route.</p>
-    <aside class="narrator" aria-label="The narrator"><svg viewBox="0 0 555 555" aria-hidden="true"><path d="M260.32,454.02l-159.33-159.33c-8.33-8.33-8.33-21.82,0-30.15l168.17-168.17c4-4,9.42-6.24,15.08-6.24h159.92c5.17,0,6.81-6.96,2.19-9.27L289.14,2.25c-8.21-4.1-18.12-2.5-24.61,3.99L6.24,264.53c-8.33,8.33-8.33,21.82,0,30.15l254.08,254.08c8.33,8.33,21.82,8.33,30.15,0l260.8-260.79c3.08-3.08.9-8.36-3.46-8.36h-72.56c-6.63,0-13,2.64-17.69,7.33l-167.08,167.08c-8.33,8.33-21.82,8.33-30.15,0Z"/><path class="inner" d="M551.25,137.49h-263.74c-7.75,0-15.19,3.08-20.67,8.56l-125.39,125.39c-3.01,3.01-.88,8.16,3.38,8.16h101.34c16.14,0,29.23,13.09,29.23,29.23v101.34c0,4.26,5.15,6.39,8.16,3.38l270.14-270.14c2.19-2.19.64-5.92-2.45-5.92Z"/></svg><div><span class="who">OMAR</span><p>* a game about trusting paper.</p><p>* printed on paper. well, almost.</p></div></aside>
+    <div class="narrator" role="note" aria-label="The narrator"><svg viewBox="0 0 555 555" aria-hidden="true"><path d="M260.32,454.02l-159.33-159.33c-8.33-8.33-8.33-21.82,0-30.15l168.17-168.17c4-4,9.42-6.24,15.08-6.24h159.92c5.17,0,6.81-6.96,2.19-9.27L289.14,2.25c-8.21-4.1-18.12-2.5-24.61,3.99L6.24,264.53c-8.33,8.33-8.33,21.82,0,30.15l254.08,254.08c8.33,8.33,21.82,8.33,30.15,0l260.8-260.79c3.08-3.08.9-8.36-3.46-8.36h-72.56c-6.63,0-13,2.64-17.69,7.33l-167.08,167.08c-8.33,8.33-21.82,8.33-30.15,0Z"/><path class="inner" d="M551.25,137.49h-263.74c-7.75,0-15.19,3.08-20.67,8.56l-125.39,125.39c-3.01,3.01-.88,8.16,3.38,8.16h101.34c16.14,0,29.23,13.09,29.23,29.23v101.34c0,4.26,5.15,6.39,8.16,3.38l270.14-270.14c2.19-2.19.64-5.92-2.45-5.92Z"/></svg><div><span class="who">OMAR</span><p>* a game about trusting paper.</p><p>* printed on paper. well, almost.</p></div></div>
     <p>I wrote the story with IndigoMountain, and that idea was there from the start.</p>
     <footer class="folio">— 2 —</footer>
   </section>
@@ -63,7 +63,7 @@
     <p>The first route has no tutorial text for the controls. As you fly up, the stars form Game Boys, and each one lights the button you need: the D-pad to steer, A to throw a paper to the right, B to throw to the left.</p>
     <figure class="fig screen x2"><img src="constellations.png" alt="The first route's sky: constellations shaped like Game Boys" data-pixel><figcaption>The first route's sky: constellations shaped like Game Boys</figcaption></figure>
     <p>The cockpit explains itself the same way. On the first route the game pauses for a moment on each gauge, with an arrow and one short line: your fuel meter, steering uses fuel. Newspaper ammo, for shooting news.</p>
-    <aside class="narrator" aria-label="The narrator"><svg viewBox="0 0 555 555" aria-hidden="true"><path d="M260.32,454.02l-159.33-159.33c-8.33-8.33-8.33-21.82,0-30.15l168.17-168.17c4-4,9.42-6.24,15.08-6.24h159.92c5.17,0,6.81-6.96,2.19-9.27L289.14,2.25c-8.21-4.1-18.12-2.5-24.61,3.99L6.24,264.53c-8.33,8.33-8.33,21.82,0,30.15l254.08,254.08c8.33,8.33,21.82,8.33,30.15,0l260.8-260.79c3.08-3.08.9-8.36-3.46-8.36h-72.56c-6.63,0-13,2.64-17.69,7.33l-167.08,167.08c-8.33,8.33-21.82,8.33-30.15,0Z"/><path class="inner" d="M551.25,137.49h-263.74c-7.75,0-15.19,3.08-20.67,8.56l-125.39,125.39c-3.01,3.01-.88,8.16,3.38,8.16h101.34c16.14,0,29.23,13.09,29.23,29.23v101.34c0,4.26,5.15,6.39,8.16,3.38l270.14-270.14c2.19-2.19.64-5.92-2.45-5.92Z"/></svg><div><span class="who">OMAR</span><p>* the sky tells you which button to press.</p><p>* i still look for them when i play it.</p></div></aside>
+    <div class="narrator" role="note" aria-label="The narrator"><svg viewBox="0 0 555 555" aria-hidden="true"><path d="M260.32,454.02l-159.33-159.33c-8.33-8.33-8.33-21.82,0-30.15l168.17-168.17c4-4,9.42-6.24,15.08-6.24h159.92c5.17,0,6.81-6.96,2.19-9.27L289.14,2.25c-8.21-4.1-18.12-2.5-24.61,3.99L6.24,264.53c-8.33,8.33-8.33,21.82,0,30.15l254.08,254.08c8.33,8.33,21.82,8.33,30.15,0l260.8-260.79c3.08-3.08.9-8.36-3.46-8.36h-72.56c-6.63,0-13,2.64-17.69,7.33l-167.08,167.08c-8.33,8.33-21.82,8.33-30.15,0Z"/><path class="inner" d="M551.25,137.49h-263.74c-7.75,0-15.19,3.08-20.67,8.56l-125.39,125.39c-3.01,3.01-.88,8.16,3.38,8.16h101.34c16.14,0,29.23,13.09,29.23,29.23v101.34c0,4.26,5.15,6.39,8.16,3.38l270.14-270.14c2.19-2.19.64-5.92-2.45-5.92Z"/></svg><div><span class="who">OMAR</span><p>* the sky tells you which button to press.</p><p>* i still look for them when i play it.</p></div></div>
     <footer class="folio">— 4 —</footer>
   </section>
 
@@ -83,7 +83,7 @@
     <p>The shop started as a sketch, next to a diagram of every screen and how you move between them.</p>
     <figure class="fig screen"><img src="upgrade-sketch.png" alt="The first upgrade sketch" data-pixel><figcaption>The first upgrade sketch</figcaption></figure>
     <figure class="fig wide"><img src="ui-flow.png" alt="The UI flow, planned in the first days of the jam" loading="lazy"><figcaption>The UI flow, planned in the first days of the jam</figcaption></figure>
-    <aside class="narrator" aria-label="The narrator"><svg viewBox="0 0 555 555" aria-hidden="true"><path d="M260.32,454.02l-159.33-159.33c-8.33-8.33-8.33-21.82,0-30.15l168.17-168.17c4-4,9.42-6.24,15.08-6.24h159.92c5.17,0,6.81-6.96,2.19-9.27L289.14,2.25c-8.21-4.1-18.12-2.5-24.61,3.99L6.24,264.53c-8.33,8.33-8.33,21.82,0,30.15l254.08,254.08c8.33,8.33,21.82,8.33,30.15,0l260.8-260.79c3.08-3.08.9-8.36-3.46-8.36h-72.56c-6.63,0-13,2.64-17.69,7.33l-167.08,167.08c-8.33,8.33-21.82,8.33-30.15,0Z"/><path class="inner" d="M551.25,137.49h-263.74c-7.75,0-15.19,3.08-20.67,8.56l-125.39,125.39c-3.01,3.01-.88,8.16,3.38,8.16h101.34c16.14,0,29.23,13.09,29.23,29.23v101.34c0,4.26,5.15,6.39,8.16,3.38l270.14-270.14c2.19-2.19.64-5.92-2.45-5.92Z"/></svg><div><span class="who">OMAR</span><p>* this booklet is printed in those same four colours.</p></div></aside>
+    <div class="narrator" role="note" aria-label="The narrator"><svg viewBox="0 0 555 555" aria-hidden="true"><path d="M260.32,454.02l-159.33-159.33c-8.33-8.33-8.33-21.82,0-30.15l168.17-168.17c4-4,9.42-6.24,15.08-6.24h159.92c5.17,0,6.81-6.96,2.19-9.27L289.14,2.25c-8.21-4.1-18.12-2.5-24.61,3.99L6.24,264.53c-8.33,8.33-8.33,21.82,0,30.15l254.08,254.08c8.33,8.33,21.82,8.33,30.15,0l260.8-260.79c3.08-3.08.9-8.36-3.46-8.36h-72.56c-6.63,0-13,2.64-17.69,7.33l-167.08,167.08c-8.33,8.33-21.82,8.33-30.15,0Z"/><path class="inner" d="M551.25,137.49h-263.74c-7.75,0-15.19,3.08-20.67,8.56l-125.39,125.39c-3.01,3.01-.88,8.16,3.38,8.16h101.34c16.14,0,29.23,13.09,29.23,29.23v101.34c0,4.26,5.15,6.39,8.16,3.38l270.14-270.14c2.19-2.19.64-5.92-2.45-5.92Z"/></svg><div><span class="who">OMAR</span><p>* this booklet is printed in those same four colours.</p></div></div>
     <footer class="folio">— 6 —</footer>
   </section>
 

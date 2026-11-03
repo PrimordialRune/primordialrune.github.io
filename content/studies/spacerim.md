@@ -14,7 +14,7 @@ kana: スペースリム
 medium: disc
 status: final
 cover: logo.png
-palette: "#1a1016 #db604c #317c87 #f6dbba"
+palette: "#1a1016 #db604c #317c87 #f6dbba #4a9aa6"
 facts:
   Made for: Castle Game Jam, October 2023, 48 hours, theme "Klaatu barada nikto"
   Genre: Rhythm game with RPG boss battles, played by typing spells

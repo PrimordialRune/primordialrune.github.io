@@ -77,7 +77,8 @@ function body(md, draft, dir) {
   const flushList = () => { if (list) { page.html.push(`<ul>${list.map((i) => `<li>${inline(i)}</li>`).join('')}</ul>`); list = null; } };
   const flushAside = () => {
     if (!aside) return;
-    page.html.push(`<aside class="narrator" aria-label="The narrator"><svg viewBox="0 0 555 555" aria-hidden="true"><path d="${LOGO_OUTER}"/><path class="inner" d="${LOGO_INNER}"/></svg><div><span class="who">OMAR</span>${aside.map((l) => `<p>${inline(l)}</p>`).join('')}</div></aside>`);
+    // a note, not a landmark: it sits inside a page section (axe: landmark-complementary-is-top-level)
+    page.html.push(`<div class="narrator" role="note" aria-label="The narrator"><svg viewBox="0 0 555 555" aria-hidden="true"><path d="${LOGO_OUTER}"/><path class="inner" d="${LOGO_INNER}"/></svg><div><span class="who">OMAR</span>${aside.map((l) => `<p>${inline(l)}</p>`).join('')}</div></div>`);
     aside = null;
   };
   const flush = () => { flushPara(); flushList(); flushAside(); };
@@ -108,9 +109,10 @@ function folio(medium, i, n) {
 function render(fm, pages, dir) {
   const draft = fm.status !== 'final';
   const medium = MEDIA[fm.medium] || MEDIA.gb;
-  const [ink, accent, accent2, paper] = (fm.palette || '#102f41 #ec563b #339999 #fce8cd').split(/\s+/);
+  // an optional fifth tone is accent2 lightened for text on ink, when the game's own accent2 is too dark to read there (WCAG 4.5:1)
+  const [ink, accent, accent2, paper, accent2Text = accent2] = (fm.palette || '#102f41 #ec563b #339999 #fce8cd').split(/\s+/);
   const facts = Object.entries(fm.facts || {}).map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${inline(v.replace(/\s*\?\?$/, ''))}${draft && /\?\?$/.test(v) ? ' <span class="unsure" title="To confirm">?</span>' : ''}</dd></div>`).join('');
-  const play = fm.play ? `<a class="play" href="${esc(fm.play)}" target="_blank" rel="noopener">PLAY IT →</a>` : '';
+  const play = fm.play ? `<a class="play" href="${esc(fm.play)}" target="_blank" rel="noopener">PLAY IT →<span class="sr"> (opens in a new tab)</span></a>` : '';
   // Link previews: the cover is the card, the first plain fact is its line
   const blurb = ['What', 'Genre', 'Type', 'Made for'].map((k) => fm.facts?.[k]).find(Boolean);
   const og = [
@@ -136,7 +138,7 @@ function render(fm, pages, dir) {
 <meta name="description" content="${esc(fm.title)}: the ${esc(medium.insert.toLowerCase())}, a case study by Omar Golinelli.">
 ${og}
 ${draft ? '<meta name="robots" content="noindex">\n' : ''}<link rel="stylesheet" href="../study.css">
-<style>:root { --ink: ${ink}; --accent: ${accent}; --accent2: ${accent2}; --paper: ${paper}; }</style>
+<style>:root { --ink: ${ink}; --accent: ${accent}; --accent2: ${accent2}; --accent2-text: ${accent2Text}; --paper: ${paper}; }</style>
 </head>
 <body>
 <!-- Generated from content/studies/${esc(fm.slug)}.md by scripts/build-studies.mjs. Edit the Markdown, not this file. -->

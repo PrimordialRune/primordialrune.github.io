@@ -55,7 +55,7 @@ h2 { font: 900 30px/1.05 var(--grotesk); text-transform: uppercase; margin: 0; l
   border-radius: 6px; box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink); }
 .narrator svg { flex: none; width: 34px; height: 34px; fill: var(--paper); margin-top: 4px; }
 .narrator svg .inner { fill: var(--accent); }
-.narrator .who { display: block; font: 400 10px/1 var(--pixel); letter-spacing: .1em; color: var(--accent2); margin-bottom: 6px; }
+.narrator .who { display: block; font: 400 10px/1 var(--pixel); letter-spacing: .1em; color: var(--accent2-text, var(--accent2)); margin-bottom: 6px; }
 .narrator p { margin: 0; font-size: 17px; line-height: 1.5; }
 
 /* drafting: questions for Omar, and the stamp on the cover */
@@ -66,7 +66,7 @@ h2 { font: 900 30px/1.05 var(--grotesk); text-transform: uppercase; margin: 0; l
 
 /* the cover: the box art side of the booklet */
 .cover { background: var(--ink); color: var(--paper); text-align: center; padding-top: 34px; }
-.cover .system { font: 400 11px/1 var(--pixel); letter-spacing: .14em; color: var(--accent2); margin-bottom: 22px; }
+.cover .system { font: 400 11px/1 var(--pixel); letter-spacing: .14em; color: var(--accent2-text, var(--accent2)); margin-bottom: 22px; }
 .cover-art { display: block; margin: 0 auto 26px; max-width: 100%; box-shadow: 0 0 0 2px var(--accent2); }
 .cover-art[data-pixel] { image-rendering: pixelated; }
 .cover-art[data-wide] { width: 100%; height: auto; }
@@ -74,7 +74,8 @@ h2 { font: 900 30px/1.05 var(--grotesk); text-transform: uppercase; margin: 0; l
 .cover .kana { opacity: .75; }
 .facts { margin: 28px auto 8px; text-align: left; max-width: 460px; font-size: 16px; line-height: 1.4; }
 .facts div { display: grid; grid-template-columns: 7.5em 1fr; gap: 12px; padding: 8px 0; border-top: 1px solid color-mix(in srgb, var(--paper) 25%, transparent); }
-.facts dt { font: 400 10px/1.8 var(--pixel); letter-spacing: .08em; color: var(--accent2); text-transform: uppercase; }
+.facts dt { font: 400 10px/1.8 var(--pixel); letter-spacing: .08em; color: var(--accent2-text, var(--accent2)); text-transform: uppercase; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .facts dd { margin: 0; }
 .page a.play { display: inline-block; margin-top: 18px; padding: 12px 18px; background: var(--ink); color: var(--paper); box-shadow: 0 0 0 3px var(--accent); font: 400 12px/1 var(--pixel); letter-spacing: .1em; text-decoration: none; }
 .page a.play:hover, .page a.play:focus-visible { background: var(--paper); color: var(--ink); }
