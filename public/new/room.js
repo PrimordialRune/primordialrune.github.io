@@ -77,7 +77,7 @@ const PROJECTS = {
   'gb-cart': { title: 'Galactic News', kana: 'ギャラクティック・ニュース', medium: 'GAME BOY CARTRIDGE', pitch: 'A GBJAM 11 entry for the Game Boy, made in Godot: four colours, 160 × 144 pixels.', part: 'Game design, pixel art and UI art' },
   'gba-cart': { title: 'Project Minamoto', kana: 'プロジェクト・ミナモト', medium: 'GAME BOY ADVANCE CARTRIDGE', pitch: 'A Pokémon fan game that re-reads Generation 1 on the GBA.' },
   'ds-cart': { title: 'Legends Arise', kana: 'レジェンズ・アライズ', medium: 'NINTENDO DS GAME CARD', pitch: 'A Pokémon Platinum fan game, built on the original DS hardware and set around Veilstone City.' },
-  'crossfader-cassette': { title: 'Crossfader', kana: 'クロスフェーダー', medium: 'CASSETTE', pitch: 'A game jam game about cassettes: a music puzzle in three views. Flip the side, remix the song.', part: 'Project coordinator, game designer and UI/UX designer: all the UI, the level design, and an art direction that stays cohesive' },
+  'crossfader-cassette': { title: 'Crossfader', kana: 'クロスフェーダー', medium: 'CASSETTE', pitch: 'A game jam game about cassettes: a puzzle platformer in three views. Flip the side, remix the song.', part: 'Project coordinator, game designer and UI/UX designer: all the UI, the level design, and an art direction that stays cohesive' },
   'holon-disc': { title: 'Holon', kana: 'ホロン', medium: 'PC DISC', pitch: 'A simulator for the RS-PK retro format of the Pokémon TCG (the EX era), designed for digital. Closed alpha, version 0.1.2.', part: 'Game design, visual design, art direction and development, building the code with AI help' },
   'spacerim-disc': { title: 'SpaceRim', kana: 'スペースリム', medium: 'PC DISC', pitch: 'A rhythm game with RPG boss battles, played by typing spells. Made in 48 hours for Castle Game Jam, October 2023.', part: 'Game designer, pixel artist and UI artist: I drew the bosses and wrote their spells' },
   'ptcg-cube-rulebook': { title: 'PTCG Cube', kana: 'キューブ', medium: 'RULEBOOK', pitch: 'A cube format for the Pokémon TCG, with Roguelike and Co-op modes. This is its rulebook.' },
@@ -201,7 +201,7 @@ const STORY_LINES = {
   skip: '* everything’s out. no story, just the games.',
   hints: [
     // [condition, gentle nudge, plain instruction]
-    [() => !story.played.has('gb-cart'), '* the cartridge is right next to it.', '* use the game boy, then the cartridge beside it.'],
+    [() => !story.played.has('gb-cart'), '* the cartridge is right next to the game boy.', '* use the game boy, then the cartridge beside it.'],
     [() => !story.flags.has('postcard-read'), '* something came in the mail.', '* the postcard on the desk. read it.'],
     [() => !story.found.has('gba-console'), '* there’s something new on the table.', '* the table, top right. play the cartridge waiting there.'],
     [() => !story.flags.has('gba-awake'), '* the advance is asleep. it remembers old things.', '* use the advance, then the grey cartridge.'],
@@ -1156,7 +1156,7 @@ function started(game, sys) {
   const line = storyPlayed(game, sys) || STORY_LINES.played[game] || `* ${PROJECTS[game].title.toLowerCase()}.`;
   // the first game of the run also says how the story moves: taking it out is what turns things up
   const tip = STORY && !story.flags.has('told-eject');
-  if (tip) { story.flags.add('told-eject'); persist(); }
+  if (tip) { story.flags.add('told-eject'); story.flags.add('nudged-eject'); persist(); } // the tip is the nudge: not said twice
   say(tip ? [line, { t: STORY_LINES.ejectTip, keep: true, stale: () => story.flags.has('ejected') }] : line);
   state.playedAt = performance.now();
   openProject(game, true);
@@ -1620,7 +1620,7 @@ function drawPanel(t) {
   // (a phone sideways shows the tube 330-400 CSS px tall: one 30px row per line there is ~24 CSS px, under a thumb)
   const cols = handheld && panel.kind === 'memories' && canvas.clientHeight < 420 ? 2 : 1;
   panel.cols = cols;
-  const itemH = cols > 1 ? 44 : full ? 42 : handheld ? 30 : big ? 36 : short ? (wide ? 23 : 28) : wide ? 19 : 22;
+  const itemH = cols > 1 ? 44 : full ? 42 : handheld ? 30 : big ? 36 : short ? (wide ? 23 : 28) : wide ? (touchUI ? 23 : 19) : 22; // a touch tablet's rows: 24 CSS px or more
   const partH = full ? 19 : 17;
   const h = 84 + (letter && !short ? 30 : 0) + bodyLines.length * lineH + (full ? 8 : 0) + (panel.extra ? 22 : 0) + (partLines.length ? 24 + partLines.length * partH : 0) + Math.ceil(panel.items.length / cols) * itemH + 14;
   // a window taller than the tube shrinks to fit it (the letter on a phone's 4:3 tube)
@@ -1639,7 +1639,7 @@ function drawPanel(t) {
   g2.strokeStyle = '#fce8cd'; g2.lineWidth = 2; g2.strokeRect(x + 4, y + 4, w - 8, h - 8);
   g2.font = '11px "8bitDarling"'; const tw = g2.measureText(panel.tag).width + 16;
   g2.fillStyle = '#ec563b'; g2.fillRect(x + 14, y - 11, tw, 20);
-  g2.fillStyle = '#fce8cd'; g2.fillText(panel.tag, x + 22, y - 1);
+  g2.fillStyle = '#07141c'; g2.fillText(panel.tag, x + 22, y - 1); // dark on orange: 5.3:1
   g2.font = '900 24px "FK Grotesk", sans-serif'; g2.fillStyle = '#fce8cd'; g2.fillText(panel.title, x + 20, y + 34);
   g2.font = `900 ${full ? 13 : 11}px "FK Grotesk", sans-serif`; g2.fillStyle = '#4eb99f'; g2.fillText(panel.kana, x + 20, y + 56);
   let cy = y + 78;
@@ -1714,8 +1714,10 @@ function drawNav() {
     g2.beginPath(); g2.roundRect(x, y, w, h, 15); g2.fill();
     g2.fillStyle = '#102f41'; g2.fillRect(x + 8, y + 9, 20, 12);
     g2.font = `8px "${FONT_PIX}"`; g2.fillStyle = '#fce8cd'; g2.fillText(num, x + 11, y + 15.5);
-    g2.font = `11px "${FONT_PIX}"`; g2.fillText(label, x + 34, y + 11);
-    g2.font = `900 9px "${FONT_G}", sans-serif`; g2.fillStyle = 'rgba(252,232,205,0.85)'; g2.fillText(kana, x + 34, y + 23);
+    // on a solid fill (on, or fresh gold) the label goes dark, as on the DOM pills; on the dim pill it stays cream
+    const ink = on || fresh ? '#07141c' : '#fce8cd';
+    g2.font = `11px "${FONT_PIX}"`; g2.fillStyle = ink; g2.fillText(label, x + 34, y + 11);
+    g2.font = `900 9px "${FONT_G}", sans-serif`; g2.fillStyle = on || fresh ? ink : 'rgba(252,232,205,0.85)'; g2.fillText(kana, x + 34, y + 23);
     navHits.push({ id, x: W - (W - x) * ns, y: y * ns, w: w * ns, h: h * ns, act: () => goSpot(id) });
     x -= 8;
   }
@@ -1863,7 +1865,7 @@ function bez(sel, fn) { document.querySelectorAll(sel).forEach((b) => b.addEvent
   // a window it opened takes the keys, and gives them back to this button when it closes (see closePanel)
   if (!handheld && panel && !panel.dom) { if (b.closest('.fine')) panel.opener = b; canvas.focus({ preventScroll: true }); } })); }
 bez('.ab .a', pressA); bez('.ab .b', pressB);
-bez('.dpad [data-d]', (b) => { const d = b.dataset.d; step(d === 'left' || d === 'up' ? -1 : 1, d === 'left' || d === 'right' ? 'x' : 'y'); });
+bez('.dpad [data-d]', (b) => { const d = b.dataset.d; stepSay(d === 'left' || d === 'up' ? -1 : 1, d === 'left' || d === 'right' ? 'x' : 'y'); });
 bez('[data-link="credits"]', () => openPanel(creditsPanel()));
 bez('[data-link="skip"]', () => openPanel(skipPanel()));
 bez('[data-link="memories"]', () => openPanel(memoriesOrEnd()));
@@ -1904,6 +1906,17 @@ function step(dir, axis) {
   return { list, i: j };
 }
 
+// a step a screen reader hears: the row, or the object, what A or Enter does with it, and where it sits (keys and pad alike)
+function stepSay(dir, axis) {
+  const r = step(dir, axis);
+  if (panel) { speak(rowSpeech(panel.items[panel.sel])); return true; }
+  if (!r) return false;
+  state.keyHover = true;
+  const id = r.list[r.i];
+  speak([NAME(id), PROMPT(id), `${r.i + 1} of ${r.list.length}`].filter(Boolean).join('. '));
+  return true;
+}
+
 // keyboard: arrows pick among objects in view (or menu entries), Enter uses, Esc steps back, 1-3 move, Q the quick view
 function inView() { return Object.entries(objects).filter(([id, o]) => (o.place.spot === spot || (state.mode === 'choose' && playable(state.system).includes(id))) && o.root.visible).map(([id]) => id); }
 addEventListener('keydown', (e) => {
@@ -1930,10 +1943,7 @@ addEventListener('keydown', (e) => {
   else if (inRoom && (e.key === 'l' || e.key === 'L')) recall();
   else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
     // the same screen order (left to right) as the D-pad and swipes
-    const r = step(e.key === 'ArrowRight' ? 1 : -1, 'x'); if (!r) return;
-    state.keyHover = true; e.preventDefault();
-    const id = r.list[r.i], pr = PROMPT(id);
-    speak([NAME(id), pr, `${r.i + 1} of ${r.list.length}`].filter(Boolean).join('. '));
+    if (stepSay(e.key === 'ArrowRight' ? 1 : -1, 'x')) e.preventDefault();
   } else if (e.key === 'Enter' && !own && state.keyHover && state.hover) { activate(state.hover); e.preventDefault(); }
   else if ((e.key === 'Enter' || e.key === ' ') && !own && !state.keyHover && hurry()) e.preventDefault();
   else if (e.key === 'Escape') { resetChoice(); goSpot(spot); }
@@ -1981,7 +1991,7 @@ function drawUI(t) {
       const txt = '▶ ' + label + (touchUI ? ' (A)' : ''); const w = g2.measureText(txt).width + 14;
       const x = Math.round(Math.min(W - w - 6, Math.max(6, at[0] - w / 2))), y = Math.round(Math.max(8, at[1] - 30 + (quiet ? 0 : Math.sin(t * 5) * 2)));
       g2.fillStyle = '#ec563b'; g2.fillRect(x, y, w, 20);
-      g2.fillStyle = '#fce8cd'; g2.fillText(txt, x + 7, y + 11);
+      g2.fillStyle = '#07141c'; g2.fillText(txt, x + 7, y + 11);
       g2.fillStyle = '#ec563b'; g2.beginPath(); g2.moveTo(x + w / 2 - 5, y + 20); g2.lineTo(x + w / 2 + 5, y + 20); g2.lineTo(x + w / 2, y + 26); g2.fill();
     }
   }
@@ -2041,7 +2051,7 @@ function drawUI(t) {
     for (const ch of nar.name) {
       const cw = g2.measureText(ch).width;
       if (ch === '0') { g2.fillStyle = '#fce8cd'; g2.fillRect(nx - 1, by - 10, cw + 1, 10); }
-      g2.fillStyle = ch === '0' ? '#102f41' : '#fce8cd'; g2.fillText(ch, nx, by - 1); nx += cw;
+      g2.fillStyle = ch === '0' ? '#102f41' : '#07141c'; g2.fillText(ch, nx, by - 1); nx += cw;
     }
     g2.font = `900 17px "${FONT_G}", sans-serif`; g2.fillStyle = '#fce8cd';
     lines.forEach((l, i) => g2.fillText(l, bx + 22, by + 28 + i * 22));
