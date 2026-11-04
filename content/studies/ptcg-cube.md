@@ -18,7 +18,7 @@ facts:
   Format: A cube for the Pokémon Trading Card Game, with Roguelike and Co-op modes
   Card pool: The first sets of the Pokémon TCG ??
   Rulebook: v1.0, in Italian, February 2024
-  My part: Format design, rulebook writing and layout, playmat ??
+  My part: Creator and curator
 play: ""
 ---
 

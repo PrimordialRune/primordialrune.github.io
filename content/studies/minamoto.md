@@ -18,7 +18,7 @@ facts:
   Type: A Pokémon fan game that re-reads Generation 1 on the Game Boy Advance
   Hardware: GBA, 240 × 160
   Started: 2021, still in progress ??
-  My part: Design, pixel art, UI, balancing models ??
+  My part: Designer, artist and developer (almost entirely solo)
 play: ""
 ---
 

@@ -18,7 +18,7 @@ facts:
   Type: A Pokémon Platinum fan game, built on the original DS hardware
   Team: AdAstra-LD ??
   Setting: Sinnoh, around Veilstone City, linked to Legends: Arceus
-  My part: User interface and pixel art ??
+  My part: UI design and game balance
   Years: 2021 to 2024 ??
 play: ""
 ---
