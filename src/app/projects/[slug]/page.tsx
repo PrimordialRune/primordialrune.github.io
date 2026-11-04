@@ -1,4 +1,5 @@
 import { getAllProjects, getProjectBySlug } from "@/lib/projects";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -71,6 +72,33 @@ export async function generateStaticParams() {
   return projects.map((project) => ({
     slug: project.slug,
   }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const project = await getProjectBySlug(slug);
+
+  if (!project) return {};
+
+  const title = `${project.title} — PrimordialRune`;
+  const url = `/projects/${project.slug}`;
+
+  return {
+    title,
+    description: project.shortDescription,
+    alternates: { canonical: url },
+    openGraph: {
+      type: "article",
+      url,
+      siteName: "PrimordialRune",
+      title,
+      description: project.shortDescription,
+    },
+  };
 }
 
 export default async function ProjectPage({

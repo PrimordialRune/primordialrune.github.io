@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 import { MOTION_INIT_SCRIPT } from "@/lib/motion";
 
@@ -45,9 +46,25 @@ const genEiKiwami = localFont({
   variable: "--font-gen-ei-kiwami",
 });
 
+const siteTitle = "PrimordialRune — Game Design & Development Portfolio";
+const siteDescription = "Portfolio of Omar Golinelli (PrimordialRune) — Game Designer and Developer. Board games, videogames, UI/UX, and interactive experiences.";
+
 export const metadata: Metadata = {
-  title: "PrimordialRune — Game Design & Development Portfolio",
-  description: "Portfolio of Omar Golinelli (PrimordialRune) — Game Designer and Developer. Board games, videogames, UI/UX, and interactive experiences.",
+  metadataBase: new URL(SITE_URL),
+  title: siteTitle,
+  description: siteDescription,
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    url: "/",
+    siteName: "PrimordialRune",
+    title: siteTitle,
+    description: siteDescription,
+  },
+  twitter: {
+    card: "summary",
+    creator: "@PrimordialRune",
+  },
 };
 
 export default function RootLayout({
