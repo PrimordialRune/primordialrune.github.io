@@ -15,8 +15,8 @@ status: draft
 cover: cover.jpg
 palette: "#423135 #e8584a #2f9b98 #fbf5ea"
 facts:
-  Format: A cube for the Pokémon Trading Card Game, with Roguelike and Co-op modes
-  Card pool: The first sets of the Pokémon TCG ??
+  Format: A cube for the Pokemon Trading Card Game, with Roguelike and Co-op modes
+  Card pool: The first sets of the Pokemon TCG ??
   Rulebook: v1.0, in Italian, February 2024
   My part: Creator and curator
 play: ""
@@ -26,13 +26,13 @@ play: ""
 
 A cube is a fixed collection of cards, curated so that players can draft from it and build decks on the spot. Nobody brings a deck. Everyone opens the same pool, picks a card, passes the rest, and plays what they built.
 
-The PTCG Cube brings that format to the first era of the Pokémon Trading Card Game.
+The PTCG Cube brings that format to the first era of the Pokemon Trading Card Game.
 
 ?? How big is the cube, how many players, and how does the draft work (packs, picks, deck size)? None of it is in the rulebook yet, and it's the first thing a designer will want to know.
 
 # Welcome | ヨウコソ
 
-The rulebook opens the way the games did: Professor Oak welcomes you to the world of Pokémon, explains the general rules, and tells you to have fun, experiment, and good luck.
+The rulebook opens the way the games did: Professor Oak welcomes you to the world of Pokemon, explains the general rules, and tells you to have fun, experiment, and good luck.
 
 ![The general rules, introduced by Professor Oak](welcome.jpg)
 
@@ -43,13 +43,13 @@ The rulebook opens the way the games did: Professor Oak welcomes you to the worl
 
 The heart of the rulebook is a catalogue of combinations. In a draft you don't know what you'll open, so the book teaches you what to look for: pairs of cards that make a strategy, each tagged with its archetype and the kind of cards that support it.
 
-- **Control.** Venusaur + Pokémon Center: move every Grass Energy onto a Pokémon with no damage, heal the team with Pokémon Center, then redistribute the energy as you like.
+- **Control.** Venusaur + Pokemon Center: move every Grass Energy onto a Pokemon with no damage, heal the team with Pokemon Center, then redistribute the energy as you like.
 - **Prison.** Alakazam + Mr. Mime: stay invincible and win by decking your opponent.
 - **Meta.** Dragonite + Dodrio: keep switching to clear Paralysis, Poison and Confusion, so your attackers never stop.
-- **Gimmick.** Mew + Aerodactyl: stop your opponent from evolving, and send their Pokémon back down a stage.
-- **Gimmick.** Ninetales + Pokémon Flute: drag a weak Pokémon from their discard pile onto their bench, then pull it into the active spot for an easy knock out.
+- **Gimmick.** Mew + Aerodactyl: stop your opponent from evolving, and send their Pokemon back down a stage.
+- **Gimmick.** Ninetales + Pokemon Flute: drag a weak Pokemon from their discard pile onto their bench, then pull it into the active spot for an easy knock out.
 
-![Control: Venusaur + Pokémon Center](venusaur.jpg)
+![Control: Venusaur + Pokemon Center](venusaur.jpg)
 ![Prison: Alakazam + Mr. Mime](alakazam.jpg)
 
 Each combination is a lesson in reading a 25-year-old card pool like a designer: what was broken, what was quietly strong, and what only works together.

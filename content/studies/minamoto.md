@@ -15,7 +15,7 @@ status: draft
 cover: logo.png
 palette: "#2a2440 #d9506a #3d9bd9 #fdf0ec"
 facts:
-  Type: A Pokémon fan game that re-reads Generation 1 on the Game Boy Advance
+  Type: A Pokemon fan game that re-reads Generation 1 on the Game Boy Advance
   Hardware: GBA, 240 × 160
   Started: 2021, still in progress ??
   My part: Designer, artist and developer (almost entirely solo)
@@ -24,7 +24,7 @@ play: ""
 
 # Gen 1, again | ゲン
 
-Minamoto (源) means source, or origin. The project goes back to the source: the first Pokémon games, Red, Green and Blue, re-read on the hardware that came after them.
+Minamoto (源) means source, or origin. The project goes back to the source: the first Pokemon games, Red, Green and Blue, re-read on the hardware that came after them.
 
 ![ポケットモンスター 源, the title](logo.png)
 
@@ -71,7 +71,7 @@ Every Gym Leader gets a portrait, framed like a card with their name in katakana
 Minamoto is balanced with a model, not by feel alone. A Python simulation plays thousands of battles using the real Gen 1 damage formula: levels, stats, type effectiveness, same-type bonus, a random roll. It checks whether a player who catches what each route offers, in the order the routes come, can beat each Gym Leader's team.
 
 - The encounters file lists every route in its new order, with levels and rates.
-- The bosses file holds the Gym Leaders' Pokémon, starting with Brock's Onix at level 14.
+- The bosses file holds the Gym Leaders' Pokemon, starting with Brock's Onix at level 14.
 - The results record which moves a winning team leaned on: a level 18 Mankey beating the boss, mostly with Karate Chop and Scratch.
 
 * i made a machine to play my game for me, thousands of times.

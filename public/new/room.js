@@ -75,12 +75,12 @@ const SLOTS = {
 // Project facts: only what the site already states.
 const PROJECTS = {
   'gb-cart': { title: 'Galactic News', kana: 'ギャラクティック・ニュース', medium: 'GAME BOY CARTRIDGE', pitch: 'A GBJAM 11 entry for the Game Boy, made in Godot: four colours, 160 × 144 pixels.', part: 'Game design, pixel art and UI art' },
-  'gba-cart': { title: 'Project Minamoto', kana: 'プロジェクト・ミナモト', medium: 'GAME BOY ADVANCE CARTRIDGE', pitch: 'A Pokémon fan game that re-reads Generation 1 on the GBA.', part: 'Designer, artist and developer: made almost entirely solo' },
-  'ds-cart': { title: 'Legends Arise', kana: 'レジェンズ・アライズ', medium: 'NINTENDO DS GAME CARD', pitch: 'A Pokémon Platinum fan game, built on the original DS hardware and set around Veilstone City.', part: 'UI design and game balance' },
+  'gba-cart': { title: 'Project Minamoto', kana: 'プロジェクト・ミナモト', medium: 'GAME BOY ADVANCE CARTRIDGE', pitch: 'A Pokemon fan game that re-reads Generation 1 on the GBA.', part: 'Designer, artist and developer: made almost entirely solo' },
+  'ds-cart': { title: 'Legends Arise', kana: 'レジェンズ・アライズ', medium: 'NINTENDO DS GAME CARD', pitch: 'A Pokemon Platinum fan game, built on the original DS hardware and set around Veilstone City.', part: 'UI design and game balance' },
   'crossfader-cassette': { title: 'Crossfader', kana: 'クロスフェーダー', medium: 'CASSETTE', pitch: 'A game jam game about cassettes: a puzzle platformer in three views. Flip the side, remix the song.', part: 'Project coordinator, game designer and UI/UX designer: all the UI, the level design, and an art direction that stays cohesive' },
-  'holon-disc': { title: 'Holon', kana: 'ホロン', medium: 'PC DISC', pitch: 'A simulator for the RS-PK retro format of the Pokémon TCG (the EX era), designed for digital. Closed alpha, version 0.1.2.', part: 'Game design, visual design, art direction and development, building the code with AI help' },
+  'holon-disc': { title: 'Holon', kana: 'ホロン', medium: 'PC DISC', pitch: 'A simulator for the RS-PK retro format of the Pokemon TCG (the EX era), designed for digital. Closed alpha, version 0.1.2.', part: 'Game design, visual design, art direction and development, building the code with AI help' },
   'spacerim-disc': { title: 'SpaceRim', kana: 'スペースリム', medium: 'PC DISC', pitch: 'A rhythm game with RPG boss battles, played by typing spells. Made in 48 hours for Castle Game Jam, October 2023.', part: 'Game designer, pixel artist and UI artist: I drew the bosses and wrote their spells' },
-  'ptcg-cube-rulebook': { title: 'PTCG Cube', kana: 'キューブ', medium: 'RULEBOOK', pitch: 'A cube format for the Pokémon TCG, with Roguelike and Co-op modes. This is its rulebook.', part: 'Creator and curator' },
+  'ptcg-cube-rulebook': { title: 'PTCG Cube', kana: 'キューブ', medium: 'RULEBOOK', pitch: 'A cube format for the Pokemon TCG, with Roguelike and Co-op modes. This is its rulebook.', part: 'Creator and curator' },
   'cd-jewel': { title: 'Haunt Record', kana: 'ホーント・レコード', medium: 'ARCHIVED DISC', pitch: 'A dungeon crawler where the player is complicit. Graphics with Edoardo Zuliani.', part: 'Game design, programming, UI design and game graphics' },
 };
 

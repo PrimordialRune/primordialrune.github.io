@@ -15,7 +15,7 @@ status: draft
 cover: logo.png
 palette: "#242424 #e8742a #2f9ed6 #ecebe7"
 facts:
-  Type: A Pokémon Platinum fan game, built on the original DS hardware
+  Type: A Pokemon Platinum fan game, built on the original DS hardware
   Team: AdAstra-LD ??
   Setting: Sinnoh, around Veilstone City, linked to Legends: Arceus
   My part: UI design and game balance
@@ -25,9 +25,9 @@ play: ""
 
 # The project | プロジェクト
 
-Legends Arise is a fan game built on Pokémon Platinum, for the real Nintendo DS. You play Platinum Berlitz, sent to Sinnoh by her supervisor Fortis for the Legends Arise programme. The story opens on a cruise ship, the S.S. Minerva, and lands in Veilstone City: an industrial port with polluted channels, cargo ships and a company called Galaxias Novus that owns most of the containers.
+Legends Arise is a fan game built on Pokemon Platinum, for the real Nintendo DS. You play Platinum Berlitz, sent to Sinnoh by her supervisor Fortis for the Legends Arise programme. The story opens on a cruise ship, the S.S. Minerva, and lands in Veilstone City: an industrial port with polluted channels, cargo ships and a company called Galaxias Novus that owns most of the containers.
 
-The team documented the game in a wiki: mechanics, Pokémon, region, plot chapters and a glossary of lore.
+The team documented the game in a wiki: mechanics, Pokemon, region, plot chapters and a glossary of lore.
 
 ?? What was the team, and what's the status of the project now? I'd like the cover facts to be exact, including your role.
 
@@ -44,7 +44,7 @@ The DS has two screens, and the interface uses both on purpose. The top screen i
 
 # The menu | メニュー
 
-The pause menu keeps the same device language: a header path, tiles for Pokémon, the trainer card, the bag, saving and settings.
+The pause menu keeps the same device language: a header path, tiles for Pokemon, the trainer card, the bag, saving and settings.
 
 ![The menu, animated](menu.gif "x2")
 
@@ -66,7 +66,7 @@ Some of the systems designed for the game, from the wiki:
 
 - **Weather that changes every day.** Each place belongs to a climate zone with a table of odds per season. A daily seed picks the weather, and autumn gets a new one of its own, Autumn Wind.
 - **Phenomena.** Glints in the tall grass give Season Coins, dust clouds in caves give stones and gems, feather shadows give feathers, and wisps appear at night in the stranger places.
-- **The Miragescape,** a dimension outside time where Pokémon from Legends: Arceus survived. The Forces of Nature start roaming Sinnoh once you've offered enough Season Coins at their pagodas.
+- **The Miragescape,** a dimension outside time where Pokemon from Legends: Arceus survived. The Forces of Nature start roaming Sinnoh once you've offered enough Season Coins at their pagodas.
 - **Madame Fourth,** who sets up your save at the start. She's in a bad mood because the developers, whom she calls the Demiurges, gave her this job.
 
 * a character who knows she's in a game, and resents it.
