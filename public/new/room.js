@@ -1753,6 +1753,7 @@ function creditsPanel() {
 // ---------- picking through the curved glass ----------
 const ray = new THREE.Raycaster(); const ndc = new THREE.Vector2(); const mouse = { u: 0.5, v: 0.5, in: false };
 function pick() {
+  if (boxAt(mouse.u, mouse.v)) return null; // the dialogue box lies over the room: the pointer on it points at the line, not at what's behind
   const [u, v] = curve(mouse.u, mouse.v);
   if (u < 0 || u > 1 || v < 0 || v > 1) return null;
   ndc.set(u * 2 - 1, v * 2 - 1);
@@ -2037,7 +2038,11 @@ function drawUI(t) {
         return r[2] >= bx && r[0] <= bx + bw && ov > 0 && ov >= 0.25 * (r[3] - r[1]);
       };
       // the envelope (the contacts) lies above the box on every screen; on the handheld it still always keeps clear of it
-      if (under(nar.cur?.near) || (handheld && under('envelope')) || under(state.hover) || Object.entries(objects).some(([oid, o]) => (o.glow > 0 || beckon.has(oid)) && under(oid))) by = STORY ? 92 : 58;
+      // the pointer only counts once it has settled (passing over the desk doesn't throw the box around)
+      const settled = state.hover && performance.now() - (state.hoverSince || 0) > 350 ? state.hover : null;
+      // once a line has gone up top it stays there until the line is over: the box never bobs up and down under a moving pointer
+      if (nar.top !== nar.cur) nar.top = (under(nar.cur?.near) || (handheld && under('envelope')) || under(settled) || Object.entries(objects).some(([oid, o]) => (o.glow > 0 || beckon.has(oid)) && under(oid))) ? nar.cur : null;
+      if (nar.top === nar.cur) by = STORY ? 92 : 58;
     }
     nar.box = { x: bx, y: by, w: bw, h: bh }; // for clicks: UI pixels, like the panel rows
     g2.fillStyle = 'rgba(16,47,65,0.94)'; g2.fillRect(bx, by, bw, bh);
@@ -2146,8 +2151,12 @@ const loop = () => {
   // hover
   if (mouse.in && !state.keyHover) state.hover = state.mode === 'boot' || panel || navHover ? null : pick();
   const hov = state.hover;
-  if (hov && hov !== state.lastHover && hov !== 'drawer' && state.mode === 'free' && !state.said.has(hov) && LINES.hover[hov]) {
-    state.said.add(hov); if (!nar.visible) queue(LINES.hover[hov], 2.4);
+  if (hov !== state.lastHover) state.hoverSince = performance.now();
+  // a hover line is small talk: it only comes into a quiet room (nothing said for a moment, nothing about to be),
+  // after the pointer has settled on the thing, so it never flashes up and gets cut by the beat that was on its way
+  if (hov && hov !== 'drawer' && state.mode === 'free' && !state.busy && !nar.visible && !state.said.has(hov) && LINES.hover[hov]
+    && performance.now() - state.hoverSince > 350 && performance.now() - lastSpeak > 1500) {
+    state.said.add(hov); queue(LINES.hover[hov], 2.4);
   }
   state.lastHover = hov;
   // glow: highlighted objects breathe gold, the hovered one warms a little
