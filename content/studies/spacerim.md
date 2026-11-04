@@ -14,7 +14,7 @@ kana: スペースリム
 medium: disc
 status: final
 cover: logo.png
-palette: "#1a1016 #db604c #317c87 #f6dbba"
+palette: "#1a1016 #db604c #317c87 #f6dbba #4a9aa6"
 facts:
   Made for: Castle Game Jam, October 2023, 48 hours, theme "Klaatu barada nikto"
   Genre: Rhythm game with RPG boss battles, played by typing spells
@@ -24,7 +24,7 @@ facts:
 play: "https://primordialrune.itch.io/spacerim"
 ---
 
-# Klaatu barada nikto | じゅもん
+# Klaatu barada nikto | ジュモン
 
 The jam's theme was a phrase: "Klaatu barada nikto", the words that stop the robot Gort in The Day the Earth Stood Still (1951). A theme that is literally a spell, so we made a game about reciting spells.
 
@@ -65,7 +65,7 @@ We were short on time, so there was no real polishing round, but two changes mad
 
 The tutorial level watches you, too: if you make too many mistakes in the first seconds, a helper starts flashing to show you what to press.
 
-# The bosses | ボスたち
+# The bosses | ボスタチ
 
 The whole theme was very meme, and so are the bosses: Sans in a Supreme drip jacket, Keanu Reeves as Johnny Silverhand, and Jabba the Hutt pondering the orb. I drew them, and I picked their spells, so every word belongs to its boss. Sans makes you type DRIP, TOBY and SUPREME. Jabba's last spell is the theme itself: KLAATU BARADA NIKTO.
 

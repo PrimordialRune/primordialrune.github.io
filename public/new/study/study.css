@@ -1,7 +1,11 @@
 /* The case studies: each one is the insert that came with its medium. One stylesheet, skinned per study
    with --ink / --accent / --accent2 / --paper (the game's own palette) and per medium with [data-medium]. */
-@font-face { font-family: "FK Grotesk"; src: url("../fonts/FKGrotesk-Black.otf") format("opentype"); font-weight: 900; }
-@font-face { font-family: "FK Grotesk"; src: url("../fonts/FKGrotesk-Thin.otf") format("opentype"); font-weight: 200; }
+/* the fonts are the trial cut, which draws é as a plain e: accented letters fall back to the next sans until the licensed files are in */
+@font-face { font-family: "FK Grotesk"; src: url("../fonts/FKGrotesk-Black.otf") format("opentype"); font-weight: 900; unicode-range: U+0000-00BF, U+2013-2014, U+20AC; }
+@font-face { font-family: "FK Grotesk"; src: url("../fonts/FKGrotesk-Thin.otf") format("opentype"); font-weight: 200; unicode-range: U+0000-00BF, U+2013-2014, U+20AC; }
+/* the trial cut has no accented letters: a light local sans stands in for them, not a heavy default (Pokémon) */
+@font-face { font-family: "FK Grotesk"; src: local("Helvetica Neue Light"), local("HelveticaNeue-Light"), local("Helvetica Light"), local("Arial"); font-weight: 200; unicode-range: U+00C0-00FF; }
+@font-face { font-family: "FK Grotesk"; src: local("Helvetica Neue Bold"), local("HelveticaNeue-Bold"), local("Arial Black"), local("Arial Bold"); font-weight: 900; unicode-range: U+00C0-00FF; }
 @font-face { font-family: "8bitDarling"; src: url("../fonts/8bitDarling-Regular.otf") format("opentype"); }
 :root { --room: #07141c; --cream: #fce8cd; --gold: #fadb68; --peacock: #102f41;
   --pixel: "8bitDarling", ui-monospace, monospace; --grotesk: "FK Grotesk", Helvetica, Arial, sans-serif; color-scheme: dark; }
@@ -15,7 +19,8 @@ body { margin: 0; background: var(--room); color: var(--cream); font: 200 19px/1
 .bar { position: sticky; top: 0; z-index: 2; display: flex; justify-content: space-between; align-items: center; gap: 12px;
   padding: 10px 16px; background: rgba(7, 20, 28, .92); border-bottom: 3px solid #ec563b; }
 .bar .back { font: 400 11px/1 var(--pixel); letter-spacing: .08em; color: var(--gold); text-decoration: none; padding: 8px 0; }
-.bar .back:hover, .bar .back:focus-visible { color: var(--cream); outline: none; }
+.bar .back:hover, .bar .back:focus-visible { color: var(--cream); }
+.bar .back:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 .bar .insert { font: 400 10px/1 var(--pixel); letter-spacing: .08em; opacity: .6; }
 
 .booklet { max-width: 660px; margin: 0 auto; padding: 32px 16px 80px; display: grid; gap: 28px; }
@@ -32,10 +37,15 @@ h2 { font: 900 30px/1.05 var(--grotesk); text-transform: uppercase; margin: 0; l
 .page ul { margin: 0 0 18px; padding: 0; list-style: none; }
 .page li { padding-left: 24px; position: relative; margin-bottom: 8px; }
 .page li::before { content: ""; position: absolute; left: 2px; top: .62em; width: 9px; height: 9px; background: var(--accent); }
-.page a { color: var(--accent); font-weight: 900; }
+/* links read in ink (the accent alone fails 4.5:1 on some papers); the accent is the underline */
+.page a { color: var(--ink); font-weight: 900; text-decoration: underline; text-decoration-color: var(--accent); text-decoration-thickness: 3px; text-underline-offset: 3px; }
+.page a:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+/* on the ink panels (cover, narrator) the colours swap */
+.cover a:not(.play), .narrator a { color: var(--paper); }
+.cover a:not(.play):focus-visible, .narrator a:focus-visible { outline-color: var(--paper); }
 .page strong { font-weight: 900; }
 
-.folio { text-align: center; font: 400 10px/1 var(--pixel); letter-spacing: .1em; opacity: .55; margin-top: 28px; }
+.folio { text-align: center; font: 400 10px/1 var(--pixel); letter-spacing: .1em; opacity: .75; margin-top: 28px; }
 
 /* pictures: game screens at an integer scale inside a screen bezel, diagrams full width */
 .fig { margin: 26px 0; text-align: center; }
@@ -49,7 +59,7 @@ h2 { font: 900 30px/1.05 var(--grotesk); text-transform: uppercase; margin: 0; l
   border-radius: 6px; box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink); }
 .narrator svg { flex: none; width: 34px; height: 34px; fill: var(--paper); margin-top: 4px; }
 .narrator svg .inner { fill: var(--accent); }
-.narrator .who { display: block; font: 400 10px/1 var(--pixel); letter-spacing: .1em; color: var(--accent2); margin-bottom: 6px; }
+.narrator .who { display: block; font: 400 10px/1 var(--pixel); letter-spacing: .1em; color: var(--accent2-text, var(--accent2)); margin-bottom: 6px; }
 .narrator p { margin: 0; font-size: 17px; line-height: 1.5; }
 
 /* drafting: questions for Omar, and the stamp on the cover */
@@ -60,7 +70,7 @@ h2 { font: 900 30px/1.05 var(--grotesk); text-transform: uppercase; margin: 0; l
 
 /* the cover: the box art side of the booklet */
 .cover { background: var(--ink); color: var(--paper); text-align: center; padding-top: 34px; }
-.cover .system { font: 400 11px/1 var(--pixel); letter-spacing: .14em; color: var(--accent2); margin-bottom: 22px; }
+.cover .system { font: 400 11px/1 var(--pixel); letter-spacing: .14em; color: var(--accent2-text, var(--accent2)); margin-bottom: 22px; }
 .cover-art { display: block; margin: 0 auto 26px; max-width: 100%; box-shadow: 0 0 0 2px var(--accent2); }
 .cover-art[data-pixel] { image-rendering: pixelated; }
 .cover-art[data-wide] { width: 100%; height: auto; }
@@ -68,11 +78,30 @@ h2 { font: 900 30px/1.05 var(--grotesk); text-transform: uppercase; margin: 0; l
 .cover .kana { opacity: .75; }
 .facts { margin: 28px auto 8px; text-align: left; max-width: 460px; font-size: 16px; line-height: 1.4; }
 .facts div { display: grid; grid-template-columns: 7.5em 1fr; gap: 12px; padding: 8px 0; border-top: 1px solid color-mix(in srgb, var(--paper) 25%, transparent); }
-.facts dt { font: 400 10px/1.8 var(--pixel); letter-spacing: .08em; color: var(--accent2); text-transform: uppercase; }
+.facts dt { font: 400 10px/1.8 var(--pixel); letter-spacing: .08em; color: var(--accent2-text, var(--accent2)); text-transform: uppercase; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .facts dd { margin: 0; }
-.play { display: inline-block; margin-top: 18px; padding: 12px 18px; background: var(--accent); color: var(--paper); font: 400 12px/1 var(--pixel); letter-spacing: .1em; text-decoration: none; }
-.play:hover, .play:focus-visible { background: var(--paper); color: var(--ink); outline: none; }
-.cover .folio { opacity: .5; }
+.page a.play { display: inline-block; margin-top: 18px; padding: 12px 18px; background: var(--ink); color: var(--paper); box-shadow: 0 0 0 3px var(--accent); font: 400 12px/1 var(--pixel); letter-spacing: .1em; text-decoration: none; }
+.page a.play:hover, .page a.play:focus-visible { background: var(--paper); color: var(--ink); }
+.page a.play:focus-visible { outline: 2px solid var(--gold); outline-offset: 6px; }
+.cover .folio { opacity: .75; }
+
+/* a looping picture can be paused (WCAG 2.2.2); under reduced motion it starts paused, on its first frame */
+.gif-toggle { display: block; margin: 8px auto 0; min-height: 28px; padding: 6px 10px; background: var(--ink); color: var(--paper); border: 0; border-radius: 3px;
+  font: 400 10px/1 var(--pixel); letter-spacing: .1em; cursor: pointer; }
+.gif-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.cover .gif-toggle { background: var(--paper); color: var(--ink); margin: -14px auto 22px; }
+
+/* the back page: play it, the next study, and how to reach Omar, so a study never ends on a dead end */
+.end { background: var(--ink); color: var(--paper); text-align: center; }
+.end header { border-bottom-color: var(--accent); }
+.end ul { display: grid; gap: 14px; justify-items: center; margin: 8px 0 6px; }
+.end li { padding: 0; margin: 0; }
+.end li::before { display: none; }
+.end .label { display: block; font: 400 10px/1 var(--pixel); letter-spacing: .1em; color: var(--accent2-text, var(--accent2)); margin-bottom: 6px; }
+.end a:not(.play) { color: var(--paper); font-size: 18px; }
+.end a:not(.play):focus-visible { outline-color: var(--paper); }
+.end a.play { margin-top: 0; box-shadow: 0 0 0 3px var(--accent), 0 0 0 5px var(--paper); }
 
 /* the booklet slides out of the case (P3), on a spring; quiet motion just shows it */
 @media (prefers-reduced-motion: no-preference) {

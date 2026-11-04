@@ -24,7 +24,7 @@ facts:
 play: "https://primordialrune.itch.io/crossfader"
 ---
 
-# One half-remembered song | うた
+# One half-remembered song | ウタ
 
 Crossfader is a puzzle platformer about Ayane, a girl searching for a song she half-remembers.
 
